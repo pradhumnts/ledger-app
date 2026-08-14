@@ -17,6 +17,25 @@ export const metadata = {
   title: "Ledger — Simple billing for India",
   description:
     "Super simple customer khata, bills, and activity for Indian businesses.",
+  applicationName: "Ledger",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Ledger",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0b301f" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0f0d" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }) {

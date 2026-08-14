@@ -21,3 +21,13 @@ Open [http://localhost:3000](http://localhost:3000).
 - **Share** — opens WhatsApp / SMS with a prefilled message (no APIs)
 
 Data is stored in the browser (`localStorage`).
+
+## Install as an app (PWA)
+
+Ledger is a Progressive Web App. After deploying:
+
+1. Open the site in **Chrome** (Android) or **Safari** (iOS).
+2. Use **Install app** / **Add to Home Screen**.
+3. The app opens full-screen with your khata data available offline (cached shell + local storage).
+
+Production builds generate a service worker automatically (`npm run build` uses webpack for PWA support).

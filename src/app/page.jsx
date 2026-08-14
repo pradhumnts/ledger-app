@@ -39,7 +39,7 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="mb-5 flex items-start justify-between gap-3">
+      <div className="mb-5 flex items-center justify-between gap-3">
         <div>
           <h1 className="text-[1.85rem] font-semibold tracking-tight text-zinc-950 dark:text-white">
             {greetingForNow(new Date(), language)}
@@ -48,10 +48,10 @@ export default function HomePage() {
         </div>
         <Link
           href="/pay"
-          className="flex size-11 items-center justify-center rounded-2xl border border-black/5 bg-white shadow-sm transition-[transform,opacity] duration-200 hover:opacity-90 active:scale-[0.98] dark:border-white/10 dark:bg-zinc-900"
+          className="flex size-16 items-center justify-center rounded-[1.25rem] border border-black/5 bg-white shadow-sm transition-[transform,opacity] duration-200 hover:opacity-90 active:scale-[0.98] dark:border-white/10 dark:bg-zinc-900"
           aria-label={t("home.showPaymentQr")}
         >
-          <QrCode className="size-5 text-[var(--forest)] dark:text-[var(--lime)]" />
+          <QrCode className="size-8 text-[var(--forest)] dark:text-[var(--lime)]" />
         </Link>
       </div>
 
