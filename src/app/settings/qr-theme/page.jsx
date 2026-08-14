@@ -180,7 +180,7 @@ export default function QrThemePage() {
               {t("qrTheme.pickTitle")}
             </h2>
             <p className="mx-auto mt-1 max-w-[19rem] text-sm leading-relaxed text-zinc-500">
-              {t("qrTheme.pickSubtitle", { price: formatINR(QR_THEME_PRICE) })}
+              {t("qrTheme.pickSubtitle")}
             </p>
           </div>
         </div>

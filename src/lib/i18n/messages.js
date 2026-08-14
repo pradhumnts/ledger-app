@@ -260,7 +260,7 @@ export const messages = {
     qrTheme: {
       title: "QR Theme",
       pickTitle: "Pick a QR look",
-      pickSubtitle: "Pick a poster for your payment QR. Each theme is {price}.",
+      pickSubtitle: "Pick a poster for your payment QR.",
       selected: "Selected theme",
       choose: "Choose theme",
       buy: "Buy for {price}",
@@ -576,7 +576,7 @@ export const messages = {
     qrTheme: {
       title: "QR थीम",
       pickTitle: "QR लुक चुनें",
-      pickSubtitle: "भुगतान QR के लिए पोस्टर। हर थीम {price}।",
+      pickSubtitle: "भुगतान QR के लिए पोस्टर चुनें।",
       selected: "चुनी हुई थीम",
       choose: "थीम चुनें",
       buy: "{price} में खरीदें",
@@ -892,7 +892,7 @@ export const messages = {
     qrTheme: {
       title: "QR Theme",
       pickTitle: "QR look chuno",
-      pickSubtitle: "Payment QR ke liye poster. Har theme {price}.",
+      pickSubtitle: "Payment QR ke liye poster chunein.",
       selected: "Selected theme",
       choose: "Theme chuno",
       buy: "{price} mein khareedo",
