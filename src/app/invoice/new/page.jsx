@@ -2,20 +2,34 @@
 
 import { Suspense, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { FieldError } from "@/components/field-error";
 import { PageHeader } from "@/components/page-header";
+import { SubmitButton } from "@/components/submit-button";
 import { SoftCard } from "@/components/ui-kit";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useApp } from "@/context/app-provider";
+import { useFieldErrors } from "@/hooks/use-field-errors";
+import { useSubmitting } from "@/hooks/use-submitting";
 import { useTranslation } from "@/hooks/use-translation";
 import { toDateInputValue } from "@/lib/format";
 import { findCustomersByName } from "@/lib/store";
+import { cn } from "@/lib/utils";
+import {
+  collectErrors,
+  fieldInvalidClass,
+  validateAmount,
+  validateDate,
+  validateOptionalPhone,
+  validateRequiredName,
+} from "@/lib/validation";
 
 function InvoiceForm() {
   const router = useRouter();
   const { customers, addCustomer, addEntry } = useApp();
   const { t } = useTranslation();
+  const { errors, clearField, showErrors } = useFieldErrors();
+  const { submitting, start, stop } = useSubmitting();
 
   const [amount, setAmount] = useState("");
   const [name, setName] = useState("");
@@ -40,12 +54,24 @@ function InvoiceForm() {
     setSelectedId(customer.id);
     setName(customer.name);
     setPhone(customer.phone || "");
+    clearField("customer");
+    clearField("phone");
   }
 
   function onSubmit(e) {
     e.preventDefault();
-    const value = Number(amount);
-    if (!value || value <= 0 || !name.trim()) return;
+    if (!start()) return;
+
+    const next = collectErrors({
+      amount: validateAmount(amount),
+      customer: validateRequiredName(name),
+      phone: needsNewCustomer ? validateOptionalPhone(phone) : "",
+      date: validateDate(date),
+    });
+    if (!showErrors(next, { customer: "customer" })) {
+      stop();
+      return;
+    }
 
     let customerId = selectedId || exactMatch?.id;
     if (!customerId) {
@@ -56,7 +82,7 @@ function InvoiceForm() {
     addEntry({
       customerId,
       type: "invoice",
-      amount: value,
+      amount: Number(amount),
       description: description || t("common.bill"),
       date,
     });
@@ -70,11 +96,11 @@ function InvoiceForm() {
         title={t("invoice.title")}
         subtitle={t("invoice.subtitle")}
         backHref="/"
-        backLabel={t("nav.home")}
+        backLabel={t("common.back")}
       />
 
       <SoftCard className="p-5">
-        <form onSubmit={onSubmit} className="space-y-5">
+        <form onSubmit={onSubmit} noValidate className="space-y-5" aria-busy={submitting}>
           <div className="space-y-2">
             <Label htmlFor="amount">{t("entry.amountRupee")}</Label>
             <Input
@@ -85,11 +111,21 @@ function InvoiceForm() {
               min="1"
               step="1"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                setAmount(e.target.value);
+                clearField("amount");
+              }}
               placeholder="0"
-              className="h-14 rounded-2xl text-2xl font-semibold tabular-nums"
-              required
+              className={cn(
+                "h-14 rounded-2xl text-2xl font-semibold tabular-nums",
+                fieldInvalidClass(errors.amount)
+              )}
+              aria-invalid={Boolean(errors.amount)}
+              aria-describedby={errors.amount ? "amount-error" : undefined}
             />
+            <FieldError id="amount-error">
+              {errors.amount ? t(errors.amount) : null}
+            </FieldError>
           </div>
 
           <div className="space-y-2">
@@ -100,11 +136,19 @@ function InvoiceForm() {
               onChange={(e) => {
                 setName(e.target.value);
                 setSelectedId(null);
+                clearField("customer");
               }}
               placeholder={t("invoice.customerPlaceholder")}
-              className="h-12 rounded-2xl"
-              required
+              className={cn(
+                "h-12 rounded-2xl",
+                fieldInvalidClass(errors.customer)
+              )}
+              aria-invalid={Boolean(errors.customer)}
+              aria-describedby={errors.customer ? "customer-error" : undefined}
             />
+            <FieldError id="customer-error">
+              {errors.customer ? t(errors.customer) : null}
+            </FieldError>
 
             {matches.length > 0 && !selectedId ? (
               <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
@@ -132,13 +176,25 @@ function InvoiceForm() {
                   {t("invoice.newCustomerHint")}
                 </p>
                 <Input
+                  id="phone"
                   type="tel"
                   inputMode="numeric"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    clearField("phone");
+                  }}
                   placeholder={t("customerNew.phone")}
-                  className="h-11 rounded-xl bg-white dark:bg-zinc-900"
+                  className={cn(
+                    "h-11 rounded-xl bg-white dark:bg-zinc-900",
+                    fieldInvalidClass(errors.phone)
+                  )}
+                  aria-invalid={Boolean(errors.phone)}
+                  aria-describedby={errors.phone ? "phone-error" : undefined}
                 />
+                <FieldError id="phone-error" className="mt-2">
+                  {errors.phone ? t(errors.phone) : null}
+                </FieldError>
               </div>
             ) : null}
           </div>
@@ -160,18 +216,22 @@ function InvoiceForm() {
               id="date"
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-12 rounded-2xl"
-              required
+              onChange={(e) => {
+                setDate(e.target.value);
+                clearField("date");
+              }}
+              className={cn("h-12 rounded-2xl", fieldInvalidClass(errors.date))}
+              aria-invalid={Boolean(errors.date)}
+              aria-describedby={errors.date ? "date-error" : undefined}
             />
+            <FieldError id="date-error">
+              {errors.date ? t(errors.date) : null}
+            </FieldError>
           </div>
 
-          <Button
-            type="submit"
-            className="h-12 w-full rounded-full bg-[var(--forest)] text-base font-semibold text-white hover:bg-[var(--forest-soft)] dark:bg-[var(--lime)] dark:text-[var(--forest)]"
-          >
+          <SubmitButton loading={submitting} loadingLabel={t("common.saving")}>
             {t("invoice.save")}
-          </Button>
+          </SubmitButton>
         </form>
       </SoftCard>
     </>

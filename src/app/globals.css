@@ -54,6 +54,7 @@
   --lime: #c8e86a;
   --mint: #1f8a4c;
   --app-bg: #f4f5f3;
+  --well: #eef1ec;
   --background: #f4f5f3;
   --foreground: #0a0a0a;
   --card: #ffffff;
@@ -89,29 +90,30 @@
 }
 
 .dark {
-  --forest: #c8e86a;
-  --forest-soft: #a8c85a;
-  --lime: #2a4a32;
-  --mint: #6fdb9a;
-  --app-bg: #0c0f0d;
-  --background: #0c0f0d;
-  --foreground: #f5f5f5;
-  --card: #161a17;
-  --card-foreground: #f5f5f5;
-  --popover: #161a17;
-  --popover-foreground: #f5f5f5;
+  --forest: #0b301f;
+  --forest-soft: #164a32;
+  --lime: #c8e86a;
+  --mint: #7ee3a8;
+  --app-bg: #090b0a;
+  --background: #090b0a;
+  --foreground: #f3f5f2;
+  --card: #141916;
+  --card-foreground: #f3f5f2;
+  --popover: #1a211c;
+  --popover-foreground: #f3f5f2;
   --primary: #c8e86a;
   --primary-foreground: #0b301f;
-  --secondary: #1f2621;
-  --secondary-foreground: #f5f5f5;
-  --muted: #1f2621;
-  --muted-foreground: #a1a1aa;
-  --accent: #1f2621;
-  --accent-foreground: #f5f5f5;
+  --secondary: #1c241f;
+  --secondary-foreground: #f3f5f2;
+  --muted: #1c241f;
+  --muted-foreground: #a4b0a8;
+  --accent: #1c241f;
+  --accent-foreground: #f3f5f2;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: rgb(255 255 255 / 10%);
-  --input: rgb(255 255 255 / 12%);
+  --border: rgb(255 255 255 / 13%);
+  --input: rgb(255 255 255 / 14%);
   --ring: #c8e86a;
+  --well: #1c241f;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -125,6 +127,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: dark;
 }
 
 @layer base {
@@ -136,6 +139,12 @@
   }
   html {
     @apply font-sans;
+  }
+  .dark .text-zinc-500 {
+    color: #a4b0a8;
+  }
+  .dark .text-zinc-400 {
+    color: #8b968e;
   }
   /* Off-screen carousel cards must never add sideways scroll. `clip` is used
      instead of `hidden` so it never turns the page into a scroll container. */
@@ -243,6 +252,116 @@
   animation: none;
 }
 
+.page-enter:has(.theme-page) {
+  animation: none;
+  height: 100%;
+  overflow: hidden;
+}
+
+html:has(.theme-page),
+html:has(.theme-page) body {
+  background: #f4f5f3;
+}
+
+html.dark:has(.theme-page),
+html.dark:has(.theme-page) body {
+  background: #090b0a;
+}
+
+@keyframes onboard-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes onboard-step-in-forward {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes onboard-step-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes onboard-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes onboard-grid-col {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onboard-fade-up {
+  animation: onboard-fade-up 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.onboard-step-forward {
+  animation: onboard-step-in-forward 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.onboard-step-back {
+  animation: onboard-step-in-back 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.onboard-scale-in {
+  animation: onboard-scale-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.onboard-grid-col {
+  animation: onboard-grid-col 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.onboard-delay-1 {
+  animation-delay: 80ms;
+}
+.onboard-delay-2 {
+  animation-delay: 160ms;
+}
+.onboard-delay-3 {
+  animation-delay: 240ms;
+}
+.onboard-delay-4 {
+  animation-delay: 320ms;
+}
+.onboard-delay-5 {
+  animation-delay: 400ms;
+}
+.onboard-delay-6 {
+  animation-delay: 480ms;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
   .page-enter > * {
@@ -251,5 +370,13 @@
 
   .nav-shell {
     transition: none !important;
+  }
+
+  .onboard-fade-up,
+  .onboard-step-forward,
+  .onboard-step-back,
+  .onboard-scale-in,
+  .onboard-grid-col {
+    animation: none !important;
   }
 }

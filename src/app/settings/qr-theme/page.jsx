@@ -22,8 +22,8 @@ import { formatINR } from "@/lib/format";
 import { requestCustomTheme } from "@/lib/share";
 import { cn } from "@/lib/utils";
 
-const SIDE_PEEK = 48;
-const STAGE_PAD = 28;
+const SIDE_PEEK = 18;
+const STAGE_PAD = 12;
 const REQUEST_INDEX = QR_THEMES.length;
 const CAROUSEL_COUNT = QR_THEMES.length + 1;
 
@@ -47,7 +47,7 @@ export default function QrThemePage() {
   const [index, setIndex] = useState(initialIndex);
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const [stageWidth, setStageWidth] = useState(390);
+  const [stageSize, setStageSize] = useState({ width: 390, height: 480 });
   const stageRef = useRef(null);
   const startX = useRef(0);
 
@@ -60,7 +60,8 @@ export default function QrThemePage() {
   useEffect(() => {
     const el = stageRef.current;
     if (!el) return;
-    const measure = () => setStageWidth(el.clientWidth);
+    const measure = () =>
+      setStageSize({ width: el.clientWidth, height: el.clientHeight });
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
@@ -71,7 +72,10 @@ export default function QrThemePage() {
   const active = isRequestCard ? null : QR_THEMES[index] || QR_THEMES[0];
   const unlockedActive = active ? isQrThemeUnlocked(active, unlocked) : false;
   const isSelected = active ? active.id === selectedId : false;
-  const { width: cardWidth, height: cardHeight } = qrCarouselCardSize(stageWidth);
+  const { width: cardWidth, height: cardHeight } = qrCarouselCardSize(
+    stageSize.width,
+    stageSize.height - STAGE_PAD * 2
+  );
 
   const activeName = active ? themeLabel("qr", active.id, "name") : "";
   const activeTagline = active ? themeLabel("qr", active.id, "tagline") : "";
@@ -107,8 +111,8 @@ export default function QrThemePage() {
   }
 
   const edgeOffset = useMemo(
-    () => carouselEdgeOffset(stageWidth, cardWidth, SIDE_PEEK),
-    [stageWidth, cardWidth]
+    () => carouselEdgeOffset(stageSize.width, cardWidth, SIDE_PEEK),
+    [stageSize.width, cardWidth]
   );
 
   function cardStyle(offset) {
@@ -145,10 +149,10 @@ export default function QrThemePage() {
   }
 
   return (
-    <>
+    <div className="theme-page relative isolate h-full min-h-dvh overflow-hidden">
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 overflow-hidden"
+        className="page-enter-skip pointer-events-none absolute inset-0 overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-white via-[var(--app-bg)] to-[#e9ece6] dark:from-zinc-950 dark:via-[var(--app-bg)] dark:to-black" />
         <div className="absolute -top-28 -left-24 size-[22rem] rounded-full bg-[var(--lime)]/30 blur-[90px] dark:bg-[var(--lime)]/10" />
@@ -156,9 +160,9 @@ export default function QrThemePage() {
         <div className="absolute -bottom-32 left-1/4 size-[18rem] rounded-full bg-[#9ec2a8]/25 blur-[90px] dark:bg-[var(--forest)]/25" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100dvh-5.5rem)] w-full max-w-md flex-col">
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-md flex-col px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+0.5rem))]">
         <div className="shrink-0">
-          <div className="mb-4 flex items-center gap-2">
+          <div className="mb-3 flex items-center gap-2">
             <Link
               href="/settings"
               className="inline-flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-zinc-700 shadow-sm dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200"
@@ -172,25 +176,23 @@ export default function QrThemePage() {
           </div>
 
           <div className="text-center">
-            <h2 className="text-[1.6rem] font-semibold tracking-tight text-zinc-950 dark:text-white">
+            <h2 className="text-[1.45rem] font-semibold tracking-tight text-zinc-950 dark:text-white">
               {t("qrTheme.pickTitle")}
             </h2>
-            <p className="mx-auto mt-1.5 max-w-[19rem] text-sm leading-relaxed text-zinc-500">
+            <p className="mx-auto mt-1 max-w-[19rem] text-sm leading-relaxed text-zinc-500">
               {t("qrTheme.pickSubtitle", { price: formatINR(QR_THEME_PRICE) })}
             </p>
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col justify-center">
-          <div
-            ref={stageRef}
-            className="relative -mx-5 cursor-grab touch-none select-none active:cursor-grabbing"
-            style={{ height: cardHeight + STAGE_PAD * 2 }}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-          >
+        <div
+          ref={stageRef}
+          className="relative mx-[-1.25rem] min-h-0 flex-1 overflow-hidden cursor-grab touch-none select-none active:cursor-grabbing"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+        >
             {QR_THEMES.map((theme, i) => {
               const offset = linearOffset(i, index);
               if (Math.abs(offset) > 2) return null;
@@ -200,7 +202,8 @@ export default function QrThemePage() {
                   key={theme.id}
                   className="absolute left-1/2 origin-center will-change-transform"
                   style={{
-                    top: STAGE_PAD,
+                    top: "50%",
+                    marginTop: -cardHeight / 2,
                     width: cardWidth,
                     height: cardHeight,
                     transition: dragging
@@ -226,7 +229,8 @@ export default function QrThemePage() {
                   key="request-theme"
                   className="absolute left-1/2 origin-center will-change-transform"
                   style={{
-                    top: STAGE_PAD,
+                    top: "50%",
+                    marginTop: -cardHeight / 2,
                     width: cardWidth,
                     height: cardHeight,
                     transition: dragging
@@ -242,11 +246,10 @@ export default function QrThemePage() {
                 </div>
               );
             })()}
-          </div>
         </div>
 
-        <div className="shrink-0 pt-2 pb-2">
-          <div className="mb-4 text-center">
+        <div className="shrink-0 pt-2">
+          <div className="mb-2.5 text-center">
             <p className="text-base font-semibold text-zinc-950 dark:text-white">
               {isRequestCard ? t("qrTheme.requestTitle") : activeName}
             </p>
@@ -290,11 +293,11 @@ export default function QrThemePage() {
             {!isRequestCard && isSelected ? <Check className="size-4" /> : null}
             {buttonLabel}
           </button>
-          <p className="mt-3 text-center text-[11px] text-zinc-400">
+          <p className="mt-2 text-center text-[11px] text-zinc-400">
             {t("qrTheme.swipeHint")}
           </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }

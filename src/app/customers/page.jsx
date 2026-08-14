@@ -55,7 +55,7 @@ export default function CustomersPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("customers.searchPlaceholder")}
-          className="h-12 rounded-2xl border-zinc-200 bg-white pl-10 dark:border-zinc-700 dark:bg-zinc-900"
+          className="h-12 rounded-2xl border-zinc-200 bg-white pl-10 dark:border-white/12 dark:bg-[var(--card)]"
         />
       </div>
 
@@ -89,7 +89,7 @@ export default function CustomersPage() {
                 href={`/customers/${customer.id}`}
                 leading={
                   <Avatar className="size-10">
-                    <AvatarFallback className="bg-zinc-100 text-sm font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                    <AvatarFallback className="bg-zinc-100 text-sm font-medium text-zinc-600 dark:bg-white/[0.08] dark:text-zinc-200">
                       {initials(customer.name)}
                     </AvatarFallback>
                   </Avatar>

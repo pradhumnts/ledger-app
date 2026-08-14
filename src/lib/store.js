@@ -29,6 +29,7 @@ export const defaultState = {
     qrTheme: null,
     unlockedQrThemes: [],
     qrSettingsVersion: QR_SETTINGS_VERSION,
+    onboardingComplete: false,
   },
 };
 
@@ -61,6 +62,18 @@ function sanitizeQrSettings(settings) {
   };
 }
 
+function sanitizeSettings(settings, business = {}) {
+  const sanitized = sanitizeQrSettings(settings);
+  if (!sanitized.onboardingComplete) {
+    const hasProfile =
+      business.name?.trim() || business.phone?.trim();
+    if (hasProfile) {
+      return { ...sanitized, onboardingComplete: true };
+    }
+  }
+  return sanitized;
+}
+
 export function loadState() {
   if (typeof window === "undefined") return structuredClone(defaultState);
   try {
@@ -74,12 +87,18 @@ export function loadState() {
         ...defaultState.business,
         ...(parsed.business || {}),
       },
-      settings: sanitizeQrSettings({
-        ...defaultState.settings,
-        ...(parsed.settings || {}),
-        unlockedBillThemes: parsed.settings?.unlockedBillThemes || [],
-        unlockedQrThemes: parsed.settings?.unlockedQrThemes || [],
-      }),
+      settings: sanitizeSettings(
+        {
+          ...defaultState.settings,
+          ...(parsed.settings || {}),
+          unlockedBillThemes: parsed.settings?.unlockedBillThemes || [],
+          unlockedQrThemes: parsed.settings?.unlockedQrThemes || [],
+        },
+        {
+          ...defaultState.business,
+          ...(parsed.business || {}),
+        }
+      ),
     };
   } catch {
     return structuredClone(defaultState);

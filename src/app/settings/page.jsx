@@ -50,19 +50,19 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() => shareApp(language)}
-          className="relative w-full bg-[var(--forest)] px-5 py-5 text-left text-white transition-opacity hover:opacity-95 active:opacity-90 dark:bg-[var(--lime)] dark:text-[var(--forest)]"
+          className="relative w-full bg-[var(--forest)] px-5 py-5 text-left text-white transition-opacity hover:opacity-95 active:opacity-90"
         >
           <div className="pointer-events-none absolute -top-8 -right-6 size-28 rounded-full bg-white/10" />
           <div className="pointer-events-none absolute -bottom-10 left-10 size-24 rounded-full bg-white/5" />
           <div className="relative flex items-start gap-3">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 dark:bg-[var(--forest)]/15">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/15">
               <Share2 className="size-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-lg font-semibold tracking-tight">
+              <p className="text-lg font-semibold tracking-tight text-[var(--lime)]">
                 {t("settings.shareTitle")}
               </p>
-              <p className="mt-1 text-sm text-white/75 dark:text-[var(--forest)]/70">
+              <p className="mt-1 text-sm text-white/75">
                 {t("settings.shareSubtitle")}
               </p>
             </div>
@@ -100,7 +100,7 @@ export default function SettingsPage() {
         />
         <Divider />
         <div className="flex items-center gap-3 px-4 py-3.5">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-200">
             {dark ? <Moon className="size-4" /> : <Sun className="size-4" />}
           </div>
           <div className="min-w-0 flex-1">
@@ -126,13 +126,13 @@ export default function SettingsPage() {
       </SoftCard>
 
       <div className="my-6 flex items-center gap-3 px-1">
-        <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+        <div className="h-px flex-1 bg-zinc-200 dark:bg-white/[0.08]" />
         <div className="shrink-0 text-center">
           <p className="text-[11px] font-semibold tracking-[0.16em] text-zinc-400 uppercase">
             {t("settings.growOnline")}
           </p>
         </div>
-        <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+        <div className="h-px flex-1 bg-zinc-200 dark:bg-white/[0.08]" />
       </div>
 
       <div className="mb-5 space-y-3">

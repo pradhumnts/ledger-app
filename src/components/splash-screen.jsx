@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Wallet } from "lucide-react";
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
@@ -10,8 +11,9 @@ const MIN_MS = 900;
 const FADE_MS = 450;
 
 export function SplashScreen() {
-  const { ready } = useApp();
+  const { ready, settings } = useApp();
   const { t } = useTranslation();
+  const pathname = usePathname();
   const [phase, setPhase] = useState("visible");
   const [minElapsed, setMinElapsed] = useState(false);
 
@@ -26,6 +28,10 @@ export function SplashScreen() {
     const timer = window.setTimeout(() => setPhase("hidden"), FADE_MS);
     return () => window.clearTimeout(timer);
   }, [ready, minElapsed, phase]);
+
+  if (pathname === "/onboarding") return null;
+  if (!ready) return null;
+  if (!settings.onboardingComplete) return null;
 
   if (phase === "hidden") return null;
 

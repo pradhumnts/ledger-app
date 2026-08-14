@@ -1,23 +1,23 @@
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { BackLink } from "@/components/back-link";
 
 export function PageHeader({
   title,
   subtitle,
   backHref,
+  backReplace = false,
   backLabel = "Back",
   action,
 }) {
   return (
     <header className="mb-6">
       {backHref ? (
-        <Link
-          href={backHref}
-          className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-500 transition-colors duration-200 hover:text-zinc-800 dark:hover:text-zinc-200"
+        <BackLink
+          fallback={backHref}
+          to={backReplace ? backHref : undefined}
+          className="mb-4 gap-1"
         >
-          <ChevronLeft className="size-4" />
           {backLabel}
-        </Link>
+        </BackLink>
       ) : null}
       <div className="flex items-start justify-between gap-3">
         <div>

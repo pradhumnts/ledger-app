@@ -2,6 +2,21 @@
 
 import { cn } from "@/lib/utils";
 
+export const BILL_CARD_RATIO = 352 / 232;
+export const BILL_CAROUSEL_CARD_W = 232;
+
+export function billCarouselCardSize(stageWidth = 390, maxHeight = 400) {
+  const widthCap = Math.min(BILL_CAROUSEL_CARD_W, Math.round(stageWidth * 0.54));
+  let width = widthCap;
+  let height = Math.round(width * BILL_CARD_RATIO);
+  const heightCap = Math.max(220, maxHeight);
+  if (height > heightCap) {
+    height = heightCap;
+    width = Math.round(height / BILL_CARD_RATIO);
+  }
+  return { width, height };
+}
+
 const DEMO = {
   customer: "Rajesh Yogi",
   phone: "87400 74255",
@@ -34,7 +49,7 @@ function InvoicePreview({ businessName, free, active }) {
   return (
     <div
       className={cn(
-        "relative h-full overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-[0_18px_40px_rgba(0,0,0,0.12)]",
+        "relative h-full w-full overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-[0_18px_40px_rgba(0,0,0,0.12)]",
         active && "shadow-[0_24px_50px_rgba(0,0,0,0.16)]"
       )}
     >
@@ -84,7 +99,7 @@ function MinimalPreview({ businessName, free, active }) {
   return (
     <div
       className={cn(
-        "relative h-full overflow-hidden rounded-[1.35rem] border border-zinc-300 bg-white shadow-[0_18px_40px_rgba(0,0,0,0.12)]",
+        "relative h-full w-full overflow-hidden rounded-[1.35rem] border border-zinc-300 bg-white shadow-[0_18px_40px_rgba(0,0,0,0.12)]",
         active && "shadow-[0_24px_50px_rgba(0,0,0,0.16)]"
       )}
     >
@@ -128,7 +143,7 @@ function ColorfulPreview({ businessName, free, active }) {
   return (
     <div
       className={cn(
-        "relative h-full overflow-hidden rounded-[1.35rem] shadow-[0_18px_40px_rgba(0,0,0,0.16)]",
+        "relative h-full w-full overflow-hidden rounded-[1.35rem] shadow-[0_18px_40px_rgba(0,0,0,0.16)]",
         active && "shadow-[0_24px_50px_rgba(0,0,0,0.2)]"
       )}
       style={{
@@ -175,7 +190,7 @@ function TicketPreview({ businessName, free, active }) {
   return (
     <div
       className={cn(
-        "relative h-full overflow-hidden rounded-[1.35rem] bg-[#1a1420] shadow-[0_18px_40px_rgba(0,0,0,0.2)]",
+        "relative h-full w-full overflow-hidden rounded-[1.35rem] bg-[#1a1420] shadow-[0_18px_40px_rgba(0,0,0,0.2)]",
         active && "shadow-[0_24px_50px_rgba(0,0,0,0.24)]"
       )}
     >
@@ -263,7 +278,7 @@ function StatementPreview({ businessName, free, active }) {
   return (
     <div
       className={cn(
-        "relative h-full overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white shadow-[0_18px_40px_rgba(0,0,0,0.12)]",
+        "relative h-full w-full overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white shadow-[0_18px_40px_rgba(0,0,0,0.12)]",
         active && "shadow-[0_24px_50px_rgba(0,0,0,0.16)]"
       )}
     >

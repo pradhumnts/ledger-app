@@ -48,7 +48,7 @@ export default function HomePage() {
         </div>
         <Link
           href="/pay"
-          className="flex size-16 items-center justify-center rounded-[1.25rem] border border-black/5 bg-white shadow-sm transition-[transform,opacity] duration-200 hover:opacity-90 active:scale-[0.98] dark:border-white/10 dark:bg-zinc-900"
+          className="flex size-16 items-center justify-center rounded-[1.25rem] border border-black/5 bg-white shadow-sm transition-[transform,opacity] duration-200 hover:opacity-90 active:scale-[0.98] dark:border-white/[0.12] dark:bg-[var(--card)]"
           aria-label={t("home.showPaymentQr")}
         >
           <QrCode className="size-8 text-[var(--forest)] dark:text-[var(--lime)]" />
@@ -88,7 +88,7 @@ export default function HomePage() {
           </Link>
           <Link
             href="/invoice/new"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--lime)] px-4 py-3 text-sm font-semibold text-[var(--forest)] transition-[opacity,transform] duration-200 ease-out hover:opacity-90 active:scale-[0.98] dark:bg-[var(--lime)]/30 dark:text-[var(--lime)]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--lime)] px-4 py-3 text-sm font-semibold text-[var(--forest)] transition-[opacity,transform,box-shadow] duration-200 ease-out hover:opacity-90 active:scale-[0.98] dark:bg-white/[0.06] dark:text-[var(--lime)] dark:ring-1 dark:ring-[var(--lime)]/45"
           >
             <FileText className="size-4" />
             {t("home.createBill")}
@@ -96,9 +96,9 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="rounded-2xl bg-zinc-50 px-3.5 py-3.5 dark:bg-zinc-800/70">
+          <div className="rounded-2xl bg-zinc-50 px-3.5 py-3.5 dark:bg-[var(--well)]">
             <div className="mb-2.5 flex items-center gap-2">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white dark:border-zinc-600 dark:bg-zinc-900">
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white dark:border-white/10 dark:bg-white/[0.06]">
                 <IndianRupee className="size-3.5 text-zinc-700 dark:text-zinc-200" strokeWidth={2.25} />
               </div>
               <p className="text-xs font-medium leading-tight text-zinc-500">
@@ -109,9 +109,9 @@ export default function HomePage() {
               {formatINR(toCollect)}
             </p>
           </div>
-          <div className="rounded-2xl bg-zinc-50 px-3.5 py-3.5 dark:bg-zinc-800/70">
+          <div className="rounded-2xl bg-zinc-50 px-3.5 py-3.5 dark:bg-[var(--well)]">
             <div className="mb-2.5 flex items-center gap-2">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white dark:border-zinc-600 dark:bg-zinc-900">
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white dark:border-white/10 dark:bg-white/[0.06]">
                 <CalendarDays className="size-3.5 text-zinc-700 dark:text-zinc-200" strokeWidth={2.25} />
               </div>
               <p className="text-xs font-medium leading-tight text-zinc-500">

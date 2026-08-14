@@ -40,7 +40,7 @@ export function SettingsPromoCard({ plan, onSelect, className }) {
         className={cn(
           "relative overflow-hidden rounded-[calc(1.75rem-1px)] px-5 py-5",
           isFeatured
-            ? "bg-gradient-to-br from-[#f8fbea] via-white to-[#eef6df] dark:from-zinc-950 dark:via-zinc-900 dark:to-[#1a2618]"
+            ? "bg-gradient-to-br from-[#f8fbea] via-white to-[#eef6df] dark:from-[#1a2418] dark:via-[#141c14] dark:to-[#1e2a18]"
             : "bg-gradient-to-br from-[#0f3d28] via-[var(--forest)] to-[#082818] text-white"
         )}
       >
@@ -52,7 +52,7 @@ export function SettingsPromoCard({ plan, onSelect, className }) {
             className={cn(
               "absolute -top-16 -right-10 size-40 rounded-full blur-3xl",
               isFeatured
-                ? "bg-[var(--lime)]/35 dark:bg-[var(--lime)]/15"
+                ? "bg-[var(--lime)]/35 dark:bg-[var(--lime)]/20"
                 : "bg-[var(--lime)]/15"
             )}
           />
@@ -74,7 +74,7 @@ export function SettingsPromoCard({ plan, onSelect, className }) {
             className={cn(
               "flex size-12 shrink-0 items-center justify-center rounded-2xl border shadow-sm backdrop-blur-sm",
               isFeatured
-                ? "border-[var(--forest)]/10 bg-white/80 text-[var(--forest)] dark:border-white/10 dark:bg-zinc-800/80 dark:text-[var(--lime)]"
+                ? "border-[var(--forest)]/10 bg-white/80 text-[var(--forest)] dark:border-white/10 dark:bg-white/[0.08] dark:text-[var(--lime)]"
                 : "border-white/15 bg-white/10 text-[var(--lime)]"
             )}
           >

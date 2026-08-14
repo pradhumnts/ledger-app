@@ -3,15 +3,27 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, ImagePlus, Trash2 } from "lucide-react";
+import { FieldError } from "@/components/field-error";
 import { PageHeader } from "@/components/page-header";
+import { SubmitButton } from "@/components/submit-button";
 import { SoftCard } from "@/components/ui-kit";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useApp } from "@/context/app-provider";
+import { useFieldErrors } from "@/hooks/use-field-errors";
+import { useSubmitting } from "@/hooks/use-submitting";
 import { useTranslation } from "@/hooks/use-translation";
 import { initials } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import {
+  collectErrors,
+  fieldInvalidClass,
+  validateOptionalName,
+  validateOptionalPhone,
+  validateOptionalUpi,
+} from "@/lib/validation";
 
 const MAX_LOGO_BYTES = 2.5 * 1024 * 1024;
 const LOGO_SIZE = 512;
@@ -53,6 +65,8 @@ export default function BusinessProfilePage() {
   const router = useRouter();
   const { business, updateBusiness } = useApp();
   const { t } = useTranslation();
+  const { errors, clearField, showErrors } = useFieldErrors();
+  const { submitting, start, stop } = useSubmitting();
   const fileRef = useRef(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -98,6 +112,18 @@ export default function BusinessProfilePage() {
 
   function onSubmit(e) {
     e.preventDefault();
+    if (!start()) return;
+
+    const next = collectErrors({
+      "biz-name": validateOptionalName(name),
+      "biz-phone": validateOptionalPhone(phone),
+      "biz-upi": validateOptionalUpi(upiId),
+    });
+    if (!showErrors(next)) {
+      stop();
+      return;
+    }
+
     updateBusiness({
       name: name.trim(),
       phone: phone.trim(),
@@ -118,7 +144,7 @@ export default function BusinessProfilePage() {
       />
 
       <SoftCard className="p-5">
-        <form onSubmit={onSubmit} className="space-y-5">
+        <form onSubmit={onSubmit} noValidate className="space-y-5" aria-busy={submitting}>
           <div className="space-y-3">
             <Label>{t("business.logo")}</Label>
             <div className="flex items-center gap-4">
@@ -172,11 +198,7 @@ export default function BusinessProfilePage() {
                     </Button>
                   ) : null}
                 </div>
-                {logoError ? (
-                  <p className="text-xs text-rose-600 dark:text-rose-400">
-                    {logoError}
-                  </p>
-                ) : null}
+                <FieldError>{logoError || null}</FieldError>
               </div>
             </div>
             <input
@@ -193,10 +215,23 @@ export default function BusinessProfilePage() {
             <Input
               id="biz-name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                clearField("biz-name");
+              }}
               placeholder={t("business.namePlaceholder")}
-              className="h-12 rounded-2xl"
+              className={cn(
+                "h-12 rounded-2xl",
+                fieldInvalidClass(errors["biz-name"])
+              )}
+              aria-invalid={Boolean(errors["biz-name"])}
+              aria-describedby={
+                errors["biz-name"] ? "biz-name-error" : undefined
+              }
             />
+            <FieldError id="biz-name-error">
+              {errors["biz-name"] ? t(errors["biz-name"]) : null}
+            </FieldError>
           </div>
           <div className="space-y-2">
             <Label htmlFor="biz-phone">{t("business.phone")}</Label>
@@ -204,22 +239,48 @@ export default function BusinessProfilePage() {
               id="biz-phone"
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                clearField("biz-phone");
+              }}
               placeholder={t("business.phonePlaceholder")}
-              className="h-12 rounded-2xl"
+              className={cn(
+                "h-12 rounded-2xl",
+                fieldInvalidClass(errors["biz-phone"])
+              )}
+              aria-invalid={Boolean(errors["biz-phone"])}
+              aria-describedby={
+                errors["biz-phone"] ? "biz-phone-error" : undefined
+              }
             />
+            <FieldError id="biz-phone-error">
+              {errors["biz-phone"] ? t(errors["biz-phone"]) : null}
+            </FieldError>
           </div>
           <div className="space-y-2">
             <Label htmlFor="biz-upi">{t("business.upi")}</Label>
             <Input
               id="biz-upi"
               value={upiId}
-              onChange={(e) => setUpiId(e.target.value)}
+              onChange={(e) => {
+                setUpiId(e.target.value);
+                clearField("biz-upi");
+              }}
               placeholder={t("business.upiPlaceholder")}
-              className="h-12 rounded-2xl"
+              className={cn(
+                "h-12 rounded-2xl",
+                fieldInvalidClass(errors["biz-upi"])
+              )}
               autoCapitalize="none"
               autoCorrect="off"
+              aria-invalid={Boolean(errors["biz-upi"])}
+              aria-describedby={
+                errors["biz-upi"] ? "biz-upi-error" : undefined
+              }
             />
+            <FieldError id="biz-upi-error">
+              {errors["biz-upi"] ? t(errors["biz-upi"]) : null}
+            </FieldError>
             <p className="text-xs text-zinc-500">{t("business.upiHint")}</p>
           </div>
           <div className="space-y-2">
@@ -232,13 +293,13 @@ export default function BusinessProfilePage() {
               className="h-12 rounded-2xl"
             />
           </div>
-          <Button
-            type="submit"
+          <SubmitButton
+            loading={submitting}
             disabled={logoBusy}
-            className="h-12 w-full rounded-full bg-[var(--forest)] text-base font-semibold text-white hover:bg-[var(--forest-soft)] dark:bg-[var(--lime)] dark:text-[var(--forest)]"
+            loadingLabel={t("common.saving")}
           >
             {t("business.save")}
-          </Button>
+          </SubmitButton>
         </form>
       </SoftCard>
     </>

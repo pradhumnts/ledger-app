@@ -21,7 +21,8 @@ export function BottomNav() {
     pathname?.startsWith("/customers/") ||
     pathname?.startsWith("/invoice/") ||
     pathname?.startsWith("/settings/") ||
-    pathname === "/pay";
+    pathname === "/pay" ||
+    pathname === "/onboarding";
 
   const isHidden = hidden && pathname !== "/settings";
 
@@ -34,7 +35,7 @@ export function BottomNav() {
           : "translate-y-0 opacity-100"
       )}
     >
-      <div className="flex items-center justify-between rounded-[1.75rem] border border-black/5 bg-white/95 px-2 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur dark:border-white/10 dark:bg-zinc-900/95">
+      <div className="flex items-center justify-between rounded-[1.75rem] border border-black/5 bg-white/95 px-2 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur dark:border-white/[0.12] dark:bg-[#121714]/95 dark:shadow-[0_8px_30px_rgba(0,0,0,0.45)]">
         {tabs.map(({ href, labelKey, icon: Icon }) => {
           const active =
             href === "/"
@@ -48,8 +49,8 @@ export function BottomNav() {
               className={cn(
                 "flex min-w-[4.5rem] flex-col items-center gap-0.5 rounded-full px-3 py-2 text-[11px] font-medium transition-[color,background-color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.96]",
                 active
-                  ? "bg-[var(--forest)] text-white"
-                  : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                  ? "bg-[var(--forest)] text-white dark:bg-[var(--lime)] dark:text-[var(--forest)]"
+                  : "text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-200"
               )}
             >
               <Icon className="size-[18px]" strokeWidth={1.75} />

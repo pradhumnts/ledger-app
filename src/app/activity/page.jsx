@@ -52,7 +52,7 @@ export default function ActivityPage() {
               "shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97]",
               filter === item.id
                 ? "border-[var(--forest)] bg-[var(--forest)] text-white dark:border-[var(--lime)] dark:bg-[var(--lime)] dark:text-[var(--forest)]"
-                : "border-zinc-200 bg-white text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+                : "border-zinc-200 bg-white text-zinc-500 dark:border-white/12 dark:bg-[var(--card)] dark:text-zinc-400"
             )}
           >
             {item.label}
@@ -68,7 +68,7 @@ export default function ActivityPage() {
           <select
             value={customerId}
             onChange={(e) => setCustomerId(e.target.value)}
-            className="h-12 w-full appearance-none rounded-full border border-zinc-200 bg-white px-4 pr-10 text-sm font-medium text-zinc-900 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+            className="h-12 w-full appearance-none rounded-full border border-zinc-200 bg-white px-4 pr-10 text-sm font-medium text-zinc-900 outline-none dark:border-white/12 dark:bg-[var(--card)] dark:text-white"
           >
             <option value="all">{t("activity.allCustomers")}</option>
             {customers.map((c) => (

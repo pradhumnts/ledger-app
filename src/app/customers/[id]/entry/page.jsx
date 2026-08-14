@@ -2,14 +2,24 @@
 
 import { Suspense, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { FieldError } from "@/components/field-error";
 import { PageHeader } from "@/components/page-header";
+import { SubmitButton } from "@/components/submit-button";
 import { SoftCard } from "@/components/ui-kit";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useApp } from "@/context/app-provider";
+import { useFieldErrors } from "@/hooks/use-field-errors";
+import { useSubmitting } from "@/hooks/use-submitting";
 import { useTranslation } from "@/hooks/use-translation";
 import { toDateInputValue } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import {
+  collectErrors,
+  fieldInvalidClass,
+  validateAmount,
+  validateDate,
+} from "@/lib/validation";
 
 function EntryForm() {
   const params = useParams();
@@ -17,6 +27,8 @@ function EntryForm() {
   const router = useRouter();
   const { getCustomer, addEntry } = useApp();
   const { t } = useTranslation();
+  const { errors, clearField, showErrors } = useFieldErrors();
+  const { submitting, start, stop } = useSubmitting();
 
   const id = params?.id;
   const customer = getCustomer(id);
@@ -35,12 +47,22 @@ function EntryForm() {
 
   function onSubmit(e) {
     e.preventDefault();
-    const value = Number(amount);
-    if (!customer || !value || value <= 0) return;
+    if (!customer) return;
+    if (!start()) return;
+
+    const next = collectErrors({
+      amount: validateAmount(amount),
+      date: validateDate(date),
+    });
+    if (!showErrors(next)) {
+      stop();
+      return;
+    }
+
     addEntry({
       customerId: customer.id,
       type,
-      amount: value,
+      amount: Number(amount),
       description,
       date,
     });
@@ -57,11 +79,12 @@ function EntryForm() {
         title={title}
         subtitle={customer.name}
         backHref={`/customers/${customer.id}`}
+        backReplace
         backLabel={customer.name}
       />
 
       <SoftCard className="p-5">
-        <form onSubmit={onSubmit} className="space-y-5">
+        <form onSubmit={onSubmit} noValidate className="space-y-5" aria-busy={submitting}>
           <div className="space-y-2">
             <Label htmlFor="amount">{t("entry.amountRupee")}</Label>
             <Input
@@ -72,11 +95,21 @@ function EntryForm() {
               min="1"
               step="1"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                setAmount(e.target.value);
+                clearField("amount");
+              }}
               placeholder="0"
-              className="h-14 rounded-2xl text-2xl font-semibold tabular-nums"
-              required
+              className={cn(
+                "h-14 rounded-2xl text-2xl font-semibold tabular-nums",
+                fieldInvalidClass(errors.amount)
+              )}
+              aria-invalid={Boolean(errors.amount)}
+              aria-describedby={errors.amount ? "amount-error" : undefined}
             />
+            <FieldError id="amount-error">
+              {errors.amount ? t(errors.amount) : null}
+            </FieldError>
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">{t("entry.note")}</Label>
@@ -94,17 +127,21 @@ function EntryForm() {
               id="date"
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-12 rounded-2xl"
-              required
+              onChange={(e) => {
+                setDate(e.target.value);
+                clearField("date");
+              }}
+              className={cn("h-12 rounded-2xl", fieldInvalidClass(errors.date))}
+              aria-invalid={Boolean(errors.date)}
+              aria-describedby={errors.date ? "date-error" : undefined}
             />
+            <FieldError id="date-error">
+              {errors.date ? t(errors.date) : null}
+            </FieldError>
           </div>
-          <Button
-            type="submit"
-            className="h-12 w-full rounded-full bg-[var(--forest)] text-base font-semibold text-white hover:bg-[var(--forest-soft)] dark:bg-[var(--lime)] dark:text-[var(--forest)]"
-          >
+          <SubmitButton loading={submitting} loadingLabel={t("common.saving")}>
             {t("entry.save")}
-          </Button>
+          </SubmitButton>
         </form>
       </SoftCard>
     </>

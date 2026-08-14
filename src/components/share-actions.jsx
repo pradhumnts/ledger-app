@@ -57,7 +57,7 @@ export function ShareActions({
         className={cn(
           "inline-flex items-center justify-center gap-1.5 rounded-full border font-semibold transition-[color,background-color,transform] duration-200 ease-out active:scale-[0.98]",
           tight ? "h-11 px-2 text-xs" : "h-12 px-4 text-sm",
-          "border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800"
+          "border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 dark:border-white/12 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
         )}
       >
         <MessageSquare className={tight ? "size-3.5" : "size-4"} />

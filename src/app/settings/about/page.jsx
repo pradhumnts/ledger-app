@@ -25,7 +25,7 @@ export default function AboutPage() {
             {t("about.body")}
           </p>
         </div>
-        <div className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm text-zinc-500 dark:bg-zinc-800/70">
+        <div className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm text-zinc-500 dark:bg-[var(--well)]">
           {t("about.version")}
         </div>
       </SoftCard>

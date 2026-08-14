@@ -57,6 +57,20 @@ export function entryTypeLabel(type, language = "en") {
   return translate(language, "entry.youGot");
 }
 
+export function formatBillNumber(entry) {
+  const d = new Date(entry?.date || Date.now());
+  const yy = String(d.getFullYear()).slice(-2);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const suffix = String(entry?.id || "XXXX")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(-4)
+    .toUpperCase()
+    .padStart(4, "X");
+  const prefix = entry?.type === "invoice" ? "BL" : "RC";
+  return `${prefix}-${yy}${mm}${dd}-${suffix}`;
+}
+
 export function formatDateHeader(iso, language = "en") {
   const d = new Date(iso);
   return d

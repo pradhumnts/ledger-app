@@ -1,4 +1,4 @@
-export const SIDE_TILT = 14;
+export const SIDE_TILT = 6;
 
 export function clampIndex(value, count) {
   return Math.max(0, Math.min(count - 1, value));
@@ -9,7 +9,12 @@ export function linearOffset(i, index) {
 }
 
 export function carouselEdgeOffset(stageWidth, cardWidth, sidePeek) {
-  return stageWidth / 2 + cardWidth / 2 - sidePeek;
+  const neighborScale = 0.9;
+  const gap = 28;
+  const spread = cardWidth * (0.5 + neighborScale / 2) + gap;
+  const keepVisible =
+    stageWidth / 2 + (cardWidth * neighborScale) / 2 - sidePeek;
+  return Math.min(spread, keepVisible);
 }
 
 export function carouselCardStyle({
@@ -29,8 +34,8 @@ export function carouselCardStyle({
   const beyond = Math.max(0, distance - 1) * cardWidth;
   const translateX = sign * (edgeOffset * t + beyond);
   const rotate = sign * sideTilt * t;
-  const translateY = t * t * 26;
-  const scale = 1 - 0.04 * t;
+  const translateY = t * t * 10;
+  const scale = 1 - 0.1 * t;
 
   return {
     transform: `translateX(-50%) translateX(${translateX}px) translateY(${translateY}px) rotate(${rotate}deg) scale(${scale})`,

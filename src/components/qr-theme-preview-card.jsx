@@ -7,12 +7,16 @@ export const QR_POSTER_RATIO = 1844 / 853;
 
 export const QR_CAROUSEL_CARD_W = 226;
 
-export function qrCarouselCardSize(stageWidth = 390) {
-  const width = Math.min(QR_CAROUSEL_CARD_W, Math.round(stageWidth * 0.58));
-  return {
-    width,
-    height: Math.round(width * QR_POSTER_RATIO),
-  };
+export function qrCarouselCardSize(stageWidth = 390, maxHeight = 520) {
+  const widthCap = Math.min(QR_CAROUSEL_CARD_W, Math.round(stageWidth * 0.46));
+  let width = widthCap;
+  let height = Math.round(width * QR_POSTER_RATIO);
+  const heightCap = Math.max(220, maxHeight);
+  if (height > heightCap) {
+    height = heightCap;
+    width = Math.round(height / QR_POSTER_RATIO);
+  }
+  return { width, height };
 }
 
 export function QrThemePreviewCard({ theme, active }) {

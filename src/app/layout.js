@@ -20,7 +20,7 @@ export const metadata = {
   applicationName: "Ledger",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Ledger",
   },
   formatDetection: {
@@ -30,8 +30,8 @@ export const metadata = {
 
 export const viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0b301f" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c0f0d" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f5f3" },
+    { media: "(prefers-color-scheme: dark)", color: "#090b0a" },
   ],
   width: "device-width",
   initialScale: 1,

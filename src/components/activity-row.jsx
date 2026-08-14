@@ -21,9 +21,9 @@ export function ActivityRow({
 
   const content = (
     <>
-      <Avatar className="size-11 border border-zinc-100 dark:border-zinc-700">
+      <Avatar className="size-11 border border-zinc-100 dark:border-white/10">
         {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
-        <AvatarFallback className="bg-zinc-100 text-sm font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+        <AvatarFallback className="bg-zinc-100 text-sm font-medium text-zinc-600 dark:bg-white/[0.08] dark:text-zinc-200">
           {initials(nameForInitials || title)}
         </AvatarFallback>
       </Avatar>
@@ -57,7 +57,7 @@ export function ActivityRow({
   );
 
   const classes =
-    "flex items-center gap-3 px-4 py-3.5 transition-[background-color,transform] duration-200 ease-out hover:bg-zinc-50/80 active:scale-[0.995] dark:hover:bg-zinc-800/50";
+    "flex items-center gap-3 px-4 py-3.5 transition-[background-color,transform] duration-200 ease-out hover:bg-zinc-50/80 active:scale-[0.995] dark:hover:bg-white/[0.04]";
 
   if (href) {
     return (

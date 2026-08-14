@@ -122,6 +122,14 @@ export function AppProvider({ children }) {
     }));
   }, []);
 
+  const completeOnboarding = useCallback((business) => {
+    setState((prev) => ({
+      ...prev,
+      business: { ...prev.business, ...business },
+      settings: { ...prev.settings, onboardingComplete: true },
+    }));
+  }, []);
+
   const addCustomer = useCallback(({ name, phone }) => {
     const result = createCustomer(state, { name, phone });
     setState(result.state);
@@ -153,6 +161,7 @@ export function AppProvider({ children }) {
       setQrTheme,
       unlockQrTheme,
       updateBusiness,
+      completeOnboarding,
       addCustomer,
       addEntry,
       getCustomer,
@@ -167,6 +176,7 @@ export function AppProvider({ children }) {
       setQrTheme,
       unlockQrTheme,
       updateBusiness,
+      completeOnboarding,
       addCustomer,
       addEntry,
       getCustomer,

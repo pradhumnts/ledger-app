@@ -1,17 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   ArrowDownLeft,
   ArrowUpRight,
-  ChevronLeft,
   MessageCircle,
   Phone,
   Share2,
 } from "lucide-react";
 import { ActivityRow } from "@/components/activity-row";
+import { BackLink } from "@/components/back-link";
 import { ShareActions } from "@/components/share-actions";
 import { SoftCard, Divider } from "@/components/ui-kit";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -42,6 +42,7 @@ import {
   groupEntriesByDate,
 } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { rememberCustomerOrigin } from "@/lib/nav-memory";
 
 export default function CustomerDetailPage() {
   const params = useParams();
@@ -50,6 +51,10 @@ export default function CustomerDetailPage() {
   const { t, language } = useTranslation();
   const customer = getCustomer(id);
   const [shareOpen, setShareOpen] = useState(false);
+
+  useEffect(() => {
+    if (id) rememberCustomerOrigin(id, `/customers/${id}`);
+  }, [id]);
 
   const history = useMemo(
     () => entriesForCustomer(entries, id),
@@ -125,17 +130,17 @@ export default function CustomerDetailPage() {
   return (
     <>
       <div className="mb-5 flex items-center justify-between">
-        <Link
-          href="/customers"
-          className="inline-flex items-center gap-0.5 text-sm text-zinc-500 transition-colors hover:text-zinc-800 dark:hover:text-zinc-200"
+        <BackLink
+          fallback="/customers"
+          nestedPrefix={`/customers/${id}/`}
+          originForCustomerId={id}
         >
-          <ChevronLeft className="size-4" />
-          {t("nav.customers")}
-        </Link>
+          {t("common.back")}
+        </BackLink>
         <button
           type="button"
           onClick={() => setShareOpen(true)}
-          className="inline-flex size-11 items-center justify-center rounded-2xl border border-black/5 bg-white text-zinc-600 shadow-sm transition-colors hover:bg-zinc-50 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          className="inline-flex size-11 items-center justify-center rounded-2xl border border-black/5 bg-white text-zinc-600 shadow-sm transition-colors hover:bg-zinc-50 dark:border-white/12 dark:bg-[var(--card)] dark:text-zinc-300 dark:hover:bg-white/[0.06]"
           aria-label={t("customers.shareAll")}
         >
           <Share2 className="size-4" />
@@ -181,7 +186,7 @@ export default function CustomerDetailPage() {
         </p>
 
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="rounded-2xl bg-zinc-50 px-3.5 py-3 dark:bg-zinc-800/70">
+          <div className="rounded-2xl bg-zinc-50 px-3.5 py-3 dark:bg-[var(--well)]">
             <div className="mb-1 flex items-center gap-1 text-xs text-zinc-500">
               <ArrowUpRight className="size-3.5" />
               {t("entry.youGave")}
@@ -190,7 +195,7 @@ export default function CustomerDetailPage() {
               {formatINR(totals.gave)}
             </p>
           </div>
-          <div className="rounded-2xl bg-zinc-50 px-3.5 py-3 dark:bg-zinc-800/70">
+          <div className="rounded-2xl bg-zinc-50 px-3.5 py-3 dark:bg-[var(--well)]">
             <div className="mb-1 flex items-center gap-1 text-xs text-zinc-500">
               <ArrowDownLeft className="size-3.5" />
               {t("entry.youGot")}
@@ -202,7 +207,7 @@ export default function CustomerDetailPage() {
         </div>
 
         {history.length > 0 ? (
-          <div className="mt-5 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          <div className="mt-5 border-t border-zinc-100 pt-4 dark:border-white/[0.08]">
             <p className="mb-1 text-sm font-semibold text-zinc-950 dark:text-white">
               {t("customers.shareAll")}
             </p>
@@ -232,7 +237,7 @@ export default function CustomerDetailPage() {
 
       {history.length === 0 ? (
         <SoftCard className="px-4 py-12 text-center">
-          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-zinc-50 dark:bg-zinc-800">
+          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-zinc-50 dark:bg-[var(--well)]">
             <MessageCircle className="size-5 text-zinc-300" />
           </div>
           <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
@@ -295,7 +300,7 @@ export default function CustomerDetailPage() {
       </Dialog>
 
       <div className="page-enter-skip pointer-events-none fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-        <div className="pointer-events-auto grid grid-cols-2 gap-2.5 rounded-[1.75rem] border border-black/5 bg-white/95 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur dark:border-white/10 dark:bg-zinc-900/95">
+        <div className="pointer-events-auto grid grid-cols-2 gap-2.5 rounded-[1.75rem] border border-black/5 bg-white/95 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur dark:border-white/12 dark:bg-[#121714]/95">
           <Link
             href={`/customers/${customer.id}/entry?type=gave`}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-3.5 text-sm font-semibold text-white transition-[opacity,transform] duration-200 ease-out hover:opacity-90 active:scale-[0.98] dark:bg-zinc-100 dark:text-zinc-900"
