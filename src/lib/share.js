@@ -91,6 +91,30 @@ export function openWhatsApp({ phone, text }) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
+/**
+ * WhatsApp chat links cannot attach files. When the browser can share a PDF,
+ * this uses the system share sheet so WhatsApp gets the bill plus the message.
+ * Otherwise it falls back to the usual text-only chat link.
+ */
+export async function shareOnWhatsApp({ phone, text, file, title }) {
+  if (file) {
+    try {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: title || "Ledger",
+          text,
+        });
+        return;
+      }
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+    }
+  }
+
+  openWhatsApp({ phone, text });
+}
+
 export function openSMS({ phone, text }) {
   const digits = String(phone || "").replace(/\D/g, "");
   const body = encodeURIComponent(text);

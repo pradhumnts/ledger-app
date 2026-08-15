@@ -227,9 +227,12 @@ function drawSummaryTiles(doc, y, tiles) {
   return y + height;
 }
 
+function toPdfFile(doc, filename) {
+  return new File([doc.output("blob")], filename, { type: "application/pdf" });
+}
+
 async function saveOrShare(doc, filename, title) {
-  const blob = doc.output("blob");
-  const file = new File([blob], filename, { type: "application/pdf" });
+  const file = toPdfFile(doc, filename);
 
   try {
     if (navigator.canShare?.({ files: [file] })) {
@@ -243,7 +246,12 @@ async function saveOrShare(doc, filename, title) {
   doc.save(filename);
 }
 
-export async function exportCustomerStatementPdf({
+export async function exportCustomerStatementPdf(args) {
+  const { doc, filename, title } = await buildCustomerStatementPdf(args);
+  await saveOrShare(doc, filename, title);
+}
+
+export async function buildCustomerStatementPdf({
   customer,
   entries,
   balance,
@@ -367,10 +375,21 @@ export async function exportCustomerStatementPdf({
   });
 
   const filename = `${safeFilename(customer?.name)}-${billNo}.pdf`;
-  await saveOrShare(doc, filename, `Statement for ${customer?.name || "customer"}`);
+  const title = `Statement for ${customer?.name || "customer"}`;
+  return {
+    doc,
+    filename,
+    title,
+    file: toPdfFile(doc, filename),
+  };
 }
 
-export async function exportEntryPdf({ entry, customer, business, billThemeId }) {
+export async function exportEntryPdf(args) {
+  const { doc, filename, title } = await buildEntryPdf(args);
+  await saveOrShare(doc, filename, title);
+}
+
+export async function buildEntryPdf({ entry, customer, business, billThemeId }) {
   const { jsPDF } = await loadPdf();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const url = getAppUrl();
@@ -453,5 +472,11 @@ export async function exportEntryPdf({ entry, customer, business, billThemeId })
   drawFooter(doc, url, colors);
 
   const filename = `${safeFilename(customer?.name)}-${billNo}.pdf`;
-  await saveOrShare(doc, filename, `${label} for ${customer?.name || "customer"}`);
+  const title = `${label} for ${customer?.name || "customer"}`;
+  return {
+    doc,
+    filename,
+    title,
+    file: toPdfFile(doc, filename),
+  };
 }

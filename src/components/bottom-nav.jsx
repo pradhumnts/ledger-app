@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Home, Settings, Users } from "lucide-react";
+import { Home, Settings, Users } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { href: "/", labelKey: "nav.home", icon: Home },
   { href: "/customers", labelKey: "nav.customers", icon: Users },
-  { href: "/activity", labelKey: "nav.activity", icon: Activity },
   { href: "/settings", labelKey: "nav.settings", icon: Settings },
 ];
 
@@ -47,7 +46,7 @@ export function BottomNav() {
               key={href}
               href={href}
               className={cn(
-                "flex min-w-[4.5rem] flex-col items-center gap-0.5 rounded-full px-3 py-2 text-[11px] font-medium transition-[color,background-color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.96]",
+                "flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-full px-3 py-2 text-[11px] font-medium transition-[color,background-color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.96]",
                 active
                   ? "bg-[var(--forest)] text-white dark:bg-[var(--lime)] dark:text-[var(--forest)]"
                   : "text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-200"

@@ -2,6 +2,7 @@
 
 import {
   Building2,
+  History,
   Info,
   Languages,
   Moon,
@@ -79,6 +80,13 @@ export default function SettingsPage() {
         />
         <Divider />
         <ListRow
+          href="/settings/history"
+          icon={<History className="size-4" />}
+          title={t("settings.history")}
+          subtitle={t("settings.historySubtitle")}
+        />
+        <Divider />
+        <ListRow
           href="/settings/bill-theme"
           icon={<Palette className="size-4" />}
           title={t("settings.billTheme")}
@@ -108,7 +116,7 @@ export default function SettingsPage() {
               {t("settings.darkMode")}
             </p>
             <p className="text-sm text-zinc-500">
-              {dark ? t("common.on") : t("common.off")} · {t("settings.darkModeHint")}
+              {dark ? t("common.on") : t("common.off")}
             </p>
           </div>
           <Switch

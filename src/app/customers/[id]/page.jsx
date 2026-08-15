@@ -34,9 +34,12 @@ import {
 import {
   buildCustomerStatementMessage,
   openSMS,
-  openWhatsApp,
+  shareOnWhatsApp,
 } from "@/lib/share";
-import { exportCustomerStatementPdf } from "@/lib/pdf";
+import {
+  buildCustomerStatementPdf,
+  exportCustomerStatementPdf,
+} from "@/lib/pdf";
 import {
   customerBalance,
   entriesForCustomer,
@@ -98,7 +101,7 @@ export default function CustomerDetailPage() {
     );
   }
 
-  function shareAll(channel) {
+  async function shareAll(channel) {
     const text = buildCustomerStatementMessage({
       customer,
       entries: history,
@@ -106,8 +109,25 @@ export default function CustomerDetailPage() {
       business,
       language,
     });
-    if (channel === "whatsapp") openWhatsApp({ phone: customer.phone, text });
-    else openSMS({ phone: customer.phone, text });
+    if (channel === "sms") {
+      openSMS({ phone: customer.phone, text });
+      return;
+    }
+
+    const { file, title } = await buildCustomerStatementPdf({
+      customer,
+      entries: history,
+      balance,
+      totals,
+      business,
+      billThemeId: settings.billTheme,
+    });
+    await shareOnWhatsApp({
+      phone: customer.phone,
+      text,
+      file,
+      title,
+    });
   }
 
   async function exportAllPdf() {
@@ -293,8 +313,8 @@ export default function CustomerDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <ShareActions
-            onWhatsApp={() => {
-              shareAll("whatsapp");
+            onWhatsApp={async () => {
+              await shareAll("whatsapp");
               setShareOpen(false);
             }}
             onSMS={() => {

@@ -8,8 +8,8 @@ import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { exportEntryPdf } from "@/lib/pdf";
-import { buildEntryMessage, openSMS, openWhatsApp } from "@/lib/share";
+import { exportEntryPdf, buildEntryPdf } from "@/lib/pdf";
+import { buildEntryMessage, openSMS, shareOnWhatsApp } from "@/lib/share";
 
 export default function EntryDetailPage() {
   const params = useParams();
@@ -39,10 +39,25 @@ export default function EntryDetailPage() {
     );
   }
 
-  function shareEntry(channel) {
+  async function shareEntry(channel) {
     const text = buildEntryMessage({ entry, customer, business, language });
-    if (channel === "whatsapp") openWhatsApp({ phone: customer.phone, text });
-    else openSMS({ phone: customer.phone, text });
+    if (channel === "sms") {
+      openSMS({ phone: customer.phone, text });
+      return;
+    }
+
+    const { file, title } = await buildEntryPdf({
+      entry,
+      customer,
+      business,
+      billThemeId: settings.billTheme,
+    });
+    await shareOnWhatsApp({
+      phone: customer.phone,
+      text,
+      file,
+      title,
+    });
   }
 
   async function exportPdf() {

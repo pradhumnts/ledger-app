@@ -2,6 +2,7 @@
 
 import { Mic } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useSpeechToText } from "@/hooks/use-speech-to-text";
 import { useTranslation } from "@/hooks/use-translation";
 import { getSpeechLang } from "@/lib/i18n";
@@ -14,6 +15,7 @@ export function VoiceField({
   onValueChange,
   className,
   disabled,
+  multiline = false,
   ...props
 }) {
   const { t, language } = useTranslation();
@@ -26,15 +28,21 @@ export function VoiceField({
     },
   });
 
+  const Control = multiline ? Textarea : Input;
+
   return (
     <div className="space-y-1.5">
       <div className="relative">
-        <Input
+        <Control
           {...props}
           value={value}
           disabled={disabled}
           onChange={(event) => onValueChange(event.target.value)}
-          className={cn(supported && "pr-12", className)}
+          className={cn(
+            supported && "pr-12",
+            multiline && "min-h-[7.5rem] resize-none py-3",
+            className
+          )}
         />
         {supported ? (
           <button
@@ -42,7 +50,8 @@ export function VoiceField({
             onClick={toggle}
             disabled={disabled}
             className={cn(
-              "absolute top-1/2 right-1.5 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:opacity-40 dark:hover:bg-white/10 dark:hover:text-zinc-200",
+              "absolute right-1.5 inline-flex size-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:opacity-40 dark:hover:bg-white/10 dark:hover:text-zinc-200",
+              multiline ? "top-2.5" : "top-1/2 -translate-y-1/2",
               listening &&
                 "bg-[var(--forest)] text-white hover:bg-[var(--forest)] hover:text-white dark:bg-[var(--lime)] dark:text-[var(--forest)] dark:hover:bg-[var(--lime)]"
             )}

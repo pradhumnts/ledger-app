@@ -130,7 +130,7 @@ export default function HomePage() {
           {t("home.recentActivity")}
         </h2>
         <Link
-          href="/activity"
+          href="/settings/history"
           className="text-sm text-zinc-500 transition-colors hover:text-zinc-800 dark:hover:text-zinc-300"
         >
           {t("home.seeDetails")}

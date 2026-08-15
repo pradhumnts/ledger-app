@@ -113,14 +113,18 @@ function EntryForm() {
             </FieldError>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">{t("entry.note")}</Label>
+            <Label htmlFor="description" className="w-full justify-between">
+              {t("entry.note")}
+              <span className="font-normal text-zinc-400">{t("common.optional")}</span>
+            </Label>
             <VoiceField
               id="description"
               kind="text"
+              multiline
               value={description}
               onValueChange={setDescription}
               placeholder={t("entry.notePlaceholder")}
-              className="h-12 rounded-2xl"
+              className="rounded-2xl"
             />
           </div>
           <div className="space-y-2">

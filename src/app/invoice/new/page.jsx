@@ -49,7 +49,8 @@ function InvoiceForm() {
     return customers.find((c) => c.name.toLowerCase() === q) || null;
   }, [customers, name]);
 
-  const needsNewCustomer = name.trim() && !selectedId && !exactMatch;
+  const needsNewCustomer =
+    Boolean(name.trim()) && !selectedId && !exactMatch && matches.length === 0;
 
   function pickCustomer(customer) {
     setSelectedId(customer.id);
@@ -153,13 +154,13 @@ function InvoiceForm() {
             </FieldError>
 
             {matches.length > 0 && !selectedId ? (
-              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-white/12 dark:bg-[var(--card)]">
                 {matches.map((customer) => (
                   <button
                     key={customer.id}
                     type="button"
                     onClick={() => pickCustomer(customer)}
-                    className="flex w-full items-center justify-between border-b border-zinc-100 px-4 py-3 text-left last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800"
+                    className="flex w-full items-center justify-between border-b border-zinc-100 px-4 py-3 text-left last:border-b-0 hover:bg-zinc-50 dark:border-white/[0.08] dark:hover:bg-white/[0.04]"
                   >
                     <span className="text-sm font-medium text-zinc-900 dark:text-white">
                       {customer.name}
@@ -171,45 +172,50 @@ function InvoiceForm() {
                 ))}
               </div>
             ) : null}
-
-            {needsNewCustomer ? (
-              <div className="rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-800/70">
-                <p className="mb-2 text-sm text-zinc-600 dark:text-zinc-300">
-                  {t("invoice.newCustomerHint")}
-                </p>
-                <Input
-                  id="phone"
-                  type="tel"
-                  inputMode="numeric"
-                  value={phone}
-                  onChange={(e) => {
-                    setPhone(e.target.value);
-                    clearField("phone");
-                  }}
-                  placeholder={t("customerNew.phone")}
-                  className={cn(
-                    "h-11 rounded-xl bg-white dark:bg-zinc-900",
-                    fieldInvalidClass(errors.phone)
-                  )}
-                  aria-invalid={Boolean(errors.phone)}
-                  aria-describedby={errors.phone ? "phone-error" : undefined}
-                />
-                <FieldError id="phone-error" className="mt-2">
-                  {errors.phone ? t(errors.phone) : null}
-                </FieldError>
-              </div>
-            ) : null}
           </div>
 
+          {needsNewCustomer ? (
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="w-full justify-between">
+                {t("customerNew.phone")}
+                <span className="font-normal text-zinc-400">{t("common.optional")}</span>
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                inputMode="numeric"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  clearField("phone");
+                }}
+                placeholder={t("customerNew.phonePlaceholder")}
+                className={cn(
+                  "h-12 rounded-2xl",
+                  fieldInvalidClass(errors.phone)
+                )}
+                aria-invalid={Boolean(errors.phone)}
+                aria-describedby={errors.phone ? "phone-error" : undefined}
+              />
+              <FieldError id="phone-error">
+                {errors.phone ? t(errors.phone) : null}
+              </FieldError>
+            </div>
+          ) : null}
+
           <div className="space-y-2">
-            <Label htmlFor="description">{t("entry.note")}</Label>
+            <Label htmlFor="description" className="w-full justify-between">
+              {t("entry.note")}
+              <span className="font-normal text-zinc-400">{t("common.optional")}</span>
+            </Label>
             <VoiceField
               id="description"
               kind="text"
+              multiline
               value={description}
               onValueChange={setDescription}
               placeholder={t("invoice.notePlaceholder")}
-              className="h-12 rounded-2xl"
+              className="rounded-2xl"
             />
           </div>
 
