@@ -14,6 +14,7 @@ import {
   defaultState,
   loadState,
   saveState,
+  updateCustomer as patchCustomer,
 } from "@/lib/store";
 import { DEFAULT_LANGUAGE, getHtmlLang, normalizeLanguage } from "@/lib/i18n";
 
@@ -136,6 +137,16 @@ export function AppProvider({ children }) {
     return result.customer;
   }, [state]);
 
+  const updateCustomer = useCallback(
+    (id, { name, phone }) => {
+      const result = patchCustomer(state, id, { name, phone });
+      if (!result.customer) return null;
+      setState(result.state);
+      return result.customer;
+    },
+    [state]
+  );
+
   const addEntry = useCallback(
     (payload) => {
       const result = createEntry(state, payload);
@@ -163,6 +174,7 @@ export function AppProvider({ children }) {
       updateBusiness,
       completeOnboarding,
       addCustomer,
+      updateCustomer,
       addEntry,
       getCustomer,
     }),
@@ -178,6 +190,7 @@ export function AppProvider({ children }) {
       updateBusiness,
       completeOnboarding,
       addCustomer,
+      updateCustomer,
       addEntry,
       getCustomer,
     ]

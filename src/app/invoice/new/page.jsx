@@ -8,6 +8,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { SoftCard } from "@/components/ui-kit";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { VoiceField } from "@/components/voice-field";
 import { useApp } from "@/context/app-provider";
 import { useFieldErrors } from "@/hooks/use-field-errors";
 import { useSubmitting } from "@/hooks/use-submitting";
@@ -130,11 +131,12 @@ function InvoiceForm() {
 
           <div className="space-y-2">
             <Label htmlFor="customer">{t("invoice.customer")}</Label>
-            <Input
+            <VoiceField
               id="customer"
+              kind="name"
               value={name}
-              onChange={(e) => {
-                setName(e.target.value);
+              onValueChange={(next) => {
+                setName(next);
                 setSelectedId(null);
                 clearField("customer");
               }}
@@ -201,10 +203,11 @@ function InvoiceForm() {
 
           <div className="space-y-2">
             <Label htmlFor="description">{t("entry.note")}</Label>
-            <Input
+            <VoiceField
               id="description"
+              kind="text"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onValueChange={setDescription}
               placeholder={t("invoice.notePlaceholder")}
               className="h-12 rounded-2xl"
             />

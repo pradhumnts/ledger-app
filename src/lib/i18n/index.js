@@ -47,6 +47,13 @@ export function getIntlLocale(language) {
 
 /**
  * @param {AppLanguage} language
+ */
+export function getSpeechLang(language) {
+  return normalizeLanguage(language) === "en" ? "en-IN" : "hi-IN";
+}
+
+/**
+ * @param {AppLanguage} language
  * @param {string} key
  * @param {Record<string, string|number>} [vars]
  */

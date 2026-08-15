@@ -171,6 +171,23 @@ export function createCustomer(state, { name, phone }) {
   };
 }
 
+export function updateCustomer(state, id, { name, phone }) {
+  let customer = null;
+  const customers = state.customers.map((item) => {
+    if (item.id !== id) return item;
+    customer = {
+      ...item,
+      name: name.trim(),
+      phone: String(phone || "").trim(),
+    };
+    return customer;
+  });
+  return {
+    state: { ...state, customers },
+    customer,
+  };
+}
+
 export function createEntry(state, payload) {
   const entry = {
     id: uid("ent"),

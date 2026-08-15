@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { FieldError } from "@/components/field-error";
 import { PageHeader } from "@/components/page-header";
 import { SubmitButton } from "@/components/submit-button";
@@ -21,14 +22,38 @@ import {
   validateRequiredName,
 } from "@/lib/validation";
 
-export default function NewCustomerPage() {
+export default function EditCustomerPage() {
+  const params = useParams();
+  const id = params?.id;
   const router = useRouter();
-  const { addCustomer } = useApp();
+  const { ready, getCustomer, updateCustomer } = useApp();
   const { t } = useTranslation();
   const { errors, clearField, showErrors } = useFieldErrors();
   const { submitting, start, stop } = useSubmitting();
+  const customer = getCustomer(id);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+
+  useEffect(() => {
+    if (!customer) return;
+    setName(customer.name || "");
+    setPhone(customer.phone || "");
+  }, [customer]);
+
+  if (!ready) {
+    return <p className="text-sm text-zinc-500">{t("common.loading")}</p>;
+  }
+
+  if (!customer) {
+    return (
+      <>
+        <p className="mb-4 text-sm text-zinc-500">{t("customers.notFound")}</p>
+        <Link href="/customers" className="text-sm font-medium text-[var(--forest)]">
+          {t("customers.backToCustomers")}
+        </Link>
+      </>
+    );
+  }
 
   function onSubmit(e) {
     e.preventDefault();
@@ -43,16 +68,20 @@ export default function NewCustomerPage() {
       return;
     }
 
-    const customer = addCustomer({ name, phone });
+    const updated = updateCustomer(customer.id, { name, phone });
+    if (!updated) {
+      stop();
+      return;
+    }
     router.replace(`/customers/${customer.id}`);
   }
 
   return (
     <>
       <PageHeader
-        title={t("customerNew.title")}
-        subtitle={t("customerNew.subtitle")}
-        backHref="/"
+        title={t("customerEdit.title")}
+        subtitle={t("customerEdit.subtitle")}
+        backHref={`/customers/${customer.id}`}
         backLabel={t("common.back")}
       />
 
@@ -99,7 +128,7 @@ export default function NewCustomerPage() {
             </FieldError>
           </div>
           <SubmitButton loading={submitting} loadingLabel={t("common.saving")}>
-            {t("customerNew.save")}
+            {t("customerEdit.save")}
           </SubmitButton>
         </form>
       </SoftCard>

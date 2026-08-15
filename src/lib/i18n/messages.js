@@ -29,6 +29,14 @@ export const messages = {
       noDescription: "No description added.",
       sentViaLedger: "Sent via Ledger",
     },
+    voice: {
+      start: "Type by speaking",
+      stop: "Stop listening",
+      listening: "Listening… speak now",
+      permission: "Allow the microphone to type by speaking.",
+      network: "Speech needs a network connection. Try again.",
+      failed: "Couldn't catch that. Tap the mic and try again.",
+    },
     validation: {
       nameRequired: "Please enter a name.",
       nameTooShort: "Name must be at least 2 characters.",
@@ -89,6 +97,7 @@ export const messages = {
       noEntriesHint: "Tap You gave or You got to add the first one.",
       shareAllDialogTitle: "Share all entries",
       shareAllDialogDesc: "Save a branded PDF, or send the full statement",
+      edit: "Edit customer",
     },
     customerNew: {
       title: "Add customer",
@@ -98,6 +107,11 @@ export const messages = {
       phone: "Phone number",
       phonePlaceholder: "10-digit mobile",
       save: "Save customer",
+    },
+    customerEdit: {
+      title: "Edit customer",
+      subtitle: "Update the name or phone number.",
+      save: "Save changes",
     },
     entry: {
       youGave: "You gave",
@@ -345,6 +359,14 @@ export const messages = {
       noDescription: "कोई विवरण नहीं।",
       sentViaLedger: "Ledger से भेजा गया",
     },
+    voice: {
+      start: "बोलकर लिखें",
+      stop: "सुनना बंद करें",
+      listening: "सुन रहा है… बोलिए",
+      permission: "बोलकर लिखने के लिए माइक्रोफ़ोन की अनुमति दें।",
+      network: "बोलकर लिखने के लिए इंटरनेट चाहिए। फिर कोशिश करें।",
+      failed: "सुनाई नहीं दिया। माइक दबाकर फिर बोलें।",
+    },
     validation: {
       nameRequired: "कृपया नाम दर्ज करें।",
       nameTooShort: "नाम कम से कम 2 अक्षर का होना चाहिए।",
@@ -405,6 +427,7 @@ export const messages = {
       noEntriesHint: "पहली एंट्री के लिए आपने दिए या आपको मिले पर टैप करें।",
       shareAllDialogTitle: "सभी एंट्री साझा करें",
       shareAllDialogDesc: "PDF सेव करें, या पूरा स्टेटमेंट भेजें",
+      edit: "ग्राहक संपादित करें",
     },
     customerNew: {
       title: "ग्राहक जोड़ें",
@@ -414,6 +437,11 @@ export const messages = {
       phone: "फ़ोन नंबर",
       phonePlaceholder: "10 अंकों का मोबाइल",
       save: "ग्राहक सेव करें",
+    },
+    customerEdit: {
+      title: "ग्राहक संपादित करें",
+      subtitle: "नाम या फ़ोन नंबर बदलें।",
+      save: "बदलाव सेव करें",
     },
     entry: {
       youGave: "आपने दिए",
@@ -661,6 +689,14 @@ export const messages = {
       noDescription: "Koi description nahi.",
       sentViaLedger: "Ledger se bheja",
     },
+    voice: {
+      start: "Bolke likho",
+      stop: "Sunna band karo",
+      listening: "Sun raha hai… bolo",
+      permission: "Bolke likhne ke liye microphone allow karo.",
+      network: "Bolke likhne ke liye internet chahiye. Phir try karo.",
+      failed: "Suna nahi. Mic dabake phir bolo.",
+    },
     validation: {
       nameRequired: "Please naam daalo.",
       nameTooShort: "Naam kam se kam 2 characters ka hona chahiye.",
@@ -721,6 +757,7 @@ export const messages = {
       noEntriesHint: "Pehli entry ke liye You gave ya You got tap karo.",
       shareAllDialogTitle: "Saari entries share karo",
       shareAllDialogDesc: "PDF save karo, ya poora statement bhejo",
+      edit: "Customer edit karo",
     },
     customerNew: {
       title: "Customer add karo",
@@ -730,6 +767,11 @@ export const messages = {
       phone: "Phone number",
       phonePlaceholder: "10 digit mobile",
       save: "Customer save karo",
+    },
+    customerEdit: {
+      title: "Customer edit karo",
+      subtitle: "Naam ya phone number badlo.",
+      save: "Changes save karo",
     },
     entry: {
       youGave: "Aapne diye",

@@ -7,6 +7,7 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   MessageCircle,
+  Pencil,
   Phone,
   Share2,
 } from "lucide-react";
@@ -137,14 +138,23 @@ export default function CustomerDetailPage() {
         >
           {t("common.back")}
         </BackLink>
-        <button
-          type="button"
-          onClick={() => setShareOpen(true)}
-          className="inline-flex size-11 items-center justify-center rounded-2xl border border-black/5 bg-white text-zinc-600 shadow-sm transition-colors hover:bg-zinc-50 dark:border-white/12 dark:bg-[var(--card)] dark:text-zinc-300 dark:hover:bg-white/[0.06]"
-          aria-label={t("customers.shareAll")}
-        >
-          <Share2 className="size-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/customers/${customer.id}/edit`}
+            className="inline-flex size-11 items-center justify-center rounded-2xl border border-black/5 bg-white text-zinc-600 shadow-sm transition-colors hover:bg-zinc-50 dark:border-white/12 dark:bg-[var(--card)] dark:text-zinc-300 dark:hover:bg-white/[0.06]"
+            aria-label={t("customers.edit")}
+          >
+            <Pencil className="size-4" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => setShareOpen(true)}
+            className="inline-flex size-11 items-center justify-center rounded-2xl border border-black/5 bg-white text-zinc-600 shadow-sm transition-colors hover:bg-zinc-50 dark:border-white/12 dark:bg-[var(--card)] dark:text-zinc-300 dark:hover:bg-white/[0.06]"
+            aria-label={t("customers.shareAll")}
+          >
+            <Share2 className="size-4" />
+          </button>
+        </div>
       </div>
 
       <SoftCard className="mb-8 overflow-hidden p-5">
