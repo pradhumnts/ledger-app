@@ -362,6 +362,7 @@ export default function OnboardingPage() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const [otpReqId, setOtpReqId] = useState("");
   const [resendIn, setResendIn] = useState(0);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -413,7 +414,7 @@ export default function OnboardingPage() {
       if (!start()) return;
       try {
         if (otpSent) {
-          const result = await confirmPhoneOtp(phone, otp);
+          const result = await confirmPhoneOtp(phone, otp, otpReqId);
           if (result.restored) {
             router.replace("/");
             return;
@@ -425,6 +426,7 @@ export default function OnboardingPage() {
             return;
           }
           if (!result.skipped && !result.alreadyVerified) {
+            setOtpReqId(result.reqId || "");
             setOtpSent(true);
             setResendIn(30);
             stop();
@@ -464,7 +466,8 @@ export default function OnboardingPage() {
     if (resendIn > 0 || submitting) return;
     if (!start()) return;
     try {
-      await sendPhoneOtp(phone);
+      const result = await sendPhoneOtp(phone);
+      setOtpReqId(result.reqId || "");
       setOtp("");
       setResendIn(30);
       clearField("onboard-otp");
@@ -481,6 +484,7 @@ export default function OnboardingPage() {
       clearAll();
       setOtpSent(false);
       setOtp("");
+      setOtpReqId("");
       return;
     }
     if (step > 0) {

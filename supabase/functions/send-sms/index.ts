@@ -10,8 +10,8 @@ Deno.serve(async (req) => {
     "v1,whsec_",
     ""
   );
-  const apiKey = Deno.env.get("TWOFACTOR_API_KEY") || "";
-  const template = Deno.env.get("TWOFACTOR_TEMPLATE_NAME") || "";
+  const authkey = Deno.env.get("MSG91_AUTHKEY") || "";
+  const templateId = Deno.env.get("MSG91_TEMPLATE_ID") || "";
 
   try {
     const { user, sms } = new Webhook(secret).verify(
@@ -19,21 +19,49 @@ Deno.serve(async (req) => {
       Object.fromEntries(req.headers)
     );
 
-    const otp = sms?.otp;
-    const phone = String(user?.phone || "").replace(/\D/g, ""); // +9198… → 9198…
+    const otp = String(sms?.otp || "").trim();
+    const phone = String(user?.phone || "").replace(/\D/g, "");
     if (!otp || phone.length < 10) {
       return jsonError(400, "Missing phone or OTP");
     }
+    if (!authkey) {
+      return jsonError(500, "MSG91_AUTHKEY is not set");
+    }
+    if (!templateId) {
+      return jsonError(
+        500,
+        "MSG91_TEMPLATE_ID is not set. Copy the default OTP template ID from MSG91 → OTP → Templates."
+      );
+    }
 
-    const path = template
-      ? `${apiKey}/SMS/${phone}/${otp}/${encodeURIComponent(template)}`
-      : `${apiKey}/SMS/${phone}/${otp}`;
+    const url = new URL("https://control.msg91.com/api/v5/otp");
+    url.searchParams.set("template_id", templateId);
+    url.searchParams.set("mobile", phone);
+    url.searchParams.set("otp", otp);
+    url.searchParams.set("otp_length", String(otp.length));
 
-    const smsRes = await fetch(`https://2factor.in/API/V1/${path}`);
+    const smsRes = await fetch(url, {
+      method: "POST",
+      headers: {
+        authkey,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
     const body = await smsRes.json().catch(() => ({}));
+    const type = String(body.type || body.Type || "").toLowerCase();
+    const message = String(body.message || body.msg || "");
 
-    if (body.Status !== "Success") {
-      return jsonError(500, body.Details || "2Factor send failed");
+    console.log(
+      JSON.stringify({
+        msg91_status: smsRes.status,
+        msg91_type: type,
+        msg91_message: message,
+      })
+    );
+
+    if (!smsRes.ok || type === "error" || type !== "success") {
+      return jsonError(500, message || "MSG91 did not send the SMS");
     }
 
     return new Response(JSON.stringify({}), {

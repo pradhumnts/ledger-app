@@ -2,11 +2,25 @@ import {
   isQrThemeUnlocked,
   QR_THEMES,
 } from "@/lib/qr-themes";
+import { uniqueUid } from "@/lib/format";
 import {
-  startOfDay,
-  startOfMonth,
-  uniqueUid,
-} from "@/lib/format";
+  customerBalance,
+  customerBalancePaise,
+  customerTotals,
+  entryBilledAmount,
+  entryOutstanding,
+  prepareEntryAmounts,
+  shopToCollect,
+  summarizeBilled,
+} from "@/lib/ledger-math";
+
+export {
+  customerBalance,
+  customerTotals,
+  entryBilledAmount,
+  entryOutstanding,
+  shopToCollect,
+};
 
 export const STORAGE_KEY = "ledger-app-v1";
 export const QR_SETTINGS_VERSION = 2;
@@ -146,61 +160,8 @@ export function peekStoredPrefs() {
   }
 }
 
-export function entryBilledAmount(entry) {
-  if (!entry || entry.type === "got") return 0;
-  return Number(entry.amount) || 0;
-}
-
-export function entryOutstanding(entry) {
-  if (!entry) return 0;
-  if (entry.type === "got") return -Number(entry.amount) || 0;
-  if (entry.type === "invoice") return Number(entry.due ?? entry.amount) || 0;
-  return Number(entry.amount) || 0;
-}
-
-export function customerBalance(entries, customerId) {
-  return entries
-    .filter((e) => e.customerId === customerId)
-    .reduce((sum, e) => sum + entryOutstanding(e), 0);
-}
-
-export function customerTotals(entries, customerId) {
-  return entries
-    .filter((e) => e.customerId === customerId)
-    .reduce(
-      (acc, entry) => {
-        acc.billed += entryBilledAmount(entry);
-        acc.due += entryOutstanding(entry);
-        return acc;
-      },
-      { billed: 0, due: 0 }
-    );
-}
-
 export function summarizeEntries(entries, now = new Date()) {
-  const todayStart = startOfDay(now).getTime();
-  const monthStart = startOfMonth(now).getTime();
-
-  let todayBilled = 0;
-  let monthBilled = 0;
-
-  entries.forEach((entry) => {
-    const t = new Date(entry.date).getTime();
-    const billed = entryBilledAmount(entry);
-    if (t >= todayStart) todayBilled += billed;
-    if (t >= monthStart) monthBilled += billed;
-  });
-
-  return {
-    todayBilled,
-    monthBilled,
-    todayIn: 0,
-    todayOut: todayBilled,
-    todayNet: todayBilled,
-    monthIn: 0,
-    monthOut: monthBilled,
-    monthNet: monthBilled,
-  };
+  return summarizeBilled(entries, now);
 }
 
 export function createCustomer(state, { name, phone }) {
@@ -240,9 +201,12 @@ export function updateCustomer(state, id, { name, phone }) {
 }
 
 export function createEntry(state, payload) {
-  const amount = Number(payload.amount);
-  // Always mint a fresh id and prepend — never replace an existing entry,
-  // even if the same customer / amount / date is used again.
+  const owedPaise = customerBalancePaise(state.entries, payload.customerId);
+  const prepared = prepareEntryAmounts(payload, owedPaise);
+  if (prepared.rejected) {
+    return { state, entry: null };
+  }
+
   const entry = {
     id: uniqueUid(
       "ent",
@@ -250,15 +214,8 @@ export function createEntry(state, payload) {
     ),
     customerId: payload.customerId,
     type: payload.type,
-    amount,
-    due:
-      payload.type === "invoice"
-        ? Number(payload.due ?? amount)
-        : payload.type === "due"
-          ? amount
-          : payload.type === "got"
-            ? Math.max(0, Number(payload.due ?? 0))
-            : undefined,
+    amount: prepared.amount,
+    due: prepared.due,
     description: (payload.description || "").trim(),
     date: payload.date
       ? new Date(payload.date).toISOString()

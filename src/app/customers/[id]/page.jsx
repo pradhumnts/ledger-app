@@ -43,6 +43,7 @@ import {
   groupEntriesByDate,
 } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { collectableRupees } from "@/lib/ledger-math";
 import { rememberCustomerOrigin } from "@/lib/nav-memory";
 
 export default function CustomerDetailPage() {
@@ -209,7 +210,7 @@ export default function CustomerDetailPage() {
               {t("entry.due")}
             </div>
             <p className="text-base font-semibold tabular-nums text-[var(--mint)]">
-              {formatINR(Math.max(0, balance))}
+              {formatINR(collectableRupees(balance))}
             </p>
           </div>
         </div>

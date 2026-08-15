@@ -7,52 +7,68 @@ export async function requestPhoneOtp(phone) {
     return { skipped: true };
   }
 
-  const supabase = getSupabaseBrowserClient();
-  if (!supabase) return { skipped: true };
-
   const e164 = toE164India(phone);
   if (!e164) throw new Error("Enter a valid mobile number.");
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (session?.user?.phone === e164) {
-    const shop = await pullShop(supabase, session.user.id);
-    return {
-      skipped: false,
-      alreadyVerified: true,
-      userId: session.user.id,
-      shop,
-    };
+  const supabase = getSupabaseBrowserClient();
+  if (supabase) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session?.user?.phone === e164) {
+      const shop = await pullShop(supabase, session.user.id);
+      return {
+        skipped: false,
+        alreadyVerified: true,
+        userId: session.user.id,
+        shop,
+      };
+    }
   }
 
-  const { error } = await supabase.auth.signInWithOtp({
-    phone: e164,
-    options: {
-      channel: "sms",
-      shouldCreateUser: true,
-    },
+  const response = await fetch("/api/auth/otp/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone }),
   });
-  if (error) throw error;
-  return { skipped: false, alreadyVerified: false };
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || "Could not send the SMS code.");
+  }
+  return {
+    skipped: false,
+    alreadyVerified: false,
+    reqId: payload.reqId,
+  };
 }
 
-export async function verifyPhoneOtp(phone, token) {
+export async function verifyPhoneOtp(phone, token, reqId) {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) {
     throw new Error("Supabase is not configured.");
   }
 
-  const e164 = toE164India(phone);
-  const { data, error } = await supabase.auth.verifyOtp({
-    phone: e164,
-    token: String(token || "").trim(),
-    type: "sms",
+  const response = await fetch("/api/auth/otp/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, otp: token, reqId }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || "Could not verify that code.");
+  }
+
+  const { error } = await supabase.auth.verifyOtp({
+    type: "email",
+    token_hash: payload.hashed_token,
   });
   if (error) throw error;
 
-  const userId = data.session?.user?.id;
-  if (!userId) throw new Error("Could not verify that code.");
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const userId = session?.user?.id || payload.user?.id;
+  if (!userId) throw new Error("Could not sign in.");
 
   const shop = await pullShop(supabase, userId);
   return { userId, shop };

@@ -346,7 +346,10 @@ after update of phone on auth.users
 for each row execute procedure public.sync_profile_phone();
 
 -- ---------------------------------------------------------------------------
--- Computed balances (source of truth stays the entries table)
+-- Computed balances (source of truth stays the entries table).
+-- Must stay in lockstep with src/lib/ledger-math.js (entryBilledPaise /
+-- entryOutstandingPaise): got subtracts amount, invoice uses due_paise,
+-- due/gave add amount. Billed ignores payments.
 -- ---------------------------------------------------------------------------
 
 create or replace view public.customer_totals

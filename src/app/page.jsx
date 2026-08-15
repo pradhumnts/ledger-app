@@ -20,8 +20,8 @@ import {
   initials,
 } from "@/lib/format";
 import {
-  customerBalance,
   recentActivity,
+  shopToCollect,
   summarizeEntries,
 } from "@/lib/store";
 
@@ -30,10 +30,7 @@ export default function HomePage() {
   const { t, language } = useTranslation();
   const summary = summarizeEntries(entries);
   const activity = recentActivity(entries, customers, 8);
-  const toCollect = customers.reduce((sum, c) => {
-    const bal = customerBalance(entries, c.id);
-    return bal > 0 ? sum + bal : sum;
-  }, 0);
+  const toCollect = shopToCollect(customers, entries);
   const totalToday = summary.todayBilled;
   const totalMonth = summary.monthBilled;
 

@@ -1,3 +1,5 @@
+import { rupeesToPaise } from "./supabase/money.js";
+
 export function digitsOnly(value) {
   return String(value || "").replace(/\D/g, "");
 }
@@ -54,7 +56,17 @@ export function validateAmount(value, { required = true } = {}) {
   if (!raw) return required ? "validation.amountRequired" : "";
   const num = parseMoney(raw);
   if (!Number.isFinite(num)) return "validation.amountInvalid";
-  if (num <= 0) return "validation.amountPositive";
+  if (rupeesToPaise(num) <= 0) return "validation.amountPositive";
+  return "";
+}
+
+export function validateDeposit(value, owed) {
+  const amountError = validateAmount(value);
+  if (amountError) return amountError;
+  const maxPaise = Math.max(0, rupeesToPaise(owed));
+  if (maxPaise <= 0) return "validation.nothingDue";
+  const paidPaise = rupeesToPaise(parseMoney(value));
+  if (paidPaise > maxPaise) return "validation.depositTooLarge";
   return "";
 }
 
@@ -65,8 +77,8 @@ export function validateDue(value, amountValue) {
   if (!Number.isFinite(num)) return "validation.amountInvalid";
   if (num < 0) return "validation.dueNegative";
   const amount = parseMoney(amountValue);
-  if (!Number.isFinite(amount) || amount <= 0) return "";
-  if (num > amount) return "validation.dueTooLarge";
+  if (!Number.isFinite(amount) || rupeesToPaise(amount) <= 0) return "";
+  if (rupeesToPaise(num) > rupeesToPaise(amount)) return "validation.dueTooLarge";
   return "";
 }
 

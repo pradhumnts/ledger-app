@@ -1,12 +1,14 @@
 import { getIntlLocale, normalizeLanguage, translate } from "@/lib/i18n";
+import { paiseToRupees, rupeesToPaise } from "@/lib/supabase/money";
 
 export function formatINR(amount, { signed = false } = {}) {
-  const value = Number(amount) || 0;
+  const value = paiseToRupees(rupeesToPaise(amount));
   const abs = Math.abs(value);
   const formatted = new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(abs);
 
   if (!signed) return formatted;
@@ -16,9 +18,10 @@ export function formatINR(amount, { signed = false } = {}) {
 }
 
 export function formatINRPlain(amount) {
-  const value = Number(amount) || 0;
+  const value = paiseToRupees(rupeesToPaise(amount));
   return new Intl.NumberFormat("en-IN", {
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(value);
 }
 

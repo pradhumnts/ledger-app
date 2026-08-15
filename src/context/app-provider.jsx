@@ -205,11 +205,12 @@ export function AppProvider({ children }) {
       restored: false,
       skipped: Boolean(result.skipped),
       alreadyVerified: Boolean(result.alreadyVerified),
+      reqId: result.reqId || "",
     };
   }, [applyShop]);
 
-  const confirmPhoneOtp = useCallback(async (phone, token) => {
-    const result = await verifyPhoneOtp(phone, token);
+  const confirmPhoneOtp = useCallback(async (phone, token, reqId) => {
+    const result = await verifyPhoneOtp(phone, token, reqId);
     if (result.userId) setUserId(result.userId);
     if (result.shop) {
       applyShop(result.shop);
@@ -245,6 +246,7 @@ export function AppProvider({ children }) {
     setState((prev) => {
       const result = createEntry(prev, payload);
       entry = result.entry;
+      if (!result.entry) return prev;
       saveState(result.state);
       return result.state;
     });

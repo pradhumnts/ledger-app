@@ -3,8 +3,12 @@ import { NextResponse } from "next/server";
 const ONBOARDING_COOKIE = "mk_onboarded";
 
 export function proxy(request) {
-  const onboarded = request.cookies.get(ONBOARDING_COOKIE)?.value === "1";
   const { pathname } = request.nextUrl;
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
+  const onboarded = request.cookies.get(ONBOARDING_COOKIE)?.value === "1";
   const onOnboarding = pathname === "/onboarding";
 
   if (!onboarded && !onOnboarding) {
@@ -20,6 +24,6 @@ export function proxy(request) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|_next/data|favicon.ico|manifest.webmanifest|sw.js|workbox|icon|apple-touch-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|map)$).*)",
+    "/((?!api|_next/static|_next/image|_next/data|favicon.ico|manifest.webmanifest|sw.js|workbox|icon|apple-touch-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|map)$).*)",
   ],
 };

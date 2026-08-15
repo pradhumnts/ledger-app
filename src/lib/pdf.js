@@ -6,6 +6,8 @@ import {
   formatEntryDateTime,
 } from "@/lib/format";
 import { getAppUrl } from "@/lib/share";
+import { collectableRupees } from "@/lib/ledger-math";
+import { paiseToRupees, rupeesToPaise } from "@/lib/supabase/money";
 
 /** Bills / PDFs always use English — Helvetica can't render Hindi glyphs reliably. */
 const PDF_LANG = "en";
@@ -27,9 +29,10 @@ function resolveTheme(billThemeId) {
 }
 
 function rupees(amount) {
-  const value = Math.abs(Number(amount) || 0);
+  const value = Math.abs(paiseToRupees(rupeesToPaise(amount)));
   return `Rs. ${new Intl.NumberFormat("en-IN", {
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(value)}`;
 }
 
@@ -316,7 +319,7 @@ export async function buildCustomerStatementPdf({
 
   y = drawSummaryTiles(doc, y, [
     { label: "Billed", value: rupees(totals?.billed) },
-    { label: "Due", value: rupees(Math.max(0, totals?.due ?? balance)), color: MINT },
+    { label: "Due", value: rupees(collectableRupees(totals?.due ?? balance)), color: MINT },
     {
       label: balanceCopy(balance),
       value: rupees(balance),

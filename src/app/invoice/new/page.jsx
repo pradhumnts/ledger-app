@@ -14,13 +14,22 @@ import { useFieldErrors } from "@/hooks/use-field-errors";
 import { useSubmitting } from "@/hooks/use-submitting";
 import { useTranslation } from "@/hooks/use-translation";
 import { formatINR, toDateInputValue } from "@/lib/format";
-import { customerBalance, findCustomersByName } from "@/lib/store";
+import {
+  customerBalance,
+  findCustomersByName,
+} from "@/lib/store";
+import {
+  collectableRupees,
+  remainingAfterDeposit,
+  rupeesToPaise,
+} from "@/lib/ledger-math";
 import { cn } from "@/lib/utils";
 import {
   collectErrors,
   fieldInvalidClass,
   validateAmount,
   validateDate,
+  validateDeposit,
   validateDue,
   validateOptionalPhone,
   validateRequiredName,
@@ -101,16 +110,36 @@ function InvoiceForm() {
   const currentDue = previewCustomerId
     ? customerBalance(entries, previewCustomerId)
     : 0;
+  const depositOwed = collectableRupees(currentDue);
+  const depositDueReady = Boolean(ready && previewCustomerId);
+  const amountLocked =
+    kind === "due" && (!depositDueReady || depositOwed <= 0);
   const paidValue = Number(amount);
   const remainingAfter =
     Number.isFinite(paidValue) && paidValue > 0
-      ? Math.max(0, currentDue - paidValue)
-      : currentDue;
+      ? remainingAfterDeposit(depositOwed, paidValue)
+      : depositOwed;
 
   function updateAmount(next) {
+    if (kind === "due") {
+      if (!depositDueReady) return;
+      const num = Number(next);
+      if (
+        Number.isFinite(num) &&
+        depositOwed > 0 &&
+        rupeesToPaise(num) > rupeesToPaise(depositOwed)
+      ) {
+        setAmount(String(depositOwed));
+        setField("amount", "validation.depositTooLarge");
+        return;
+      }
+      setAmount(next);
+      setField("amount", validateDeposit(next, depositOwed));
+      return;
+    }
     setAmount(next);
     clearField("amount");
-    if (kind === "bill") setField("due", validateDue(due, next));
+    setField("due", validateDue(due, next));
   }
 
   function updateDue(next) {
@@ -124,6 +153,10 @@ function InvoiceForm() {
     setPhone(customer.phone || "");
     clearField("customer");
     clearField("phone");
+    if (kind === "due") {
+      setAmount("");
+      clearField("amount");
+    }
   }
 
   function onSubmit(e) {
@@ -131,7 +164,10 @@ function InvoiceForm() {
     if (!start()) return;
 
     const next = collectErrors({
-      amount: validateAmount(amount),
+      amount:
+        kind === "due"
+          ? validateDeposit(amount, depositOwed)
+          : validateAmount(amount),
       due: kind === "bill" ? validateDue(due, amount) : "",
       customer: presetCustomer ? "" : validateRequiredName(name),
       phone: needsNewCustomer ? validateOptionalPhone(phone) : "",
@@ -143,38 +179,53 @@ function InvoiceForm() {
     }
 
     let customerId = presetCustomer?.id || selectedId || exactMatch?.id;
+    if (kind === "due") {
+      if (!customerId) {
+        showErrors({ customer: "validation.nameRequired" });
+        stop();
+        return;
+      }
+      const previousDue = collectableRupees(
+        customerBalance(entries, customerId)
+      );
+      const depositError = validateDeposit(amount, previousDue);
+      if (depositError) {
+        showErrors({ amount: depositError });
+        stop();
+        return;
+      }
+      addEntry({
+        customerId,
+        type: "got",
+        amount: Number(amount),
+        due: previousDue - Number(amount),
+        description: description || t("entry.paid"),
+        date,
+      });
+      router.replace("/");
+      return;
+    }
+
     if (!customerId) {
       const created = addCustomer({ name, phone });
       customerId = created.id;
     }
 
     const billed = Number(amount);
-    if (kind === "bill") {
-      const outstanding = due.trim() === "" ? billed : Number(due);
-      if (outstanding > billed) {
-        showErrors({ due: "validation.dueTooLarge" });
-        stop();
-        return;
-      }
-      addEntry({
-        customerId,
-        type: "invoice",
-        amount: billed,
-        due: outstanding,
-        description: description || t("common.bill"),
-        date,
-      });
-    } else {
-      const previousDue = customerBalance(entries, customerId);
-      addEntry({
-        customerId,
-        type: "got",
-        amount: billed,
-        due: Math.max(0, previousDue - billed),
-        description: description || t("entry.paid"),
-        date,
-      });
+    const outstanding = due.trim() === "" ? 0 : Number(due);
+    if (rupeesToPaise(outstanding) > rupeesToPaise(billed)) {
+      showErrors({ due: "validation.dueTooLarge" });
+      stop();
+      return;
     }
+    addEntry({
+      customerId,
+      type: "invoice",
+      amount: billed,
+      due: outstanding,
+      description: description || t("common.bill"),
+      date,
+    });
 
     router.replace("/");
   }
@@ -203,7 +254,67 @@ function InvoiceForm() {
 
       <SoftCard className="p-5">
         <form onSubmit={onSubmit} noValidate className="space-y-5" aria-busy={submitting}>
-          <KindToggle kind={kind} onChange={setKind} t={t} />
+          <KindToggle
+            kind={kind}
+            onChange={(nextKind) => {
+              setKind(nextKind);
+              if (nextKind === "due") {
+                setAmount("");
+                clearField("amount");
+              }
+            }}
+            t={t}
+          />
+
+          {kind === "due" && !presetCustomer ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="customer">{t("invoice.customer")}</Label>
+                <VoiceField
+                  id="customer"
+                  kind="name"
+                  value={name}
+                  onValueChange={(next) => {
+                    setName(next);
+                    setSelectedId(null);
+                    setAmount("");
+                    clearField("customer");
+                    clearField("amount");
+                  }}
+                  placeholder={t("invoice.customerPlaceholder")}
+                  className={cn(
+                    "h-12 rounded-2xl",
+                    fieldInvalidClass(errors.customer)
+                  )}
+                  aria-invalid={Boolean(errors.customer)}
+                  aria-describedby={errors.customer ? "customer-error" : undefined}
+                />
+                <FieldError id="customer-error">
+                  {errors.customer ? t(errors.customer) : null}
+                </FieldError>
+
+                {matches.length > 0 && !selectedId ? (
+                  <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-white/12 dark:bg-[var(--card)]">
+                    {matches.map((customer) => (
+                      <button
+                        key={customer.id}
+                        type="button"
+                        onClick={() => pickCustomer(customer)}
+                        className="flex w-full items-center justify-between border-b border-zinc-100 px-4 py-3 text-left last:border-b-0 hover:bg-zinc-50 dark:border-white/[0.08] dark:hover:bg-white/[0.04]"
+                      >
+                        <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                          {customer.name}
+                        </span>
+                        <span className="text-xs text-zinc-500">
+                          {customer.phone || t("customers.noPhone")}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </>
+          ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="amount">
@@ -211,32 +322,50 @@ function InvoiceForm() {
             </Label>
             <Input
               id="amount"
-              autoFocus
+              autoFocus={kind !== "due" || Boolean(presetCustomer)}
               inputMode="numeric"
               type="number"
               min="1"
+              max={kind === "due" && depositDueReady ? depositOwed : undefined}
               step="1"
               value={amount}
+              disabled={amountLocked}
               onChange={(e) => updateAmount(e.target.value)}
               placeholder="0"
               className={cn(
                 "h-14 rounded-2xl text-2xl font-semibold tabular-nums",
-                fieldInvalidClass(errors.amount)
+                fieldInvalidClass(errors.amount),
+                amountLocked && "opacity-55"
               )}
               aria-invalid={Boolean(errors.amount)}
-              aria-describedby={errors.amount ? "amount-error" : undefined}
+              aria-describedby={
+                errors.amount
+                  ? "amount-error"
+                  : kind === "due"
+                    ? "deposit-due-hint"
+                    : undefined
+              }
             />
             <FieldError id="amount-error">
-              {errors.amount ? t(errors.amount) : null}
+              {errors.amount
+                ? t(errors.amount, { amount: formatINR(depositOwed) })
+                : null}
             </FieldError>
             {kind === "due" && !errors.amount ? (
-              <p className="text-xs text-zinc-500">
-                {t("invoice.paidHint")}
-                {previewCustomerId &&
-                Number.isFinite(paidValue) &&
-                paidValue > 0
-                  ? ` ${t("invoice.paidAfter", { amount: formatINR(remainingAfter) })}`
-                  : ""}
+              <p id="deposit-due-hint" className="text-xs text-zinc-500">
+                {!previewCustomerId
+                  ? t("invoice.selectCustomerForDue")
+                  : !depositDueReady
+                    ? t("invoice.fetchingDue")
+                    : depositOwed <= 0
+                      ? t("invoice.nothingDue")
+                      : `${t("invoice.currentDue", { amount: formatINR(depositOwed) })} ${
+                          Number.isFinite(paidValue) && paidValue > 0
+                            ? t("invoice.paidAfter", {
+                                amount: formatINR(remainingAfter),
+                              })
+                            : t("invoice.paidHint")
+                        }`}
               </p>
             ) : null}
           </div>
@@ -256,7 +385,7 @@ function InvoiceForm() {
                 step="1"
                 value={due}
                 onChange={(e) => updateDue(e.target.value)}
-                placeholder={amount.trim() ? amount : t("invoice.dueFullAmount")}
+                placeholder="0"
                 className={cn(
                   "h-12 rounded-2xl text-lg font-semibold tabular-nums",
                   fieldInvalidClass(errors.due)
@@ -277,7 +406,7 @@ function InvoiceForm() {
             </div>
           ) : null}
 
-          {presetCustomer ? null : (
+          {kind === "bill" && !presetCustomer ? (
             <div className="space-y-2">
               <Label htmlFor="customer">{t("invoice.customer")}</Label>
               <VoiceField
@@ -321,9 +450,9 @@ function InvoiceForm() {
                 </div>
               ) : null}
             </div>
-          )}
+          ) : null}
 
-          {needsNewCustomer ? (
+          {needsNewCustomer && kind === "bill" ? (
             <div className="space-y-2">
               <Label htmlFor="phone" className="w-full justify-between">
                 {t("customerNew.phone")}
@@ -391,7 +520,11 @@ function InvoiceForm() {
             </FieldError>
           </div>
 
-          <SubmitButton loading={submitting} loadingLabel={t("common.saving")}>
+          <SubmitButton
+            loading={submitting}
+            loadingLabel={t("common.saving")}
+            disabled={kind === "due" && amountLocked}
+          >
             {kind === "due" ? t("invoice.saveDue") : t("invoice.save")}
           </SubmitButton>
         </form>

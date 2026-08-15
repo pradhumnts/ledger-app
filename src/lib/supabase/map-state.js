@@ -1,4 +1,4 @@
-import { entryTypeToKind, paiseToRupees, rupeesToPaise } from "@/lib/supabase/money";
+import { entryBackupPaise, entryFromBackupPaise } from "@/lib/supabase/money";
 
 function isoDate(value) {
   const d = value ? new Date(value) : new Date();
@@ -42,14 +42,7 @@ export function stateToBackupRows(state, userId) {
       created_at: customer.createdAt || new Date().toISOString(),
     })),
     entries: (state.entries || []).map((entry) => {
-      const kind = entryTypeToKind(entry.type);
-      const amountPaise = rupeesToPaise(entry.amount);
-      const duePaise =
-        kind === "invoice"
-          ? rupeesToPaise(entry.due ?? entry.amount)
-          : kind === "got"
-            ? rupeesToPaise(entry.due ?? 0)
-            : amountPaise;
+      const { kind, amountPaise, duePaise } = entryBackupPaise(entry);
       return {
         user_id: userId,
         customer_external_id: entry.customerId,
@@ -75,14 +68,5 @@ export function rowsToCustomer(row) {
 }
 
 export function rowsToEntry(row, customerExternalId) {
-  return {
-    id: row.external_id,
-    customerId: customerExternalId,
-    type: row.kind,
-    amount: paiseToRupees(row.amount_paise),
-    due: paiseToRupees(row.due_paise),
-    description: row.description || "",
-    date: row.occurred_on,
-    createdAt: row.created_at,
-  };
+  return entryFromBackupPaise(row, customerExternalId);
 }
