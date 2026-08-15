@@ -18,31 +18,31 @@ export function SplashScreen() {
   const [phase, setPhase] = useState("visible");
   const [minElapsed, setMinElapsed] = useState(false);
 
+  const blocking =
+    !ready || (pathname !== "/onboarding" && !settings?.onboardingComplete);
+
   useEffect(() => {
     const timer = window.setTimeout(() => setMinElapsed(true), MIN_MS);
     return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
-    if (!ready || !minElapsed || phase !== "visible") return;
+    if (blocking || !minElapsed || phase !== "visible") return;
     setPhase("hiding");
     const timer = window.setTimeout(() => setPhase("hidden"), FADE_MS);
     return () => window.clearTimeout(timer);
-  }, [ready, minElapsed, phase]);
+  }, [blocking, minElapsed, phase]);
 
-  if (pathname === "/onboarding") return null;
-  if (!ready) return null;
-  if (!settings.onboardingComplete) return null;
-
-  if (phase === "hidden") return null;
+  if (pathname === "/onboarding" && ready) return null;
+  if (!blocking && phase === "hidden") return null;
 
   return (
     <div
       className={cn(
         "fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[var(--forest)]",
-        phase === "hiding" && "splash-exit pointer-events-none"
+        !blocking && phase === "hiding" && "splash-exit pointer-events-none"
       )}
-      aria-hidden={phase === "hiding"}
+      aria-hidden={!blocking && phase === "hiding"}
     >
       <div className="pointer-events-none absolute -top-24 -left-20 size-[18rem] rounded-full bg-[var(--lime)]/25 blur-[80px]" />
       <div className="pointer-events-none absolute -bottom-28 -right-16 size-[16rem] rounded-full bg-white/10 blur-[70px]" />

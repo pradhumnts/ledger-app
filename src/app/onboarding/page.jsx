@@ -599,13 +599,11 @@ export default function OnboardingPage() {
               <FieldError id="onboard-phone-error">
                 {errors["onboard-phone"] ? t(errors["onboard-phone"]) : null}
               </FieldError>
-              <p className="text-xs leading-relaxed text-zinc-500">
-                {t(
-                  cloudAuth
-                    ? "onboarding.phoneAuthHint"
-                    : "onboarding.phoneLocalHint"
-                )}
-              </p>
+              {!cloudAuth ? (
+                <p className="text-xs leading-relaxed text-zinc-500">
+                  {t("onboarding.phoneLocalHint")}
+                </p>
+              ) : null}
             </div>
           </FormBlock>
         )}

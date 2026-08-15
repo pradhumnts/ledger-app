@@ -209,7 +209,7 @@ export default function CustomerDetailPage() {
               {t("entry.due")}
             </div>
             <p className="text-base font-semibold tabular-nums text-[var(--mint)]">
-              {formatINR(Math.max(0, totals.due))}
+              {formatINR(Math.max(0, balance))}
             </p>
           </div>
         </div>

@@ -1,0 +1,25 @@
+import { NextResponse } from "next/server";
+
+const ONBOARDING_COOKIE = "mk_onboarded";
+
+export function proxy(request) {
+  const onboarded = request.cookies.get(ONBOARDING_COOKIE)?.value === "1";
+  const { pathname } = request.nextUrl;
+  const onOnboarding = pathname === "/onboarding";
+
+  if (!onboarded && !onOnboarding) {
+    return NextResponse.redirect(new URL("/onboarding", request.url));
+  }
+
+  if (onboarded && onOnboarding) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|_next/data|favicon.ico|manifest.webmanifest|sw.js|workbox|icon|apple-touch-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|map)$).*)",
+  ],
+};

@@ -150,7 +150,7 @@ function InvoiceForm() {
 
     const billed = Number(amount);
     if (kind === "bill") {
-      const outstanding = due.trim() === "" ? 0 : Number(due);
+      const outstanding = due.trim() === "" ? billed : Number(due);
       if (outstanding > billed) {
         showErrors({ due: "validation.dueTooLarge" });
         stop();
@@ -256,7 +256,7 @@ function InvoiceForm() {
                 step="1"
                 value={due}
                 onChange={(e) => updateDue(e.target.value)}
-                placeholder="0"
+                placeholder={amount.trim() ? amount : t("invoice.dueFullAmount")}
                 className={cn(
                   "h-12 rounded-2xl text-lg font-semibold tabular-nums",
                   fieldInvalidClass(errors.due)

@@ -17,6 +17,7 @@ import {
   updateCustomer as patchCustomer,
 } from "@/lib/store";
 import { DEFAULT_LANGUAGE, getHtmlLang, normalizeLanguage } from "@/lib/i18n";
+import { persistOnboardingGate } from "@/lib/onboarding-gate";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { requestPhoneOtp, verifyPhoneOtp } from "@/lib/supabase/sign-in";
 import { pushShop, pullShop } from "@/lib/supabase/sync";
@@ -31,6 +32,7 @@ export function AppProvider({ children }) {
 
   const applyShop = useCallback((shop) => {
     if (!shop) return;
+    persistOnboardingGate(Boolean(shop.settings?.onboardingComplete));
     setState((prev) => ({
       ...prev,
       business: { ...prev.business, ...shop.business },
@@ -50,6 +52,7 @@ export function AppProvider({ children }) {
     document.documentElement.lang = getHtmlLang(
       normalizeLanguage(loaded.settings?.language || DEFAULT_LANGUAGE)
     );
+    persistOnboardingGate(Boolean(loaded.settings?.onboardingComplete));
     setReady(true);
   }, []);
 
@@ -183,6 +186,7 @@ export function AppProvider({ children }) {
   }, []);
 
   const completeOnboarding = useCallback((business) => {
+    persistOnboardingGate(true);
     setState((prev) => ({
       ...prev,
       business: { ...prev.business, ...business },

@@ -9,17 +9,29 @@ export function OnboardingGuard({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const onOnboarding = pathname === "/onboarding";
+  const onboarded = Boolean(settings?.onboardingComplete);
+  const allowed = ready && (onboarded ? !onOnboarding : onOnboarding);
 
   useEffect(() => {
     if (!ready) return;
-    if (!settings.onboardingComplete && !onOnboarding) {
+    if (!onboarded && !onOnboarding) {
       router.replace("/onboarding");
       return;
     }
-    if (settings.onboardingComplete && onOnboarding) {
+    if (onboarded && onOnboarding) {
       router.replace("/");
     }
-  }, [ready, settings.onboardingComplete, onOnboarding, router]);
+  }, [ready, onboarded, onOnboarding, router]);
+
+  if (!allowed) {
+    return (
+      <div
+        className="min-h-dvh bg-[var(--forest)]"
+        aria-busy="true"
+        aria-live="polite"
+      />
+    );
+  }
 
   return children;
 }
