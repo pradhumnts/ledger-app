@@ -1,4 +1,4 @@
-export const QR_THEME_PRICE = 20;
+export const QR_THEME_PRICE = 40;
 
 function imagePath(filename) {
   return `/qr-themes/${encodeURIComponent(filename)}`;

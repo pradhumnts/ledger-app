@@ -56,7 +56,7 @@ function InvoicePreview({ businessName, free, active }) {
       <PriceChip free={free} />
       <div className="bg-[var(--forest)] px-4 py-3 text-white">
         <p className="text-[10px] font-medium tracking-[0.16em] text-[var(--lime)] uppercase">
-          Invoice
+          Bill
         </p>
         <p className="mt-1 text-base font-semibold tracking-tight">
           {businessName}

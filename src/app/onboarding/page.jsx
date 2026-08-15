@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -11,8 +11,8 @@ import {
   IndianRupee,
   Loader2,
   MessageCircle,
-  Wallet,
 } from "lucide-react";
+import { MoneyKitLogo } from "@/components/moneykit-logo";
 import { FieldError } from "@/components/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,18 +20,22 @@ import { useApp } from "@/context/app-provider";
 import { useFieldErrors } from "@/hooks/use-field-errors";
 import { useSubmitting } from "@/hooks/use-submitting";
 import { useTranslation } from "@/hooks/use-translation";
+import { BUSINESS_TYPES, isValidBusinessType } from "@/lib/business-types";
 import {
   ONBOARDING_COVER_COLUMNS,
   ONBOARDING_COVER_IMAGES,
 } from "@/lib/onboarding-covers";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { authErrorKey } from "@/lib/supabase/sign-in";
 import { cn } from "@/lib/utils";
 import {
   collectErrors,
   fieldInvalidClass,
+  validateOtp,
   validateRequiredPhone,
 } from "@/lib/validation";
 
-const STEPS = 4;
+const STEPS = 5;
 
 function ProgressBar({ step }) {
   return (
@@ -96,9 +100,12 @@ function AppLogo({ className }) {
         className
       )}
     >
-      <div className="flex size-[3.75rem] items-center justify-center rounded-[1.15rem] bg-[var(--lime)]">
-        <Wallet className="size-7 text-[var(--forest)]" strokeWidth={2.2} />
-      </div>
+      <MoneyKitLogo
+        variant="badge"
+        badgeSize="lg"
+        priority
+        className="size-[3.75rem] rounded-[1.15rem] border-0 shadow-none"
+      />
     </div>
   );
 }
@@ -278,12 +285,14 @@ function StepShell({
   );
 }
 
-function FormBlock({ title, body, children, delayClass = "onboard-delay-2" }) {
+function FormBlock({ title, body, children, delayClass = "onboard-delay-2", align = "left" }) {
+  const centered = align === "center";
   return (
-    <div className="pt-2">
+    <div className={cn("pt-2", centered && "text-center")}>
       <h1
         className={cn(
           "onboard-fade-up text-[2rem] leading-tight font-semibold tracking-tight text-zinc-950 dark:text-white",
+          centered && "mx-auto max-w-[18rem]",
           delayClass
         )}
       >
@@ -292,6 +301,7 @@ function FormBlock({ title, body, children, delayClass = "onboard-delay-2" }) {
       <p
         className={cn(
           "onboard-fade-up mt-3 text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400",
+          centered && "mx-auto max-w-[20rem]",
           delayClass
         )}
       >
@@ -304,25 +314,85 @@ function FormBlock({ title, body, children, delayClass = "onboard-delay-2" }) {
   );
 }
 
+function BusinessTypePicker({ value, onChange, error, t }) {
+  return (
+    <div className="space-y-3">
+      <div
+        className="flex flex-wrap justify-center gap-2.5"
+        role="radiogroup"
+        aria-label={t("onboarding.typeTitle")}
+        aria-describedby={error ? "onboard-type-error" : undefined}
+      >
+        {BUSINESS_TYPES.map((type) => {
+          const selected = value === type.id;
+          return (
+            <button
+              key={type.id}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => onChange(type.id)}
+              className={cn(
+                "inline-flex items-center rounded-full border px-4 py-2.5 text-sm font-medium transition-[background-color,border-color,color,transform] duration-200 active:scale-[0.97]",
+                selected
+                  ? "border-[var(--forest)] bg-[var(--forest)] text-white shadow-sm dark:border-[var(--lime)] dark:bg-[var(--lime)] dark:text-[var(--forest)]"
+                  : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600"
+              )}
+            >
+              {t(type.labelKey)}
+            </button>
+          );
+        })}
+      </div>
+      <FieldError id="onboard-type-error" className="text-center">
+        {error ? t(error) : null}
+      </FieldError>
+    </div>
+  );
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
-  const { completeOnboarding } = useApp();
+  const { completeOnboarding, sendPhoneOtp, confirmPhoneOtp } = useApp();
   const { t } = useTranslation();
   const { errors, clearField, clearAll, showErrors } = useFieldErrors();
-  const { submitting, start } = useSubmitting();
+  const { submitting, start, stop } = useSubmitting();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [businessType, setBusinessType] = useState("");
+  const cloudAuth = isSupabaseConfigured();
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const id = window.setTimeout(() => setResendIn((n) => n - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [resendIn]);
 
   function validateStep(currentStep) {
     if (currentStep === 1) {
+      if (otpSent) {
+        return collectErrors({
+          "onboard-otp": validateOtp(otp),
+        });
+      }
       return collectErrors({
         "onboard-phone": validateRequiredPhone(phone),
       });
     }
     if (currentStep === 2) {
+      return collectErrors({
+        "onboard-type": isValidBusinessType(businessType)
+          ? ""
+          : "validation.businessTypeRequired",
+      });
+    }
+    if (currentStep === 3) {
       const trimmed = name.trim();
       let nameError = "";
       if (!trimmed) nameError = "validation.businessNameRequired";
@@ -334,10 +404,45 @@ export default function OnboardingPage() {
     return {};
   }
 
-  function goNext() {
+  async function goNext() {
     if (submitting) return;
     const nextErrors = validateStep(step);
     if (!showErrors(nextErrors)) return;
+
+    if (step === 1) {
+      if (!start()) return;
+      try {
+        if (otpSent) {
+          const result = await confirmPhoneOtp(phone, otp);
+          if (result.restored) {
+            router.replace("/");
+            return;
+          }
+        } else {
+          const result = await sendPhoneOtp(phone);
+          if (result.restored) {
+            router.replace("/");
+            return;
+          }
+          if (!result.skipped && !result.alreadyVerified) {
+            setOtpSent(true);
+            setResendIn(30);
+            stop();
+            return;
+          }
+        }
+      } catch (error) {
+        showErrors({
+          [otpSent ? "onboard-otp" : "onboard-phone"]: authErrorKey(
+            error,
+            otpSent ? "auth.otpInvalid" : "auth.otpSendFailed"
+          ),
+        });
+        stop();
+        return;
+      }
+      stop();
+    }
 
     if (step < STEPS - 1) {
       clearAll();
@@ -350,11 +455,34 @@ export default function OnboardingPage() {
       phone: phone.trim(),
       name: name.trim(),
       address: address.trim(),
+      type: businessType,
     });
     router.replace("/");
   }
 
+  async function resendOtp() {
+    if (resendIn > 0 || submitting) return;
+    if (!start()) return;
+    try {
+      await sendPhoneOtp(phone);
+      setOtp("");
+      setResendIn(30);
+      clearField("onboard-otp");
+    } catch (error) {
+      showErrors({
+        "onboard-otp": authErrorKey(error, "auth.otpSendFailed"),
+      });
+    }
+    stop();
+  }
+
   function goBack() {
+    if (step === 1 && otpSent) {
+      clearAll();
+      setOtpSent(false);
+      setOtp("");
+      return;
+    }
     if (step > 0) {
       clearAll();
       setDirection(-1);
@@ -375,6 +503,117 @@ export default function OnboardingPage() {
   }
 
   if (step === 1) {
+    const phoneCta = otpSent
+      ? t("onboarding.verifyOtp")
+      : cloudAuth
+        ? t("onboarding.sendOtp")
+        : t("onboarding.next");
+
+    return (
+      <StepShell
+        step={step}
+        direction={direction}
+        onBack={goBack}
+        t={t}
+        cta={phoneCta}
+        onCta={goNext}
+        loading={submitting}
+      >
+        {otpSent ? (
+          <FormBlock
+            title={t("onboarding.otpTitle")}
+            body={t("onboarding.otpBody", { phone })}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="onboard-otp">{t("onboarding.otpLabel")}</Label>
+              <Input
+                id="onboard-otp"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoFocus
+                maxLength={6}
+                value={otp}
+                onChange={(e) => {
+                  setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
+                  clearField("onboard-otp");
+                }}
+                placeholder={t("onboarding.otpPlaceholder")}
+                className={cn(
+                  "h-[3.25rem] rounded-2xl border-[var(--border)] bg-white text-center text-xl tracking-[0.4em] tabular-nums shadow-none transition-[border-color,box-shadow] duration-200 focus-visible:border-[var(--forest)] focus-visible:ring-[var(--forest)]/15 dark:bg-zinc-900 dark:focus-visible:border-[var(--lime)] dark:focus-visible:ring-[var(--lime)]/15",
+                  fieldInvalidClass(errors["onboard-otp"])
+                )}
+                aria-invalid={Boolean(errors["onboard-otp"])}
+                aria-describedby={
+                  errors["onboard-otp"] ? "onboard-otp-error" : undefined
+                }
+              />
+              <FieldError id="onboard-otp-error">
+                {errors["onboard-otp"] ? t(errors["onboard-otp"]) : null}
+              </FieldError>
+              <button
+                type="button"
+                onClick={resendOtp}
+                disabled={resendIn > 0 || submitting}
+                className="text-sm font-semibold text-[var(--forest)] disabled:text-zinc-400 dark:text-[var(--lime)] dark:disabled:text-zinc-500"
+              >
+                {resendIn > 0
+                  ? t("onboarding.resendIn", { seconds: String(resendIn) })
+                  : t("onboarding.resendOtp")}
+              </button>
+            </div>
+          </FormBlock>
+        ) : (
+          <FormBlock
+            title={t("onboarding.phoneTitle")}
+            body={t("onboarding.phoneBody")}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="onboard-phone">{t("onboarding.phoneLabel")}</Label>
+              <div className="flex gap-3">
+                <div className="flex h-[3.25rem] w-[4.75rem] shrink-0 items-center justify-center rounded-2xl border border-[var(--border)] bg-white text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+                  +91
+                </div>
+                <Input
+                  id="onboard-phone"
+                  type="tel"
+                  inputMode="numeric"
+                  autoFocus
+                  maxLength={10}
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(e.target.value.replace(/\D/g, "").slice(0, 10));
+                    clearField("onboard-phone");
+                  }}
+                  placeholder={t("onboarding.phonePlaceholder")}
+                  className={cn(
+                    "h-[3.25rem] rounded-2xl border-[var(--border)] bg-white text-base tabular-nums shadow-none transition-[border-color,box-shadow] duration-200 focus-visible:border-[var(--forest)] focus-visible:ring-[var(--forest)]/15 dark:bg-zinc-900 dark:focus-visible:border-[var(--lime)] dark:focus-visible:ring-[var(--lime)]/15",
+                    fieldInvalidClass(errors["onboard-phone"])
+                  )}
+                  aria-invalid={Boolean(errors["onboard-phone"])}
+                  aria-describedby={
+                    errors["onboard-phone"] ? "onboard-phone-error" : undefined
+                  }
+                />
+              </div>
+              <FieldError id="onboard-phone-error">
+                {errors["onboard-phone"] ? t(errors["onboard-phone"]) : null}
+              </FieldError>
+              <p className="text-xs leading-relaxed text-zinc-500">
+                {t(
+                  cloudAuth
+                    ? "onboarding.phoneAuthHint"
+                    : "onboarding.phoneLocalHint"
+                )}
+              </p>
+            </div>
+          </FormBlock>
+        )}
+      </StepShell>
+    );
+  }
+
+  if (step === 2) {
     return (
       <StepShell
         step={step}
@@ -386,47 +625,25 @@ export default function OnboardingPage() {
         loading={submitting}
       >
         <FormBlock
-          title={t("onboarding.phoneTitle")}
-          body={t("onboarding.phoneBody")}
+          title={t("onboarding.typeTitle")}
+          body={t("onboarding.typeBody")}
+          align="center"
         >
-          <div className="space-y-2">
-            <Label htmlFor="onboard-phone">{t("onboarding.phoneLabel")}</Label>
-            <div className="flex gap-3">
-              <div className="flex h-[3.25rem] w-[4.75rem] shrink-0 items-center justify-center rounded-2xl border border-[var(--border)] bg-white text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
-                +91
-              </div>
-              <Input
-                id="onboard-phone"
-                type="tel"
-                inputMode="numeric"
-                autoFocus
-                maxLength={10}
-                value={phone}
-                onChange={(e) => {
-                  setPhone(e.target.value.replace(/\D/g, "").slice(0, 10));
-                  clearField("onboard-phone");
-                }}
-                placeholder={t("onboarding.phonePlaceholder")}
-                className={cn(
-                  "h-[3.25rem] rounded-2xl border-[var(--border)] bg-white text-base tabular-nums shadow-none transition-[border-color,box-shadow] duration-200 focus-visible:border-[var(--forest)] focus-visible:ring-[var(--forest)]/15 dark:bg-zinc-900 dark:focus-visible:border-[var(--lime)] dark:focus-visible:ring-[var(--lime)]/15",
-                  fieldInvalidClass(errors["onboard-phone"])
-                )}
-                aria-invalid={Boolean(errors["onboard-phone"])}
-                aria-describedby={
-                  errors["onboard-phone"] ? "onboard-phone-error" : undefined
-                }
-              />
-            </div>
-            <FieldError id="onboard-phone-error">
-              {errors["onboard-phone"] ? t(errors["onboard-phone"]) : null}
-            </FieldError>
-          </div>
+          <BusinessTypePicker
+            value={businessType}
+            onChange={(id) => {
+              setBusinessType(id);
+              clearField("onboard-type");
+            }}
+            error={errors["onboard-type"]}
+            t={t}
+          />
         </FormBlock>
       </StepShell>
     );
   }
 
-  if (step === 2) {
+  if (step === 3) {
     return (
       <StepShell
         step={step}

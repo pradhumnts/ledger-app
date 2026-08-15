@@ -4,8 +4,8 @@ export const BILL_THEME_PRICE = 20;
 export const BILL_THEMES = [
   {
     id: "classic",
-    name: "Classic Invoice",
-    tagline: "Clean everyday invoice",
+    name: "Classic Bill",
+    tagline: "Clean everyday bill",
     free: true,
     style: "invoice",
     pdf: {

@@ -161,7 +161,7 @@ export default function BusinessProfilePage() {
                     {logoBusy ? (
                       <Camera className="size-5 animate-pulse" />
                     ) : (
-                      initials(name || "LB")
+                      initials(name || "MK")
                     )}
                   </AvatarFallback>
                 </Avatar>

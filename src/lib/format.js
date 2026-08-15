@@ -53,8 +53,9 @@ export function formatEntryDateTime(iso, language = "en") {
 
 export function entryTypeLabel(type, language = "en") {
   if (type === "invoice") return translate(language, "entry.bill");
-  if (type === "gave") return translate(language, "entry.youGave");
-  return translate(language, "entry.youGot");
+  if (type === "due" || type === "gave") return translate(language, "entry.due");
+  if (type === "got") return translate(language, "entry.payment");
+  return translate(language, "common.entry");
 }
 
 export function formatBillNumber(entry) {
@@ -62,12 +63,14 @@ export function formatBillNumber(entry) {
   const yy = String(d.getFullYear()).slice(-2);
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
-  const suffix = String(entry?.id || "XXXX")
+  // Use a longer slice of the unique id so same-day bills never share a number.
+  const suffix = String(entry?.id || "XXXXXX")
     .replace(/[^a-zA-Z0-9]/g, "")
-    .slice(-4)
+    .slice(-6)
     .toUpperCase()
-    .padStart(4, "X");
-  const prefix = entry?.type === "invoice" ? "BL" : "RC";
+    .padStart(6, "X");
+  const prefix =
+    entry?.type === "invoice" ? "BL" : entry?.type === "due" ? "DU" : "RC";
   return `${prefix}-${yy}${mm}${dd}-${suffix}`;
 }
 
@@ -101,14 +104,38 @@ export function startOfMonth(date = new Date()) {
 }
 
 export function initials(name = "") {
-  return name
+  const letters = name
     .trim()
     .split(/\s+/)
     .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() || "")
-    .join("");
+    .map((part) => {
+      const ch = [...part][0] || "";
+      return /[a-z]/i.test(ch) ? ch.toUpperCase() : ch;
+    })
+    .filter(Boolean);
+
+  const isLatin = letters.every((ch) => /[A-Z]/.test(ch));
+  return letters.join(isLatin ? "" : " ");
 }
 
 export function uid(prefix = "id") {
-  return `${prefix}_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${prefix}_${crypto.randomUUID().replace(/-/g, "")}`;
+  }
+  return `${prefix}_${Date.now().toString(36)}_${Math.random()
+    .toString(36)
+    .slice(2, 12)}`;
+}
+
+/** Always returns an id that is not already in `existingIds`. */
+export function uniqueUid(prefix, existingIds = []) {
+  const taken = existingIds instanceof Set ? existingIds : new Set(existingIds);
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const id = uid(prefix);
+    if (!taken.has(id)) return id;
+  }
+  // Extremely unlikely fallback — still unique vs prior attempts via counter.
+  return `${prefix}_${Date.now().toString(36)}_${taken.size}_${Math.random()
+    .toString(36)
+    .slice(2, 12)}`;
 }

@@ -60,7 +60,7 @@ export default function SettingsPage() {
               <Share2 className="size-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-lg font-semibold tracking-tight text-[var(--lime)]">
+              <p className="text-lg font-semibold tracking-tight text-white">
                 {t("settings.shareTitle")}
               </p>
               <p className="mt-1 text-sm text-white/75">

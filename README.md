@@ -1,4 +1,4 @@
-# Ledger
+# MoneyKit
 
 Simple customer khata + bills for Indian businesses. Built with Next.js, shadcn/ui, and JSX.
 
@@ -24,7 +24,7 @@ Data is stored in the browser (`localStorage`).
 
 ## Install as an app (PWA)
 
-Ledger is a Progressive Web App. After deploying:
+MoneyKit is a Progressive Web App. After deploying:
 
 1. Open the site in **Chrome** (Android) or **Safari** (iOS).
 2. Use **Install app** / **Add to Home Screen**.

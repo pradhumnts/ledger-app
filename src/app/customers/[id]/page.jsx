@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
+  FileText,
   MessageCircle,
   Pencil,
   Phone,
@@ -36,12 +35,10 @@ import {
   openSMS,
   shareOnWhatsApp,
 } from "@/lib/share";
-import {
-  buildCustomerStatementPdf,
-  exportCustomerStatementPdf,
-} from "@/lib/pdf";
+import { exportCustomerStatementPdf } from "@/lib/pdf";
 import {
   customerBalance,
+  customerTotals,
   entriesForCustomer,
   groupEntriesByDate,
 } from "@/lib/store";
@@ -74,17 +71,10 @@ export default function CustomerDetailPage() {
     [history]
   );
 
-  const totals = useMemo(() => {
-    return history.reduce(
-      (acc, entry) => {
-        const amount = Number(entry.amount) || 0;
-        if (entry.type === "got") acc.got += amount;
-        else acc.gave += amount;
-        return acc;
-      },
-      { gave: 0, got: 0 }
-    );
-  }, [history]);
+  const totals = useMemo(
+    () => customerTotals(entries, id),
+    [entries, id]
+  );
 
   if (!ready) {
     return <p className="text-sm text-zinc-500">{t("common.loading")}</p>;
@@ -114,19 +104,9 @@ export default function CustomerDetailPage() {
       return;
     }
 
-    const { file, title } = await buildCustomerStatementPdf({
-      customer,
-      entries: history,
-      balance,
-      totals,
-      business,
-      billThemeId: settings.billTheme,
-    });
     await shareOnWhatsApp({
       phone: customer.phone,
       text,
-      file,
-      title,
     });
   }
 
@@ -218,20 +198,18 @@ export default function CustomerDetailPage() {
         <div className="grid grid-cols-2 gap-2.5">
           <div className="rounded-2xl bg-zinc-50 px-3.5 py-3 dark:bg-[var(--well)]">
             <div className="mb-1 flex items-center gap-1 text-xs text-zinc-500">
-              <ArrowUpRight className="size-3.5" />
-              {t("entry.youGave")}
+              {t("entry.billed")}
             </div>
             <p className="text-base font-semibold tabular-nums text-zinc-950 dark:text-white">
-              {formatINR(totals.gave)}
+              {formatINR(totals.billed)}
             </p>
           </div>
           <div className="rounded-2xl bg-zinc-50 px-3.5 py-3 dark:bg-[var(--well)]">
             <div className="mb-1 flex items-center gap-1 text-xs text-zinc-500">
-              <ArrowDownLeft className="size-3.5" />
-              {t("entry.youGot")}
+              {t("entry.due")}
             </div>
             <p className="text-base font-semibold tabular-nums text-[var(--mint)]">
-              {formatINR(totals.got)}
+              {formatINR(Math.max(0, totals.due))}
             </p>
           </div>
         </div>
@@ -330,22 +308,13 @@ export default function CustomerDetailPage() {
       </Dialog>
 
       <div className="page-enter-skip pointer-events-none fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-        <div className="pointer-events-auto grid grid-cols-2 gap-2.5 rounded-[1.75rem] border border-black/5 bg-white/95 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur dark:border-white/12 dark:bg-[#121714]/95">
-          <Link
-            href={`/customers/${customer.id}/entry?type=gave`}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-3.5 text-sm font-semibold text-white transition-[opacity,transform] duration-200 ease-out hover:opacity-90 active:scale-[0.98] dark:bg-zinc-100 dark:text-zinc-900"
-          >
-            <ArrowUpRight className="size-4" />
-            {t("entry.youGave")}
-          </Link>
-          <Link
-            href={`/customers/${customer.id}/entry?type=got`}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--forest)] px-4 py-3.5 text-sm font-semibold text-white transition-[opacity,transform] duration-200 ease-out hover:opacity-90 active:scale-[0.98] dark:bg-[var(--lime)] dark:text-[var(--forest)]"
-          >
-            <ArrowDownLeft className="size-4" />
-            {t("entry.youGot")}
-          </Link>
-        </div>
+        <Link
+          href={`/invoice/new?customerId=${customer.id}`}
+          className="pointer-events-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--forest)] px-4 py-3.5 text-sm font-semibold text-white shadow-[0_8px_30px_rgba(11,48,31,0.28)] transition-[opacity,transform] duration-200 ease-out hover:opacity-90 active:scale-[0.98] dark:bg-[var(--lime)] dark:text-[var(--forest)] dark:shadow-[0_8px_30px_rgba(200,232,106,0.22)]"
+        >
+          <FileText className="size-4" />
+          {t("home.createBill")}
+        </Link>
       </div>
     </>
   );

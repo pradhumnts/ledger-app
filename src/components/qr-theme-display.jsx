@@ -408,6 +408,7 @@ export function QrThemeDisplay({
   preview = false,
   fullScreen = false,
   bottomInset = 0,
+  boardRef = null,
 }) {
   const cfg = resolveQrThemeStyle(theme.id);
   useThemeFonts([
@@ -449,6 +450,7 @@ export function QrThemeDisplay({
       ) : null}
 
       <div
+        ref={boardRef}
         className="absolute top-0 left-0 origin-top-left"
         style={{
           width: POSTER_WIDTH,

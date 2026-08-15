@@ -1,6 +1,14 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppProvider } from "@/context/app-provider";
 import { AppShell } from "@/components/app-shell";
+import {
+  APP_APPLE_TOUCH_ICON,
+  APP_DESCRIPTION,
+  APP_ICON_SVG,
+  APP_NAME,
+  APP_TAGLINE,
+  BACKGROUND_COLOR,
+} from "@/lib/branding";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,14 +22,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Ledger — Simple billing for India",
-  description:
-    "Super simple customer khata, bills, and activity for Indian businesses.",
-  applicationName: "Ledger",
+  title: {
+    default: `${APP_NAME} — ${APP_TAGLINE}`,
+    template: `%s · ${APP_NAME}`,
+  },
+  description: APP_DESCRIPTION,
+  applicationName: APP_NAME,
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: APP_ICON_SVG, type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: APP_APPLE_TOUCH_ICON, sizes: "180x180", type: "image/png" }],
+    shortcut: APP_ICON_SVG,
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Ledger",
+    title: APP_NAME,
   },
   formatDetection: {
     telephone: false,
@@ -30,7 +50,7 @@ export const metadata = {
 
 export const viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f5f3" },
+    { media: "(prefers-color-scheme: light)", color: BACKGROUND_COLOR },
     { media: "(prefers-color-scheme: dark)", color: "#090b0a" },
   ],
   width: "device-width",

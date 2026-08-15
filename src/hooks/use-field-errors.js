@@ -15,6 +15,19 @@ export function useFieldErrors() {
     });
   }, []);
 
+  const setField = useCallback((field, message) => {
+    setErrors((prev) => {
+      if (!message) {
+        if (!prev[field]) return prev;
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      }
+      if (prev[field] === message) return prev;
+      return { ...prev, [field]: message };
+    });
+  }, []);
+
   const clearAll = useCallback(() => setErrors({}), []);
 
   const showErrors = useCallback((next, idMap) => {
@@ -26,5 +39,5 @@ export function useFieldErrors() {
     return true;
   }, []);
 
-  return { errors, clearField, clearAll, showErrors };
+  return { errors, clearField, setField, clearAll, showErrors };
 }

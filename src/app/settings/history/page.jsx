@@ -20,16 +20,19 @@ export default function HistoryPage() {
   const filters = useMemo(
     () => [
       { id: "all", label: t("activity.filterAll") },
-      { id: "got", label: t("activity.filterGot") },
-      { id: "gave", label: t("activity.filterGave") },
       { id: "invoice", label: t("activity.filterBills") },
+      { id: "due", label: t("activity.filterDues") },
     ],
     [t]
   );
 
   const filtered = useMemo(() => {
     let list = recentActivity(entries, customers, 200);
-    if (filter !== "all") list = list.filter((e) => e.type === filter);
+    if (filter === "due") {
+      list = list.filter((e) => e.type === "due" || e.type === "gave");
+    } else if (filter === "invoice") {
+      list = list.filter((e) => e.type === "invoice" || e.type === "got");
+    }
     if (customerId !== "all") {
       list = list.filter((e) => e.customerId === customerId);
     }

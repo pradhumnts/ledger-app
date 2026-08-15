@@ -34,8 +34,8 @@ export default function HomePage() {
     const bal = customerBalance(entries, c.id);
     return bal > 0 ? sum + bal : sum;
   }, 0);
-  const totalToday = summary.todayIn + summary.todayOut;
-  const totalMonth = summary.monthIn + summary.monthOut;
+  const totalToday = summary.todayBilled;
+  const totalMonth = summary.monthBilled;
 
   return (
     <>
@@ -62,7 +62,7 @@ export default function HomePage() {
               <AvatarImage src={business.logo} alt={business.name || "Logo"} />
             ) : null}
             <AvatarFallback className="bg-[var(--forest)] text-xs text-white dark:bg-[var(--lime)] dark:text-[var(--forest)]">
-              {initials(business.name || "LB")}
+              {initials(business.name || "MK")}
             </AvatarFallback>
           </Avatar>
           <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
@@ -161,7 +161,11 @@ export default function HomePage() {
                   item.customer?.name ||
                   (item.type === "invoice"
                     ? t("common.bill")
-                    : t("common.entry"))
+                    : item.type === "got"
+                      ? t("entry.paid")
+                      : item.type === "due" || item.type === "gave"
+                        ? t("entry.due")
+                        : t("common.entry"))
                 }
                 amount={item.amount}
                 type={item.type}

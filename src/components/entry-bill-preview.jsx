@@ -8,19 +8,35 @@ import {
   formatEntryDateTime,
   formatINR,
 } from "@/lib/format";
+import { translate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-function billCopy({ entry, customer, business, t, language }) {
-  const typeLabel = entryTypeLabel(entry.type, language);
+/** On-screen bill previews stay English so labels match PDF share. */
+const BILL_LANG = "en";
+const te = (key) => translate(BILL_LANG, key);
+
+function billCopy({ entry, customer, business }) {
+  const typeLabel = entryTypeLabel(entry.type, BILL_LANG);
   const billNo = formatBillNumber(entry);
-  const dateLabel = formatEntryDateTime(entry.date, language);
-  const shortDate = formatEntryDate(entry.date, language);
+  const dateLabel = formatEntryDateTime(entry.date, BILL_LANG);
+  const shortDate = formatEntryDate(entry.date, BILL_LANG);
   const amount = formatINR(entry.amount);
-  const signedAmount = `${entry.type === "got" ? "+" : ""}${amount}`;
+  const signedAmount = amount;
   const itemName =
     entry.description?.trim() ||
-    (entry.type === "invoice" ? t("entry.bill") : typeLabel);
-  const shop = business.name?.trim() || t("home.yourBusiness");
+    (entry.type === "got"
+      ? te("entry.paid")
+      : entry.type === "invoice"
+        ? te("entry.bill")
+        : typeLabel);
+  const remainingDue = Number(entry.due);
+  const isGot = entry.type === "got";
+  const showDue =
+    Number.isFinite(remainingDue) &&
+    remainingDue > 0 &&
+    (isGot ||
+      (entry.type === "invoice" && remainingDue !== Number(entry.amount)));
+  const shop = business.name?.trim() || te("home.yourBusiness");
   const details = [business.phone, business.address].filter(Boolean).join(" · ");
 
   return {
@@ -34,9 +50,36 @@ function billCopy({ entry, customer, business, t, language }) {
     shop,
     details,
     customer,
-    isGot: entry.type === "got",
-    kicker: entry.type === "invoice" ? t("entry.bill") : t("entry.receipt"),
+    isGot,
+    dueAmount: formatINR(remainingDue),
+    showDue,
+    totalLabel: isGot ? te("entry.paid") : te("entry.total"),
+    kicker:
+      entry.type === "invoice"
+        ? te("entry.bill")
+        : isGot
+          ? te("entry.payment")
+          : entry.type === "due" || entry.type === "gave"
+            ? te("entry.due")
+            : te("entry.receipt"),
   };
+}
+
+function RemainingDue({ copy, t, className, valueClassName }) {
+  if (!copy.showDue) return null;
+  return (
+    <div className={cn("mt-3 flex items-center justify-between", className)}>
+      <p className="text-xs font-medium text-zinc-500">{t("entry.due")}</p>
+      <p
+        className={cn(
+          "text-base font-semibold tabular-nums text-[var(--mint)]",
+          valueClassName
+        )}
+      >
+        {copy.dueAmount}
+      </p>
+    </div>
+  );
 }
 
 function InvoiceBill({ copy, t }) {
@@ -83,7 +126,7 @@ function InvoiceBill({ copy, t }) {
 
         <div className="mt-5 flex items-end justify-between rounded-2xl bg-[#f4f5f3] px-4 py-3">
           <div>
-            <p className="text-xs font-medium text-zinc-500">{t("entry.total")}</p>
+            <p className="text-xs font-medium text-zinc-500">{copy.totalLabel}</p>
             <p className="mt-0.5 text-xs text-zinc-400">{copy.dateLabel}</p>
           </div>
           <p
@@ -95,6 +138,9 @@ function InvoiceBill({ copy, t }) {
             {copy.signedAmount}
           </p>
         </div>
+        {copy.showDue ? (
+          <RemainingDue copy={copy} t={t} className="px-1" />
+        ) : null}
       </div>
     </article>
   );
@@ -130,7 +176,7 @@ function MinimalBill({ copy, t }) {
         </div>
         <div className="mt-5 flex items-end justify-between">
           <span className="text-xs tracking-wide text-zinc-400 uppercase">
-            {t("entry.amountDue")}
+            {copy.totalLabel}
           </span>
           <span
             className={cn(
@@ -141,6 +187,7 @@ function MinimalBill({ copy, t }) {
             {copy.signedAmount}
           </span>
         </div>
+        <RemainingDue copy={copy} t={t} />
         <p className="mt-4 text-xs text-zinc-400">
           {t("entry.billNo")} {copy.billNo}
         </p>
@@ -177,10 +224,18 @@ function ColorfulBill({ copy, t }) {
         </div>
 
         <div className="mt-6">
-          <p className="text-[11px] text-white/65">{t("entry.total")}</p>
+          <p className="text-[11px] text-white/65">{copy.totalLabel}</p>
           <p className="mt-1 text-[2.35rem] leading-none font-semibold tracking-tight tabular-nums">
             {copy.signedAmount}
           </p>
+          {copy.showDue ? (
+            <div className="mt-3 flex items-center justify-between">
+              <p className="text-xs text-white/65">{t("entry.due")}</p>
+              <p className="text-base font-semibold tabular-nums text-white">
+                {copy.dueAmount}
+              </p>
+            </div>
+          ) : null}
           <p className="mt-3 text-xs text-white/55">{copy.dateLabel}</p>
         </div>
       </div>
@@ -207,11 +262,16 @@ function TicketBill({ copy, t }) {
             {copy.itemName}
           </p>
           <p className="mt-5 text-center text-[11px] tracking-wide text-[#f6ead2]/50 uppercase">
-            {t("entry.amountDue")}
+            {copy.totalLabel}
           </p>
           <p className="mt-1 text-center text-[2.4rem] leading-none font-semibold tracking-tight text-[#d4a84b] tabular-nums">
             {copy.signedAmount}
           </p>
+          {copy.showDue ? (
+            <p className="mt-3 text-center text-sm text-[#f6ead2]/75">
+              {t("entry.due")} {copy.dueAmount}
+            </p>
+          ) : null}
           <p className="mt-4 text-center text-xs text-[#f6ead2]/55">
             {copy.dateLabel}
           </p>
@@ -249,9 +309,15 @@ function ReceiptBill({ copy, t }) {
         </div>
         <div className="my-3 border-t border-dashed border-[#2c2118]/40" />
         <div className="flex justify-between text-sm font-bold">
-          <span>{t("entry.total").toUpperCase()}</span>
+          <span>{copy.totalLabel.toUpperCase()}</span>
           <span className="tabular-nums">{copy.signedAmount}</span>
         </div>
+        {copy.showDue ? (
+          <div className="mt-2 flex justify-between text-[12px]">
+            <span className="uppercase">{t("entry.due")}</span>
+            <span className="tabular-nums">{copy.dueAmount}</span>
+          </div>
+        ) : null}
         <p className="mt-4 text-center text-[11px]">{copy.customer.name}</p>
         <p className="mt-3 text-center text-[10px] tracking-[0.35em]">
           ================
@@ -304,7 +370,7 @@ function StatementBill({ copy, t }) {
         </div>
 
         <div className="mt-4 flex items-end justify-between">
-          <span className="text-sm text-slate-400">{t("entry.total")}</span>
+          <span className="text-sm text-slate-400">{copy.totalLabel}</span>
           <span
             className={cn(
               "text-[1.85rem] leading-none font-semibold tracking-tight tabular-nums",
@@ -314,22 +380,21 @@ function StatementBill({ copy, t }) {
             {copy.signedAmount}
           </span>
         </div>
+        <RemainingDue copy={copy} t={t} />
       </div>
     </article>
   );
 }
 
-export function EntryBillPreview({ entry, customer, business, themeId, t, language }) {
+export function EntryBillPreview({ entry, customer, business, themeId }) {
   const copy = billCopy({
     entry,
     customer,
     business,
-    t,
-    language,
   });
   const theme = getBillTheme(themeId);
 
-  const props = { copy, t };
+  const props = { copy, t: te };
 
   switch (theme.style) {
     case "minimal":

@@ -25,6 +25,13 @@ export function validateRequiredPhone(value) {
   return "";
 }
 
+export function validateOtp(value) {
+  const digits = digitsOnly(value);
+  if (!digits) return "validation.otpRequired";
+  if (digits.length !== 6) return "validation.otpInvalid";
+  return "";
+}
+
 export function validateOptionalPhone(value) {
   const digits = digitsOnly(value);
   if (!digits) return "";
@@ -34,12 +41,32 @@ export function validateOptionalPhone(value) {
   return "";
 }
 
+export function parseMoney(value) {
+  const raw = String(value ?? "")
+    .trim()
+    .replace(/,/g, "");
+  if (!raw) return NaN;
+  return Number(raw);
+}
+
 export function validateAmount(value, { required = true } = {}) {
   const raw = String(value ?? "").trim();
   if (!raw) return required ? "validation.amountRequired" : "";
-  const num = Number(raw);
+  const num = parseMoney(raw);
   if (!Number.isFinite(num)) return "validation.amountInvalid";
   if (num <= 0) return "validation.amountPositive";
+  return "";
+}
+
+export function validateDue(value, amountValue) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  const num = parseMoney(raw);
+  if (!Number.isFinite(num)) return "validation.amountInvalid";
+  if (num < 0) return "validation.dueNegative";
+  const amount = parseMoney(amountValue);
+  if (!Number.isFinite(amount) || amount <= 0) return "";
+  if (num > amount) return "validation.dueTooLarge";
   return "";
 }
 

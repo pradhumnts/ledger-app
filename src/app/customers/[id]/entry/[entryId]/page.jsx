@@ -8,7 +8,7 @@ import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { exportEntryPdf, buildEntryPdf } from "@/lib/pdf";
+import { exportEntryPdf } from "@/lib/pdf";
 import { buildEntryMessage, openSMS, shareOnWhatsApp } from "@/lib/share";
 
 export default function EntryDetailPage() {
@@ -46,17 +46,9 @@ export default function EntryDetailPage() {
       return;
     }
 
-    const { file, title } = await buildEntryPdf({
-      entry,
-      customer,
-      business,
-      billThemeId: settings.billTheme,
-    });
     await shareOnWhatsApp({
       phone: customer.phone,
       text,
-      file,
-      title,
     });
   }
 
@@ -83,8 +75,6 @@ export default function EntryDetailPage() {
           customer={customer}
           business={business}
           themeId={settings.billTheme}
-          t={t}
-          language={language}
         />
       </div>
 

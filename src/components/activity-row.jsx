@@ -17,7 +17,7 @@ export function ActivityRow({
   href,
 }) {
   const { t, language } = useTranslation();
-  const positive = type === "got";
+  const isPayment = type === "got";
 
   const content = (
     <>
@@ -41,16 +41,17 @@ export function ActivityRow({
         <p
           className={cn(
             "text-[15px] font-semibold tabular-nums",
-            positive ? "text-[var(--mint)]" : "text-zinc-950 dark:text-white"
+            isPayment ? "text-[var(--mint)]" : "text-zinc-950 dark:text-white"
           )}
         >
-          {positive ? "+" : "-"}
           {formatINR(amount)}
         </p>
-        {positive ? (
+        {isPayment ? (
           <p className="text-xs font-medium text-[var(--mint)]">
-            {t("common.income")}
+            {t("entry.paid")}
           </p>
+        ) : type === "due" || type === "gave" ? (
+          <p className="text-xs font-medium text-zinc-400">{t("entry.due")}</p>
         ) : null}
       </div>
     </>

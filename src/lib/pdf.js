@@ -1,6 +1,14 @@
 import { getBillTheme } from "@/lib/bill-themes";
-import { formatEntryDate, formatEntryDateTime } from "@/lib/format";
+import { APP_NAME } from "@/lib/branding";
+import {
+  formatBillNumber,
+  formatEntryDate,
+  formatEntryDateTime,
+} from "@/lib/format";
 import { getAppUrl } from "@/lib/share";
+
+/** Bills / PDFs always use English — Helvetica can't render Hindi glyphs reliably. */
+const PDF_LANG = "en";
 
 const FOREST = [11, 48, 31];
 const LIME = [200, 232, 106];
@@ -26,8 +34,8 @@ function rupees(amount) {
 }
 
 function typeLabel(type) {
-  if (type === "got") return "You got";
-  if (type === "gave") return "You gave";
+  if (type === "due" || type === "gave") return "Due";
+  if (type === "got") return "Payment";
   return "Bill";
 }
 
@@ -39,11 +47,11 @@ function balanceCopy(balance) {
 
 function safeFilename(name) {
   return (
-    String(name || "ledger")
+    String(name || "moneykit")
       .trim()
       .replace(/[^\w]+/g, "-")
       .replace(/^-+|-+$/g, "")
-      .slice(0, 40) || "ledger"
+      .slice(0, 40) || "moneykit"
   );
 }
 
@@ -69,7 +77,7 @@ function drawMark(doc, x, y, size = 8, colors = resolveTheme()) {
   doc.setTextColor(...(colors.markText || colors.forest || FOREST));
   doc.setFont("helvetica", "bold");
   doc.setFontSize(size * 1.15);
-  doc.text("L", x + size / 2, y + size * 0.72, { align: "center" });
+  doc.text("M", x + size / 2, y + size * 0.72, { align: "center" });
 }
 
 function drawFooter(doc, url, colors = resolveTheme()) {
@@ -83,7 +91,7 @@ function drawFooter(doc, url, colors = resolveTheme()) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...(colors.forest || FOREST));
-  const brand = "Made with Ledger";
+  const brand = `Made with ${APP_NAME}`;
   if (url) {
     doc.textWithLink(brand, MARGIN + 9, y + 7.6, { url });
     const brandWidth = doc.getTextWidth(brand);
@@ -119,19 +127,18 @@ function drawFooter(doc, url, colors = resolveTheme()) {
   }
 }
 
-function createBillNumber(kind = "bill") {
+function createBillNumber(kind = "bill", seed = "") {
   const now = new Date();
   const yy = String(now.getFullYear()).slice(-2);
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const dd = String(now.getDate()).padStart(2, "0");
-  const rand = Math.random()
-    .toString(36)
+  const suffix = String(seed || Math.random().toString(36))
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(-6)
     .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(2, 6)
-    .padEnd(4, "X");
+    .padStart(6, "X");
   const prefix = kind === "statement" ? "ST" : "BL";
-  return `${prefix}-${yy}${mm}${dd}-${rand}`;
+  return `${prefix}-${yy}${mm}${dd}-${suffix}`;
 }
 
 function drawCoverHeader(doc, { kicker, business, url, billNo, colors }) {
@@ -262,7 +269,10 @@ export async function buildCustomerStatementPdf({
   const { jsPDF, autoTable } = await loadPdf();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const url = getAppUrl();
-  const billNo = createBillNumber("statement");
+  const billNo = createBillNumber(
+    "statement",
+    `${customer?.id || "cust"}-${entries?.length || 0}-${customer?.name || ""}`
+  );
   const colors = resolveTheme(billThemeId);
   const list = [...(entries || [])].sort(
     (a, b) => new Date(a.date) - new Date(b.date)
@@ -270,9 +280,9 @@ export async function buildCustomerStatementPdf({
 
   doc.setProperties({
     title: `Statement ${billNo} — ${customer?.name || "Customer"}`,
-    subject: "Customer khata statement from Ledger",
-    author: business?.name || "Ledger",
-    creator: "Ledger",
+    subject: `Customer khata statement from ${APP_NAME}`,
+    author: business?.name || APP_NAME,
+    creator: APP_NAME,
   });
 
   let y = drawCoverHeader(doc, {
@@ -305,8 +315,8 @@ export async function buildCustomerStatementPdf({
   }
 
   y = drawSummaryTiles(doc, y, [
-    { label: "You gave", value: rupees(totals?.gave) },
-    { label: "You got", value: rupees(totals?.got), color: MINT },
+    { label: "Billed", value: rupees(totals?.billed) },
+    { label: "Due", value: rupees(Math.max(0, totals?.due ?? balance)), color: MINT },
     {
       label: balanceCopy(balance),
       value: rupees(balance),
@@ -317,7 +327,7 @@ export async function buildCustomerStatementPdf({
   const body = list.map((entry) => {
     const note = entry.description ? `\n${entry.description}` : "";
     return [
-      formatEntryDate(entry.date),
+      formatEntryDate(entry.date, PDF_LANG),
       `${typeLabel(entry.type)}${note}`,
       rupees(entry.amount),
     ];
@@ -393,15 +403,15 @@ export async function buildEntryPdf({ entry, customer, business, billThemeId }) 
   const { jsPDF } = await loadPdf();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const url = getAppUrl();
-  const billNo = createBillNumber("bill");
+  const billNo = formatBillNumber(entry);
   const label = typeLabel(entry?.type);
   const colors = resolveTheme(billThemeId);
 
   doc.setProperties({
     title: `${label} ${billNo} — ${customer?.name || "Customer"}`,
-    subject: "Transaction receipt from Ledger",
-    author: business?.name || "Ledger",
-    creator: "Ledger",
+    subject: `Transaction receipt from ${APP_NAME}`,
+    author: business?.name || APP_NAME,
+    creator: APP_NAME,
   });
 
   let y = drawCoverHeader(doc, {
@@ -447,12 +457,20 @@ export async function buildEntryPdf({ entry, customer, business, billThemeId }) 
   doc.setLineWidth(0.35);
   doc.line(MARGIN + 8, y + 56, PAGE.w - MARGIN - 8, y + 56);
 
+  const amountLabel = entry?.type === "got" ? "Paid" : "Amount";
   const rows = [
     ["Bill no.", billNo],
-    ["Date", formatEntryDateTime(entry?.date)],
+    ["Date", formatEntryDateTime(entry?.date, PDF_LANG)],
     ["Type", label],
-    ["Amount", rupees(entry?.amount)],
+    [amountLabel, rupees(entry?.amount)],
   ];
+  if (
+    Number(entry?.due) > 0 &&
+    (entry?.type === "got" ||
+      (entry?.type === "invoice" && Number(entry.due) !== Number(entry.amount)))
+  ) {
+    rows.push(["Due", rupees(entry.due)]);
+  }
   if (entry?.description) rows.push(["Note", entry.description]);
 
   let rowY = y + 66;

@@ -17,12 +17,30 @@ import {
   updateCustomer as patchCustomer,
 } from "@/lib/store";
 import { DEFAULT_LANGUAGE, getHtmlLang, normalizeLanguage } from "@/lib/i18n";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { requestPhoneOtp, verifyPhoneOtp } from "@/lib/supabase/sign-in";
+import { pushShop, pullShop } from "@/lib/supabase/sync";
 
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [state, setState] = useState(defaultState);
   const [ready, setReady] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [userId, setUserId] = useState(null);
+
+  const applyShop = useCallback((shop) => {
+    if (!shop) return;
+    setState((prev) => ({
+      ...prev,
+      business: { ...prev.business, ...shop.business },
+      customers: shop.customers,
+      entries: shop.entries,
+      settings: { ...prev.settings, ...shop.settings },
+    }));
+    const theme = shop.settings?.theme === "dark" ? "dark" : "light";
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, []);
 
   useEffect(() => {
     const loaded = loadState();
@@ -37,8 +55,49 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     if (!ready) return;
-    saveState(state);
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    let cancelled = false;
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      const session = data.session;
+      if (!session || cancelled) return;
+      setUserId(session.user.id);
+      const loaded = loadState();
+      if (loaded.settings?.onboardingComplete) return;
+      const shop = await pullShop(supabase, session.user.id);
+      if (shop && !cancelled) applyShop(shop);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id || null);
+    });
+
+    return () => {
+      cancelled = true;
+      listener?.subscription?.unsubscribe();
+    };
+  }, [ready, applyShop]);
+
+  useEffect(() => {
+    if (!ready || !userId) return;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    const timer = window.setTimeout(() => {
+      pushShop(supabase, userId, state);
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [ready, userId, state]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const result = saveState(state);
+    setSaveError(result.ok ? null : result.kind);
   }, [state, ready]);
+
+  const dismissSaveError = useCallback(() => {
+    setSaveError(null);
+  }, []);
 
   useEffect(() => {
     if (!ready) return;
@@ -131,30 +190,62 @@ export function AppProvider({ children }) {
     }));
   }, []);
 
+  const sendPhoneOtp = useCallback(async (phone) => {
+    const result = await requestPhoneOtp(phone);
+    if (result.userId) setUserId(result.userId);
+    if (result.shop) {
+      applyShop(result.shop);
+      return { restored: true, skipped: false, alreadyVerified: true };
+    }
+    return {
+      restored: false,
+      skipped: Boolean(result.skipped),
+      alreadyVerified: Boolean(result.alreadyVerified),
+    };
+  }, [applyShop]);
+
+  const confirmPhoneOtp = useCallback(async (phone, token) => {
+    const result = await verifyPhoneOtp(phone, token);
+    if (result.userId) setUserId(result.userId);
+    if (result.shop) {
+      applyShop(result.shop);
+      return { restored: true };
+    }
+    return { restored: false };
+  }, [applyShop]);
+
   const addCustomer = useCallback(({ name, phone }) => {
-    const result = createCustomer(state, { name, phone });
-    setState(result.state);
-    return result.customer;
-  }, [state]);
+    let customer = null;
+    setState((prev) => {
+      const result = createCustomer(prev, { name, phone });
+      customer = result.customer;
+      saveState(result.state);
+      return result.state;
+    });
+    return customer;
+  }, []);
 
-  const updateCustomer = useCallback(
-    (id, { name, phone }) => {
-      const result = patchCustomer(state, id, { name, phone });
-      if (!result.customer) return null;
-      setState(result.state);
-      return result.customer;
-    },
-    [state]
-  );
+  const updateCustomer = useCallback((id, { name, phone }) => {
+    let customer = null;
+    setState((prev) => {
+      const result = patchCustomer(prev, id, { name, phone });
+      customer = result.customer;
+      if (result.customer) saveState(result.state);
+      return result.customer ? result.state : prev;
+    });
+    return customer;
+  }, []);
 
-  const addEntry = useCallback(
-    (payload) => {
-      const result = createEntry(state, payload);
-      setState(result.state);
-      return result.entry;
-    },
-    [state]
-  );
+  const addEntry = useCallback((payload) => {
+    let entry = null;
+    setState((prev) => {
+      const result = createEntry(prev, payload);
+      entry = result.entry;
+      saveState(result.state);
+      return result.state;
+    });
+    return entry;
+  }, []);
 
   const getCustomer = useCallback(
     (id) => state.customers.find((c) => c.id === id) || null,
@@ -164,6 +255,11 @@ export function AppProvider({ children }) {
   const value = useMemo(
     () => ({
       ready,
+      saveError,
+      dismissSaveError,
+      userId,
+      sendPhoneOtp,
+      confirmPhoneOtp,
       ...state,
       setTheme,
       setLanguage,
@@ -180,6 +276,11 @@ export function AppProvider({ children }) {
     }),
     [
       ready,
+      saveError,
+      dismissSaveError,
+      userId,
+      sendPhoneOtp,
+      confirmPhoneOtp,
       state,
       setTheme,
       setLanguage,

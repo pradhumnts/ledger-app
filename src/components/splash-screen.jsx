@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Wallet } from "lucide-react";
+import { MoneyKitLogo } from "@/components/moneykit-logo";
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
+import { APP_NAME } from "@/lib/branding";
 import { cn } from "@/lib/utils";
 
 const MIN_MS = 900;
@@ -47,11 +48,14 @@ export function SplashScreen() {
       <div className="pointer-events-none absolute -bottom-28 -right-16 size-[16rem] rounded-full bg-white/10 blur-[70px]" />
 
       <div className="relative px-8 text-center splash-enter">
-        <div className="mx-auto mb-6 flex size-[5.5rem] items-center justify-center rounded-[1.75rem] bg-[var(--lime)] shadow-[0_20px_50px_rgba(0,0,0,0.22)]">
-          <Wallet className="size-9 text-[var(--forest)]" strokeWidth={2.1} />
-        </div>
+        <MoneyKitLogo
+          variant="badge"
+          badgeSize="xl"
+          priority
+          className="mx-auto mb-6 rounded-[1.75rem] shadow-[0_20px_50px_rgba(0,0,0,0.22)]"
+        />
         <h1 className="text-[2.4rem] font-semibold tracking-tight text-white">
-          Ledger
+          {APP_NAME}
         </h1>
         <p className="mt-2 text-sm font-medium text-white/70">
           {t("splash.tagline")}

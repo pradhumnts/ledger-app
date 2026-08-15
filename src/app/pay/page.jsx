@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ChevronLeft, Copy, Palette, QrCode } from "lucide-react";
+import { ChevronLeft, Copy, Loader2, Palette, QrCode, Share2 } from "lucide-react";
 import { FieldError } from "@/components/field-error";
 import { QrThemeDisplay } from "@/components/qr-theme-display";
 import { SoftCard } from "@/components/ui-kit";
@@ -15,6 +15,7 @@ import { useTranslation } from "@/hooks/use-translation";
 import { initials } from "@/lib/format";
 import { getQrTheme, isQrThemeUnlocked, QR_THEMES } from "@/lib/qr-themes";
 import { PAY_CHROME, resolveQrThemeStyle } from "@/lib/qr-theme-styles";
+import { sharePayPoster } from "@/lib/share-pay-poster";
 import { sampleImageTopColor } from "@/lib/theme-color";
 import { buildUpiPaymentUrl } from "@/lib/upi";
 import { cn } from "@/lib/utils";
@@ -24,7 +25,22 @@ const QRCode = dynamic(() => import("react-qr-code"), { ssr: false });
 
 const MAX_PAY_AMOUNT = 100000;
 
-function PayHeader({ t }) {
+function HeaderIconButton({ className, children, ...props }) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/95 text-zinc-700 shadow-sm backdrop-blur-sm transition-colors hover:text-zinc-950 disabled:opacity-55",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+function PayHeader({ t, onShare, sharing }) {
   return (
     <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
       <Link
@@ -34,23 +50,38 @@ function PayHeader({ t }) {
       >
         <ChevronLeft className="size-5" />
       </Link>
-      <Link
-        href="/settings/qr-theme"
-        className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/95 text-zinc-700 shadow-sm backdrop-blur-sm transition-colors hover:text-zinc-950"
-        aria-label={t("pay.changeTheme")}
-      >
-        <Palette className="size-4" />
-      </Link>
+      <div className="flex items-center gap-2">
+        <HeaderIconButton
+          onClick={onShare}
+          disabled={sharing}
+          aria-label={t("pay.shareQr")}
+        >
+          {sharing ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Share2 className="size-4" />
+          )}
+        </HeaderIconButton>
+        <Link
+          href="/settings/qr-theme"
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/95 text-zinc-700 shadow-sm backdrop-blur-sm transition-colors hover:text-zinc-950"
+          aria-label={t("pay.changeTheme")}
+        >
+          <Palette className="size-4" />
+        </Link>
+      </div>
     </div>
   );
 }
 
 export default function PayPage() {
   const { business, settings } = useApp();
-  const { t, themeLabel } = useTranslation();
+  const { t, language, themeLabel } = useTranslation();
   const [amount, setAmount] = useState("");
   const [amountError, setAmountError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const posterBoardRef = useRef(null);
 
   const businessName = business.name?.trim() || t("pay.yourBusiness");
   const upiId = business.upiId?.trim() || "";
@@ -133,6 +164,24 @@ export default function PayPage() {
     }
   }
 
+  async function onSharePoster() {
+    if (sharing) return;
+    setSharing(true);
+    try {
+      await sharePayPoster({
+        element: posterBoardRef.current,
+        businessName,
+        upiId,
+        amount,
+        language,
+      });
+    } catch {
+      // ignore — share helpers already fall back
+    } finally {
+      setSharing(false);
+    }
+  }
+
   if (!upiId) {
     return (
       <div className="px-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
@@ -190,9 +239,10 @@ export default function PayPage() {
           onCopyUpi={copyUpiId}
           fullScreen
           bottomInset={controlsHeight}
+          boardRef={posterBoardRef}
         />
 
-        <PayHeader t={t} />
+        <PayHeader t={t} onShare={onSharePoster} sharing={sharing} />
 
         <div
           ref={controlsRef}
@@ -243,13 +293,28 @@ export default function PayPage() {
             <p className="text-sm text-zinc-500">{t("pay.showQrHint")}</p>
           </div>
         </div>
-        <Link
-          href="/settings/qr-theme"
-          className="inline-flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-zinc-700 shadow-sm dark:border-white/12 dark:bg-[var(--card)]"
-          aria-label={t("pay.changeTheme")}
-        >
-          <Palette className="size-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onSharePoster}
+            disabled={sharing}
+            className="inline-flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-zinc-700 shadow-sm disabled:opacity-55 dark:border-white/12 dark:bg-[var(--card)]"
+            aria-label={t("pay.shareQr")}
+          >
+            {sharing ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Share2 className="size-4" />
+            )}
+          </button>
+          <Link
+            href="/settings/qr-theme"
+            className="inline-flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-zinc-700 shadow-sm dark:border-white/12 dark:bg-[var(--card)]"
+            aria-label={t("pay.changeTheme")}
+          >
+            <Palette className="size-4" />
+          </Link>
+        </div>
       </div>
 
       <SoftCard className="overflow-hidden p-0">

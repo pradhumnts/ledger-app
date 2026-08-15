@@ -5,7 +5,7 @@ import {
 import {
   startOfDay,
   startOfMonth,
-  uid,
+  uniqueUid,
 } from "@/lib/format";
 
 export const STORAGE_KEY = "ledger-app-v1";
@@ -18,6 +18,7 @@ export const defaultState = {
     address: "",
     logo: "",
     upiId: "",
+    type: "",
   },
   customers: [],
   entries: [],
@@ -105,59 +106,109 @@ export function loadState() {
   }
 }
 
+export function isQuotaError(error) {
+  if (!error) return false;
+  const name = error.name || "";
+  const code = error.code;
+  return (
+    name === "QuotaExceededError" ||
+    name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+    code === 22 ||
+    code === 1014
+  );
+}
+
+/** @returns {{ ok: true } | { ok: false, kind: "quota" | "blocked" }} */
 export function saveState(state) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (typeof window === "undefined") return { ok: true };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, kind: isQuotaError(error) ? "quota" : "blocked" };
+  }
+}
+
+export function peekStoredPrefs() {
+  if (typeof window === "undefined") {
+    return { language: "en", theme: "light" };
+  }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { language: "en", theme: "light" };
+    const parsed = JSON.parse(raw);
+    return {
+      language: parsed?.settings?.language || "en",
+      theme: parsed?.settings?.theme === "dark" ? "dark" : "light",
+    };
+  } catch {
+    return { language: "en", theme: "light" };
+  }
+}
+
+export function entryBilledAmount(entry) {
+  if (!entry || entry.type === "got") return 0;
+  return Number(entry.amount) || 0;
+}
+
+export function entryOutstanding(entry) {
+  if (!entry) return 0;
+  if (entry.type === "got") return -Number(entry.amount) || 0;
+  if (entry.type === "invoice") return Number(entry.due ?? entry.amount) || 0;
+  return Number(entry.amount) || 0;
 }
 
 export function customerBalance(entries, customerId) {
   return entries
     .filter((e) => e.customerId === customerId)
-    .reduce((sum, e) => {
-      if (e.type === "gave" || e.type === "invoice") return sum + Number(e.amount);
-      if (e.type === "got") return sum - Number(e.amount);
-      return sum;
-    }, 0);
+    .reduce((sum, e) => sum + entryOutstanding(e), 0);
+}
+
+export function customerTotals(entries, customerId) {
+  return entries
+    .filter((e) => e.customerId === customerId)
+    .reduce(
+      (acc, entry) => {
+        acc.billed += entryBilledAmount(entry);
+        acc.due += entryOutstanding(entry);
+        return acc;
+      },
+      { billed: 0, due: 0 }
+    );
 }
 
 export function summarizeEntries(entries, now = new Date()) {
   const todayStart = startOfDay(now).getTime();
   const monthStart = startOfMonth(now).getTime();
 
-  let todayIn = 0;
-  let todayOut = 0;
-  let monthIn = 0;
-  let monthOut = 0;
+  let todayBilled = 0;
+  let monthBilled = 0;
 
   entries.forEach((entry) => {
     const t = new Date(entry.date).getTime();
-    const amount = Number(entry.amount) || 0;
-    const isIn = entry.type === "got";
-    const isOut = entry.type === "gave" || entry.type === "invoice";
-
-    if (t >= todayStart) {
-      if (isIn) todayIn += amount;
-      if (isOut) todayOut += amount;
-    }
-    if (t >= monthStart) {
-      if (isIn) monthIn += amount;
-      if (isOut) monthOut += amount;
-    }
+    const billed = entryBilledAmount(entry);
+    if (t >= todayStart) todayBilled += billed;
+    if (t >= monthStart) monthBilled += billed;
   });
 
   return {
-    todayIn,
-    todayOut,
-    todayNet: todayIn - todayOut,
-    monthIn,
-    monthOut,
-    monthNet: monthIn - monthOut,
+    todayBilled,
+    monthBilled,
+    todayIn: 0,
+    todayOut: todayBilled,
+    todayNet: todayBilled,
+    monthIn: 0,
+    monthOut: monthBilled,
+    monthNet: monthBilled,
   };
 }
 
 export function createCustomer(state, { name, phone }) {
   const customer = {
-    id: uid("cus"),
+    id: uniqueUid(
+      "cus",
+      state.customers.map((item) => item.id)
+    ),
     name: name.trim(),
     phone: String(phone || "").trim(),
     createdAt: new Date().toISOString(),
@@ -189,11 +240,25 @@ export function updateCustomer(state, id, { name, phone }) {
 }
 
 export function createEntry(state, payload) {
+  const amount = Number(payload.amount);
+  // Always mint a fresh id and prepend — never replace an existing entry,
+  // even if the same customer / amount / date is used again.
   const entry = {
-    id: uid("ent"),
+    id: uniqueUid(
+      "ent",
+      state.entries.map((item) => item.id)
+    ),
     customerId: payload.customerId,
     type: payload.type,
-    amount: Number(payload.amount),
+    amount,
+    due:
+      payload.type === "invoice"
+        ? Number(payload.due ?? amount)
+        : payload.type === "due"
+          ? amount
+          : payload.type === "got"
+            ? Math.max(0, Number(payload.due ?? 0))
+            : undefined,
     description: (payload.description || "").trim(),
     date: payload.date
       ? new Date(payload.date).toISOString()
