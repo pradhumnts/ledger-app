@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ChevronLeft, Copy, Palette, QrCode } from "lucide-react";
@@ -10,10 +10,12 @@ import { SoftCard } from "@/components/ui-kit";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/context/app-provider";
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { useTranslation } from "@/hooks/use-translation";
 import { initials } from "@/lib/format";
 import { getQrTheme, isQrThemeUnlocked, QR_THEMES } from "@/lib/qr-themes";
 import { PAY_CHROME, resolveQrThemeStyle } from "@/lib/qr-theme-styles";
+import { sampleImageTopColor } from "@/lib/theme-color";
 import { buildUpiPaymentUrl } from "@/lib/upi";
 import { cn } from "@/lib/utils";
 import { fieldInvalidClass } from "@/lib/validation";
@@ -69,6 +71,35 @@ export default function PayPage() {
       }),
     [upiId, businessName, amount]
   );
+
+  const [posterTint, setPosterTint] = useState(null);
+  useEffect(() => {
+    if (!theme) {
+      setPosterTint(null);
+      return;
+    }
+    let active = true;
+    sampleImageTopColor(theme.image).then((color) => {
+      if (active) setPosterTint(color);
+    });
+    return () => {
+      active = false;
+    };
+  }, [theme]);
+  useThemeColor(posterTint);
+
+  // The poster keeps its QR and UPI id clear of whatever this strip covers.
+  const controlsRef = useRef(null);
+  const [controlsHeight, setControlsHeight] = useState(0);
+  useEffect(() => {
+    const el = controlsRef.current;
+    if (!el) return;
+    const measure = () => setControlsHeight(el.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [theme, upiId]);
 
   function onAmountChange(raw) {
     if (raw === "" || raw == null) {
@@ -158,11 +189,15 @@ export default function PayPage() {
           copied={copied}
           onCopyUpi={copyUpiId}
           fullScreen
+          bottomInset={controlsHeight}
         />
 
         <PayHeader t={t} />
 
-        <div className="absolute inset-x-0 bottom-0 z-20 px-4 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
+        <div
+          ref={controlsRef}
+          className="absolute inset-x-0 bottom-0 z-20 px-4 pb-[max(0.85rem,env(safe-area-inset-bottom))]"
+        >
           <div className={styles.field}>
             <Input
               id="pay-amount"

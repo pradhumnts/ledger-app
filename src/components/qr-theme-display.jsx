@@ -1,11 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Copy } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { QrCodeBlock } from "@/components/qr-code-block";
 import { formatINR, formatINRPlain, initials } from "@/lib/format";
-import { posStyle, pickTop, preloadQrFontHrefs, resolveQrThemeStyle } from "@/lib/qr-theme-styles";
+import {
+  POSTER_HEIGHT,
+  POSTER_WIDTH,
+  layoutQrPoster,
+  pickTop,
+  posStyle,
+  preloadQrFontHrefs,
+  resolveQrThemeStyle,
+} from "@/lib/qr-theme-styles";
 import { cn } from "@/lib/utils";
 
 function useThemeFonts(hrefs = []) {
@@ -16,6 +24,142 @@ function useThemeFonts(hrefs = []) {
 }
 
 const MOVE_EASE = "top 380ms cubic-bezier(0.22, 1, 0.36, 1)";
+
+const useBeforePaint =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+const TOP_MARGIN = 8;
+
+/**
+ * Fits the poster board over its host box.
+ *
+ * The board always covers the host, so the crop lands on the artwork rather
+ * than on the layout. On short screens the crop is nudged upwards so the QR and
+ * UPI id stay clear of whatever the page overlays at the bottom.
+ */
+function usePosterFit({ contentTop, contentBottom, bottomInset }) {
+  const hostRef = useRef(null);
+  const [fit, setFit] = useState({ scale: 1, x: 0, y: 0 });
+
+  useBeforePaint(() => {
+    const host = hostRef.current;
+    if (!host) return;
+
+    const measure = () => {
+      const { width, height } = host.getBoundingClientRect();
+      if (!width || !height) return;
+
+      const scale = Math.max(width / POSTER_WIDTH, height / POSTER_HEIGHT);
+      const boardHeight = POSTER_HEIGHT * scale;
+      const topEdge = (contentTop / 100) * boardHeight;
+      const bottomEdge = (contentBottom / 100) * boardHeight;
+
+      let y = (height - boardHeight) / 2;
+      if (topEdge + y < TOP_MARGIN) y = TOP_MARGIN - topEdge;
+      const bottomLimit = height - bottomInset;
+      if (bottomEdge + y > bottomLimit) y = bottomLimit - bottomEdge;
+      y = Math.min(0, Math.max(y, height - boardHeight));
+
+      const next = { scale, x: (width - POSTER_WIDTH * scale) / 2, y };
+      setFit((prev) =>
+        Math.abs(prev.scale - next.scale) > 0.0005 ||
+        Math.abs(prev.x - next.x) > 0.5 ||
+        Math.abs(prev.y - next.y) > 0.5
+          ? next
+          : prev
+      );
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, [contentTop, contentBottom, bottomInset]);
+
+  return [hostRef, fit];
+}
+
+/** Splits a name across the lines a theme designed for, never more. */
+function splitIntoLines(name, maxLines) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= maxLines) return words;
+
+  const lines = Array.from({ length: maxLines }, () => []);
+  words.forEach((word, index) => {
+    const slot = Math.min(
+      maxLines - 1,
+      Math.floor((index * maxLines) / words.length)
+    );
+    lines[slot].push(word);
+  });
+  return lines.map((line) => line.join(" ")).filter(Boolean);
+}
+
+/**
+ * Keeps a line of poster text on one line by scaling it down when it is wider
+ * than the space the theme reserves for it, so long names never run into the
+ * amount or the QR below.
+ */
+function FitText({ children, className, style, minScale = 0.5 }) {
+  const boxRef = useRef(null);
+  const textRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  const fit = useCallback(() => {
+    const box = boxRef.current;
+    const text = textRef.current;
+    if (!box || !text) return;
+    const available = box.clientWidth;
+    const natural = text.offsetWidth;
+    if (!available || !natural) return;
+    const next =
+      natural > available ? Math.max(minScale, available / natural) : 1;
+    setScale((prev) => (Math.abs(prev - next) > 0.004 ? next : prev));
+  }, [minScale]);
+
+  useBeforePaint(fit);
+
+  useEffect(() => {
+    const box = boxRef.current;
+    const text = textRef.current;
+    if (!box || !text) return;
+
+    // Watching the text too catches the reflow when a theme's web font swaps in.
+    const observer = new ResizeObserver(fit);
+    observer.observe(box);
+    observer.observe(text);
+    const fonts = document.fonts;
+    fonts?.addEventListener?.("loadingdone", fit);
+    fonts?.ready?.then(fit).catch(() => {});
+
+    return () => {
+      observer.disconnect();
+      fonts?.removeEventListener?.("loadingdone", fit);
+    };
+  }, [fit]);
+
+  // Flex centring keeps an oversized line centred while it is measured; text
+  // that overflows an inline box would be pushed to one side instead.
+  return (
+    <span
+      ref={boxRef}
+      className={cn("flex min-w-0 justify-center", className)}
+      style={style}
+    >
+      <span
+        ref={textRef}
+        className="shrink-0 whitespace-nowrap"
+        style={
+          scale < 1
+            ? { transform: `scale(${scale})`, transformOrigin: "center" }
+            : undefined
+        }
+      >
+        {children}
+      </span>
+    </span>
+  );
+}
 
 function StackedBusinessName({ name, cfg, top }) {
   const baseStyle = {
@@ -32,7 +176,7 @@ function StackedBusinessName({ name, cfg, top }) {
   };
 
   if (cfg.stackedWords) {
-    const words = name.trim().split(/\s+/).filter(Boolean);
+    const words = splitIntoLines(name, cfg.wordStyles?.length || 3);
     return (
       <div className="absolute z-10 w-[92%] text-center" style={baseStyle}>
         {words.map((word, index) => {
@@ -41,7 +185,7 @@ function StackedBusinessName({ name, cfg, top }) {
 
           if (wordCfg.letterColors?.length) {
             return (
-              <span key={`${word}-${index}`} className="block">
+              <FitText key={`${word}-${index}`} className="w-full">
                 {text.split("").map((char, charIndex) => (
                   <span
                     key={`${char}-${charIndex}`}
@@ -60,14 +204,14 @@ function StackedBusinessName({ name, cfg, top }) {
                     {char}
                   </span>
                 ))}
-              </span>
+              </FitText>
             );
           }
 
           return (
-            <span
+            <FitText
               key={`${word}-${index}`}
-              className="block"
+              className="w-full"
               style={{
                 fontFamily: cfg.fontFamily,
                 color: wordCfg.color || cfg.color,
@@ -78,7 +222,7 @@ function StackedBusinessName({ name, cfg, top }) {
               }}
             >
               {text}
-            </span>
+            </FitText>
           );
         })}
       </div>
@@ -96,7 +240,7 @@ function StackedBusinessName({ name, cfg, top }) {
 
   return (
     <div className="absolute z-10 w-[92%] text-center" style={baseStyle}>
-      <span className="block">{line1Text}</span>
+      <FitText className="w-full">{line1Text}</FitText>
       {line2 ? (
         cfg.line2Lines ? (
           <span
@@ -111,18 +255,18 @@ function StackedBusinessName({ name, cfg, top }) {
             }}
           >
             <span
-              className="h-px w-10"
+              className="h-px w-10 shrink-0"
               style={{ background: cfg.line2LineColor || cfg.line2Color }}
             />
-            {line2Display}
+            <FitText className="min-w-0 flex-1">{line2Display}</FitText>
             <span
-              className="h-px w-10"
+              className="h-px w-10 shrink-0"
               style={{ background: cfg.line2LineColor || cfg.line2Color }}
             />
           </span>
         ) : (
-          <span
-            className="block"
+          <FitText
+            className="w-full"
             style={{
               fontFamily: cfg.line2FontFamily || cfg.fontFamily,
               fontSize: cfg.line2FontSize,
@@ -134,7 +278,7 @@ function StackedBusinessName({ name, cfg, top }) {
             }}
           >
             {line2Display}
-          </span>
+          </FitText>
         )
       ) : null}
     </div>
@@ -173,11 +317,16 @@ function renderUpiLabel(upiId, cfg) {
 
 function UpiChip({ upiId, onCopy, style: cfg, fontFamily, top }) {
   const base =
-    "absolute z-10 inline-flex max-w-full items-center justify-center gap-1.5 truncate";
+    "absolute z-10 inline-flex max-w-full items-center justify-center gap-1.5";
   const copyIcon = cfg.hideCopyIcon ? null : (
     <Copy className="size-3.5 shrink-0 opacity-50" />
   );
   const resolvedTop = top ?? cfg.top;
+  const label = (
+    <FitText className="flex-1" minScale={0.62}>
+      {renderUpiLabel(upiId, cfg)}
+    </FitText>
+  );
 
   if (cfg.variant === "plain") {
     return (
@@ -196,7 +345,7 @@ function UpiChip({ upiId, onCopy, style: cfg, fontFamily, top }) {
           transition: MOVE_EASE,
         }}
       >
-        <span className="truncate">{renderUpiLabel(upiId, cfg)}</span>
+        {label}
         {copyIcon}
       </button>
     );
@@ -218,7 +367,7 @@ function UpiChip({ upiId, onCopy, style: cfg, fontFamily, top }) {
           transition: MOVE_EASE,
         }}
       >
-        <span className="truncate">{renderUpiLabel(upiId, cfg)}</span>
+        {label}
         {copyIcon ?? <Copy className="size-3.5 shrink-0 opacity-70" />}
       </button>
     );
@@ -239,7 +388,7 @@ function UpiChip({ upiId, onCopy, style: cfg, fontFamily, top }) {
         transition: MOVE_EASE,
       }}
     >
-      <span className="truncate">{renderUpiLabel(upiId, cfg)}</span>
+      {label}
       {copyIcon ?? <Copy className="size-3.5 shrink-0 opacity-60" />}
     </button>
   );
@@ -258,6 +407,7 @@ export function QrThemeDisplay({
   interactive = true,
   preview = false,
   fullScreen = false,
+  bottomInset = 0,
 }) {
   const cfg = resolveQrThemeStyle(theme.id);
   useThemeFonts([
@@ -271,8 +421,19 @@ export function QrThemeDisplay({
   const amountValue = Number(amount);
   const showAmount = cfg.amount.show && Number.isFinite(amountValue) && amountValue > 0;
 
+  // Both layouts are measured so the board sits still while an amount is typed.
+  const idleLayout = layoutQrPoster(cfg, false);
+  const amountLayout = layoutQrPoster(cfg, true);
+  const layout = showAmount ? amountLayout : idleLayout;
+  const [hostRef, fit] = usePosterFit({
+    contentTop: Math.min(idleLayout.contentTop, amountLayout.contentTop),
+    contentBottom: Math.max(idleLayout.contentBottom, amountLayout.contentBottom),
+    bottomInset,
+  });
+
   return (
     <div
+      ref={hostRef}
       className={cn(
         fullScreen
           ? "relative h-dvh w-full overflow-hidden"
@@ -283,11 +444,17 @@ export function QrThemeDisplay({
       )}
       style={{ fontFamily: cfg.fontFamily }}
     >
+      {!fullScreen && !preview ? (
+        <div className="pointer-events-none aspect-[853/1844] w-full" />
+      ) : null}
+
       <div
-        className={cn(
-          "relative w-full",
-          fullScreen || preview ? "h-full" : "aspect-[853/1844]"
-        )}
+        className="absolute top-0 left-0 origin-top-left"
+        style={{
+          width: POSTER_WIDTH,
+          height: POSTER_HEIGHT,
+          transform: `translate(${fit.x}px, ${fit.y}px) scale(${fit.scale})`,
+        }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -348,7 +515,7 @@ export function QrThemeDisplay({
               transition: MOVE_EASE,
             }}
           >
-            {businessName}
+            <FitText className="w-full">{businessName}</FitText>
           </p>
         )}
 
@@ -407,7 +574,7 @@ export function QrThemeDisplay({
 
         {cfg.amount.show && showAmount ? (
           <p
-            className="absolute z-10 w-full text-center tabular-nums"
+            className="absolute z-10 w-[86%] text-center tabular-nums"
             style={{
               ...posStyle(pickTop(cfg.amount, showAmount), {
                 transform: "translateX(-50%) translateY(0)",
@@ -424,21 +591,23 @@ export function QrThemeDisplay({
                 "qr-amount-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both",
             }}
           >
-            {cfg.amount.prefixColor ? (
-              <>
-                <span style={{ color: cfg.amount.prefixColor }}>₹</span>
-                {formatINRPlain(amountValue)}
-              </>
-            ) : (
-              formatINR(amountValue)
-            )}
+            <FitText className="w-full">
+              {cfg.amount.prefixColor ? (
+                <>
+                  <span style={{ color: cfg.amount.prefixColor }}>₹</span>
+                  {formatINRPlain(amountValue)}
+                </>
+              ) : (
+                formatINR(amountValue)
+              )}
+            </FitText>
           </p>
         ) : null}
 
         <div
           className="absolute z-10 overflow-hidden"
           style={{
-            ...posStyle(pickTop(cfg.qr, showAmount)),
+            ...posStyle(layout.qrTop),
             width: cfg.qr.width,
             padding: cfg.qr.padding,
             borderRadius: cfg.qr.borderRadius,
@@ -462,13 +631,13 @@ export function QrThemeDisplay({
               onCopy={onCopyUpi}
               style={cfg.upi}
               fontFamily={cfg.upiFontFamily}
-              top={pickTop(cfg.upi, showAmount)}
+              top={layout.upiTop}
             />
             {copied ? (
               <p
                 className="absolute z-10 w-full text-center"
                 style={{
-                  ...posStyle(pickTop(cfg.copied, showAmount)),
+                  ...posStyle(layout.copiedTop),
                   fontFamily: cfg.upiFontFamily,
                   fontSize: cfg.copied.fontSize,
                   fontWeight: cfg.copied.fontWeight,
@@ -482,9 +651,9 @@ export function QrThemeDisplay({
           </>
         ) : (
           <p
-            className="absolute z-10 w-[84%] truncate text-center"
+            className="absolute z-10 w-[84%] text-center"
             style={{
-              ...posStyle(pickTop(cfg.upi, showAmount), {
+              ...posStyle(layout.upiTop, {
                 maxWidth: cfg.upi.maxWidth,
               }),
               fontFamily: cfg.upiFontFamily,
@@ -497,7 +666,9 @@ export function QrThemeDisplay({
               transition: MOVE_EASE,
             }}
           >
-            {renderUpiLabel(upiId, cfg.upi)}
+            <FitText className="w-full" minScale={0.62}>
+              {renderUpiLabel(upiId, cfg.upi)}
+            </FitText>
           </p>
         )}
       </div>

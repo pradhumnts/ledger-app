@@ -20,35 +20,14 @@ export function AppShell({ children }) {
     rememberPath(pathname);
   }, [pathname]);
 
-  useEffect(() => {
-    const metas = document.querySelectorAll('meta[name="theme-color"]');
-    if (!metas.length) return;
-    const previous = [...metas].map((meta) => meta.getAttribute("content"));
-    const next = isThemePage
-      ? document.documentElement.classList.contains("dark")
-        ? "#090b0a"
-        : "#f4f5f3"
-      : document.documentElement.classList.contains("dark")
-        ? "#090b0a"
-        : "#f4f5f3";
-    metas.forEach((meta) => meta.setAttribute("content", next));
-    return () => {
-      metas.forEach((meta, i) => {
-        if (previous[i]) meta.setAttribute("content", previous[i]);
-      });
-    };
-  }, [isThemePage]);
-
   return (
     <>
       <SplashScreen />
       <OnboardingGuard>
         <div
           className={cn(
-            "mx-auto min-h-dvh w-full max-w-md text-foreground",
-            isThemePage
-              ? "h-dvh overflow-hidden bg-[var(--app-bg)]"
-              : "bg-[var(--app-bg)]"
+            "mx-auto min-h-dvh w-full max-w-md bg-[var(--app-bg)] text-foreground",
+            isThemePage && "h-dvh overflow-hidden"
           )}
         >
           <main

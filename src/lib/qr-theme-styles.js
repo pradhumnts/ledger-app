@@ -6,6 +6,19 @@
  * mockup, and fill in `elements` to match positions/fonts/QR style.
  */
 
+/**
+ * Posters render on this fixed board (same 853×1844 ratio) which is then scaled
+ * to cover the screen. Percentages therefore mean the same thing on every phone.
+ */
+export const POSTER_WIDTH = 390;
+export const POSTER_HEIGHT = 843;
+
+/** Breathing room between the QR card and the UPI id, in design-canvas pixels. */
+const MIN_QR_TO_UPI_GAP = 18;
+
+/** Room the UPI id line needs below its anchor, in design-canvas pixels. */
+const UPI_LINE_HEIGHT = 30;
+
 export const QR_FONTS = {
   "dm-sans": {
     family: '"DM Sans", sans-serif',
@@ -621,4 +634,56 @@ export function posStyle(top, extra = {}) {
 export function pickTop(cfg, hasAmount) {
   if (!cfg) return undefined;
   return hasAmount && cfg.topWithAmount ? cfg.topWithAmount : cfg.top;
+}
+
+function percentValue(value) {
+  if (typeof value === "number") return value;
+  if (typeof value === "string" && value.trim().endsWith("%")) {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function roundPercent(value) {
+  return `${Math.round(value * 1000) / 1000}%`;
+}
+
+/**
+ * Resolves the stacked positions of the QR card, UPI id and copied toast, plus
+ * the band the poster's content occupies.
+ *
+ * The QR card is square and sized off the board width, so its height in percent
+ * depends on the board ratio. Deriving the UPI id from the card's real bottom
+ * keeps them apart even when a theme's tuned value is optimistic.
+ */
+export function layoutQrPoster(cfg, hasAmount) {
+  const qrTop = percentValue(pickTop(cfg.qr, hasAmount)) ?? 0;
+  const qrWidth = percentValue(cfg.qr?.width) ?? 0;
+  const qrHeight = ((qrWidth / 100) * POSTER_WIDTH * 100) / POSTER_HEIGHT;
+  const qrBottom = qrTop + qrHeight;
+
+  const upiTuned = percentValue(pickTop(cfg.upi, hasAmount)) ?? qrBottom;
+  const upiTop = Math.max(
+    upiTuned,
+    qrBottom + (MIN_QR_TO_UPI_GAP * 100) / POSTER_HEIGHT
+  );
+  const drop = upiTop - upiTuned;
+  const copiedTuned = percentValue(pickTop(cfg.copied, hasAmount)) ?? upiTop + 3;
+
+  const heads = [
+    cfg.logo?.show ? percentValue(pickTop(cfg.logo, hasAmount)) : null,
+    percentValue(pickTop(cfg.businessName, hasAmount)),
+    hasAmount && cfg.amount?.show
+      ? percentValue(pickTop(cfg.amount, hasAmount))
+      : null,
+  ].filter((value) => value != null);
+
+  return {
+    qrTop: roundPercent(qrTop),
+    upiTop: roundPercent(upiTop),
+    copiedTop: roundPercent(copiedTuned + drop),
+    contentTop: heads.length ? Math.min(...heads) : qrTop,
+    contentBottom: upiTop + (UPI_LINE_HEIGHT * 100) / POSTER_HEIGHT,
+  };
 }

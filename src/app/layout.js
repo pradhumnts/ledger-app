@@ -20,7 +20,7 @@ export const metadata = {
   applicationName: "Ledger",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "Ledger",
   },
   formatDetection: {
