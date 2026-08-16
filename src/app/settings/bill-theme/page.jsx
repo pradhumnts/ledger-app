@@ -18,6 +18,7 @@ import {
 } from "@/lib/theme-carousel";
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
+import { buyTheme } from "@/lib/buy-theme";
 import { formatINR } from "@/lib/format";
 import { requestCustomTheme } from "@/lib/share";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,8 @@ export default function BillThemePage() {
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [stageSize, setStageSize] = useState({ width: 390, height: 420 });
+  const [buying, setBuying] = useState(false);
+  const [buyError, setBuyError] = useState("");
   const stageRef = useRef(null);
   const startX = useRef(0);
 
@@ -81,8 +84,9 @@ export default function BillThemePage() {
     if (isRequestCard) return t("billTheme.requestButton");
     if (isSelected) return t("billTheme.selected");
     if (unlockedActive) return t("billTheme.choose");
+    if (buying) return t("billTheme.buying");
     return t("billTheme.buy", { price: formatINR(BILL_THEME_PRICE) });
-  }, [isRequestCard, isSelected, unlockedActive, t]);
+  }, [isRequestCard, isSelected, unlockedActive, buying, t]);
 
   function onPointerDown(event) {
     setDragging(true);
@@ -122,7 +126,8 @@ export default function BillThemePage() {
     });
   }
 
-  function onAction() {
+  async function onAction() {
+    if (buying) return;
     if (isRequestCard) {
       requestCustomTheme({
         kind: "bill",
@@ -136,13 +141,25 @@ export default function BillThemePage() {
       setBillTheme(active.id);
       return;
     }
-    const ok = window.confirm(
-      t("billTheme.unlockConfirm", {
-        name: activeName,
-        price: BILL_THEME_PRICE,
-      })
-    );
-    if (ok) unlockBillTheme(active.id);
+    setBuyError("");
+    setBuying(true);
+    try {
+      await buyTheme({
+        kind: "bill",
+        themeId: active.id,
+        name: business.name,
+        contact: business.phone,
+        onUnlocked: unlockBillTheme,
+      });
+    } catch (error) {
+      if (String(error.message) !== "cancelled") {
+        const key =
+          error.message === "buyNeedLogin" ? "billTheme.buyNeedLogin" : "billTheme.buyFailed";
+        setBuyError(t(key));
+      }
+    } finally {
+      setBuying(false);
+    }
   }
 
   return (
@@ -274,10 +291,10 @@ export default function BillThemePage() {
           <button
             type="button"
             onClick={onAction}
-            disabled={!isRequestCard && isSelected}
+            disabled={buying || (!isRequestCard && isSelected)}
             className={cn(
               "mx-auto flex h-12 w-[70%] items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-[opacity,transform] duration-200 active:scale-[0.98]",
-              !isRequestCard && isSelected
+              buying || (!isRequestCard && isSelected)
                 ? "cursor-default bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
                 : isRequestCard
                   ? "border border-[var(--forest)]/15 bg-white text-[var(--forest)] shadow-sm dark:border-[var(--lime)]/20 dark:bg-zinc-900 dark:text-[var(--lime)]"
@@ -294,9 +311,15 @@ export default function BillThemePage() {
             {!isRequestCard && isSelected ? <Check className="size-4" /> : null}
             {buttonLabel}
           </button>
-          <p className="mt-2 text-center text-[11px] text-zinc-400">
-            {t("billTheme.swipeHint")}
-          </p>
+          {buyError ? (
+            <p className="mt-2 text-center text-[12px] text-rose-600 dark:text-rose-400">
+              {buyError}
+            </p>
+          ) : (
+            <p className="mt-2 text-center text-[11px] text-zinc-400">
+              {t("billTheme.swipeHint")}
+            </p>
+          )}
         </div>
       </div>
     </div>

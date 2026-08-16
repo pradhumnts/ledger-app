@@ -34,6 +34,7 @@ import {
   shopLoginEmail,
   toE164India,
 } from "./supabase/phone.js";
+import { getPaidTheme } from "./theme-catalog.js";
 
 const A = "cus_a";
 const B = "cus_b";
@@ -437,5 +438,14 @@ describe("shop login identity", () => {
       createdAt: "2026-08-01T00:00:00Z",
     };
     assert.equal(pickShopOwnerId([emptyNew, oldShop]), "old");
+  });
+});
+
+describe("paid theme catalog", () => {
+  it("sells paid themes at catalog paise and rejects free ones", () => {
+    assert.equal(getPaidTheme("bill", "classic"), null);
+    assert.equal(getPaidTheme("bill", "navy")?.amountPaise, 2000);
+    assert.equal(getPaidTheme("qr", "salon")?.amountPaise, 4000);
+    assert.equal(getPaidTheme("qr", "missing"), null);
   });
 });
