@@ -1,11 +1,13 @@
 import { digitsOnly, phoneKey } from "@/lib/validation";
 
 const STORAGE_KEY = "moneykit-device-contacts-v1";
+const PROMPT_KEY = "moneykit-contacts-prompted-v1";
 
 export function isContactPickerSupported() {
   return (
-    typeof navigator !== "undefined" &&
-    typeof navigator.contacts?.select === "function"
+    typeof window !== "undefined" &&
+    "contacts" in navigator &&
+    "ContactsManager" in window
   );
 }
 
@@ -26,6 +28,24 @@ export function saveDeviceContacts(contacts) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
   } catch {
     // Quota / private mode.
+  }
+}
+
+export function hasPromptedContacts() {
+  if (typeof window === "undefined") return true;
+  try {
+    return window.localStorage.getItem(PROMPT_KEY) === "1";
+  } catch {
+    return true;
+  }
+}
+
+export function markContactsPrompted() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(PROMPT_KEY, "1");
+  } catch {
+    // ignore
   }
 }
 

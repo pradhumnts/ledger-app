@@ -23,7 +23,7 @@ export function CustomerSearch({
   onPick,
   t,
 }) {
-  const { contacts, supported, busy, importContacts } = useDeviceContacts();
+  const { contacts, supported, requestAccess } = useDeviceContacts();
 
   const matches = useMemo(
     () =>
@@ -37,41 +37,20 @@ export function CustomerSearch({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between gap-2">
-        <Label htmlFor={id}>{label}</Label>
-        {supported && includeContacts ? (
-          <button
-            type="button"
-            onClick={async () => {
-              const previousIds = new Set(contacts.map((item) => item.id));
-              const merged = await importContacts();
-              const added = (merged || []).filter(
-                (item) => !previousIds.has(item.id)
-              );
-              if (added.length === 1 && !value.trim() && !selectedId) {
-                onPick({ ...added[0], source: "contact" });
-              }
-            }}
-            disabled={busy}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--forest)] disabled:opacity-50 dark:text-[var(--lime)]"
-          >
-            <Contact className="size-3.5" />
-            {t("contacts.usePhone")}
-          </button>
-        ) : null}
-      </div>
+      <Label htmlFor={id}>{label}</Label>
       <VoiceField
         id={id}
         kind="name"
         value={value}
         onValueChange={onNameChange}
+        onFocus={includeContacts ? requestAccess : undefined}
         placeholder={placeholder}
         className={cn("h-12 rounded-2xl", fieldInvalidClass(error))}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
       />
       <FieldError id={`${id}-error`}>{error ? t(error) : null}</FieldError>
-      {supported && includeContacts && !contacts.length ? (
+      {includeContacts && supported ? (
         <p className="text-xs text-zinc-500">{t("contacts.hint")}</p>
       ) : null}
 

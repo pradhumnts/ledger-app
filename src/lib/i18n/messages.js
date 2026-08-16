@@ -134,9 +134,8 @@ export const messages = {
       save: "Save customer",
     },
     contacts: {
-      usePhone: "Use phone contacts",
       fromPhone: "Phone contact",
-      hint: "Pick contacts once and they will show up as you type a name.",
+      hint: "You can search your phone contacts as well.",
     },
     customerEdit: {
       title: "Edit customer",
@@ -569,9 +568,8 @@ export const messages = {
       save: "ग्राहक सेव करें",
     },
     contacts: {
-      usePhone: "फ़ोन संपर्क",
       fromPhone: "फ़ोन से",
-      hint: "एक बार संपर्क चुनें, फिर नाम लिखते ही वे दिखेंगे।",
+      hint: "आप अपने फ़ोन संपर्क भी खोज सकते हैं।",
     },
     customerEdit: {
       title: "ग्राहक संपादित करें",
@@ -1004,9 +1002,8 @@ export const messages = {
       save: "Customer save karo",
     },
     contacts: {
-      usePhone: "Phone contacts",
       fromPhone: "Phone se",
-      hint: "Ek baar contacts chuno, phir naam type karte hi woh dikhenge.",
+      hint: "Aap apne phone contacts bhi search kar sakte ho.",
     },
     customerEdit: {
       title: "Customer edit karo",

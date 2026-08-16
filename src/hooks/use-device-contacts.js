@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
+  hasPromptedContacts,
   isContactPickerSupported,
   loadDeviceContacts,
+  markContactsPrompted,
   mergeDeviceContacts,
   pickDeviceContacts,
   saveDeviceContacts,
@@ -20,7 +22,8 @@ export function useDeviceContacts() {
   }, []);
 
   const importContacts = useCallback(async () => {
-    if (!isContactPickerSupported() || busy) return [];
+    if (!isContactPickerSupported() || busy) return loadDeviceContacts();
+    markContactsPrompted();
     setBusy(true);
     try {
       const picked = await pickDeviceContacts();
@@ -32,16 +35,26 @@ export function useDeviceContacts() {
       if (error?.name === "AbortError" || error?.name === "InvalidStateError") {
         return loadDeviceContacts();
       }
-      return [];
+      return loadDeviceContacts();
     } finally {
       setBusy(false);
     }
   }, [busy]);
 
+  const requestAccess = useCallback(async () => {
+    if (!isContactPickerSupported()) return;
+    if (hasPromptedContacts()) return;
+    if (loadDeviceContacts().length) {
+      markContactsPrompted();
+      return;
+    }
+    await importContacts();
+  }, [importContacts]);
+
   return {
     contacts,
     supported,
     busy,
-    importContacts,
+    requestAccess,
   };
 }
