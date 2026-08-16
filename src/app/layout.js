@@ -6,6 +6,7 @@ import {
   APP_DESCRIPTION,
   APP_ICON_SVG,
   APP_NAME,
+  APP_SITE_URL,
   APP_TAGLINE,
   BACKGROUND_COLOR,
 } from "@/lib/branding";
@@ -22,6 +23,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+  metadataBase: new URL(APP_SITE_URL),
   title: {
     default: `${APP_NAME} — ${APP_TAGLINE}`,
     template: `%s · ${APP_NAME}`,

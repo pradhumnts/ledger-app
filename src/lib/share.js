@@ -2,7 +2,7 @@ import { formatINR, formatEntryDate, entryTypeLabel } from "@/lib/format";
 import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
 import { normalizeLanguage, translate } from "@/lib/i18n";
 import { collectableRupees } from "@/lib/ledger-math";
-import { buildHttpsPayLink } from "@/lib/upi";
+import { buildUpiPaymentUrl } from "@/lib/upi";
 
 function payAmountForEntry(entry) {
   if (!entry) return undefined;
@@ -14,11 +14,10 @@ function payAmountForEntry(entry) {
 }
 
 function withPayLink(lines, { business, amount, language }) {
-  const href = buildHttpsPayLink({
+  const href = buildUpiPaymentUrl({
     upiId: business?.upiId,
     name: business?.name,
     amount,
-    origin: getAppUrl(),
   });
   if (!href) return lines;
   return [
@@ -196,10 +195,7 @@ export function openSMS({ phone, text }) {
 }
 
 export function getAppUrl() {
-  if (typeof window === "undefined") return APP_SITE_URL;
-  const origin = window.location.origin;
-  if (/localhost|127\.0\.0\.1/.test(origin)) return APP_SITE_URL;
-  return origin;
+  return APP_SITE_URL;
 }
 
 export function getAppShareContent(language = "en") {
