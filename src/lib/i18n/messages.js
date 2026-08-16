@@ -102,7 +102,7 @@ export const messages = {
     },
     customers: {
       title: "Customers",
-      subtitle: "Your khata book",
+      subtitle: "Bills and balances",
       searchPlaceholder: "Search name or phone",
       noCustomers: "No customers yet",
       noMatches: "No matches",
@@ -231,7 +231,7 @@ export const messages = {
     settings: {
       title: "Settings",
       shareTitle: "Share MoneyKit with a friend",
-      shareSubtitle: "Help another shopkeeper keep a simple khata — one tap to invite.",
+      shareSubtitle: "Help another shopkeeper keep simple accounts — one tap to invite.",
       businessProfile: "Business profile",
       businessPlaceholder: "Logo, UPI, name, phone, address",
       history: "History",
@@ -246,7 +246,7 @@ export const messages = {
       aboutSubtitle: "What MoneyKit is for",
       logOut: "Log out",
       logOutSubtitle: "Sign in again with SMS on this phone",
-      logOutConfirm: "Log out of this phone? Your khata stays saved. Sign in with SMS to get it back.",
+      logOutConfirm: "Log out of this phone? Your data stays saved. Sign in with SMS to get it back.",
       growOnline: "Grow online",
     },
     language: {
@@ -386,7 +386,7 @@ export const messages = {
       websiteBookingTagline: "Let customers book while you bill",
     },
     share: {
-      appText: "Try MoneyKit — simple billing & customer khata for your business in India.",
+      appText: "Try MoneyKit — simple billing and customer accounts for your business in India.",
       entryCustomer: "Customer: {name}",
       entryDate: "Date: {date}",
       entryNote: "Note: {note}",
@@ -520,7 +520,7 @@ export const messages = {
     },
     customers: {
       title: "ग्राहक",
-      subtitle: "आपकी खाता बही",
+      subtitle: "बिल और बकाया",
       searchPlaceholder: "नाम या फ़ोन खोजें",
       noCustomers: "अभी कोई ग्राहक नहीं",
       noMatches: "कोई मिलान नहीं",
@@ -649,7 +649,7 @@ export const messages = {
     settings: {
       title: "सेटिंग्स",
       shareTitle: "दोस्त के साथ MoneyKit साझा करें",
-      shareSubtitle: "दूसरे दुकानदार को सरल खाता रखने में मदद करें — एक टैप में।",
+      shareSubtitle: "दूसरे दुकानदार को सरल बिलिंग रखने में मदद करें — एक टैप में।",
       businessProfile: "व्यवसाय प्रोफ़ाइल",
       businessPlaceholder: "लोगो, UPI, नाम, फ़ोन, पता",
       history: "इतिहास",
@@ -664,7 +664,7 @@ export const messages = {
       aboutSubtitle: "MoneyKit किसके लिए है",
       logOut: "लॉग आउट",
       logOutSubtitle: "इस फ़ोन पर SMS से फिर साइन इन करें",
-      logOutConfirm: "इस फ़ोन से लॉग आउट करें? आपका खाता सेव रहेगा। वापस पाने के लिए SMS से साइन इन करें।",
+      logOutConfirm: "इस फ़ोन से लॉग आउट करें? आपका डेटा सेव रहेगा। वापस पाने के लिए SMS से साइन इन करें।",
       growOnline: "ऑनलाइन बढ़ें",
     },
     language: {
@@ -684,7 +684,7 @@ export const messages = {
       version: "संस्करण 0.1.0 · भारत के लिए बनाया गया",
     },
     onboarding: {
-      welcomeTitle: "खाता, अब और आसान",
+      welcomeTitle: "बिलिंग, अब और आसान",
       welcomeBody:
         "ग्राहकों का बकाया ट्रैक करें, सेकंडों में बिल बनाएं, और WhatsApp पर साझा करें।",
       welcomeCta: "आगे बढ़ें",
@@ -804,7 +804,7 @@ export const messages = {
       websiteBookingTagline: "बिल करते हुए ग्राहक बुक करें",
     },
     share: {
-      appText: "MoneyKit आज़माएं — भारत में अपने व्यवसाय के लिए सरल बिलिंग और खाता।",
+      appText: "MoneyKit आज़माएं — भारत में अपने व्यवसाय के लिए सरल बिलिंग।",
       entryCustomer: "ग्राहक: {name}",
       entryDate: "तारीख: {date}",
       entryNote: "नोट: {note}",
@@ -938,7 +938,7 @@ export const messages = {
     },
     customers: {
       title: "Customers",
-      subtitle: "Aapki khata book",
+      subtitle: "Bills aur balances",
       searchPlaceholder: "Naam ya phone search karo",
       noCustomers: "Abhi koi customer nahi",
       noMatches: "Koi match nahi",
@@ -1067,7 +1067,7 @@ export const messages = {
     settings: {
       title: "Settings",
       shareTitle: "Dost ke saath MoneyKit share karo",
-      shareSubtitle: "Doosre dukaandar ko simple khata rakhne mein help karo — ek tap mein.",
+      shareSubtitle: "Doosre dukaandar ko simple billing rakhne mein help karo — ek tap mein.",
       businessProfile: "Business profile",
       businessPlaceholder: "Logo, UPI, naam, phone, address",
       history: "History",
@@ -1082,7 +1082,7 @@ export const messages = {
       aboutSubtitle: "MoneyKit kis ke liye hai",
       logOut: "Log out",
       logOutSubtitle: "Is phone par SMS se phir sign in karo",
-      logOutConfirm: "Is phone se log out karein? Aapka khata save rahega. Wapas pane ke liye SMS se sign in karo.",
+      logOutConfirm: "Is phone se log out karein? Aapka data save rahega. Wapas pane ke liye SMS se sign in karo.",
       growOnline: "Online bado",
     },
     language: {
@@ -1102,7 +1102,7 @@ export const messages = {
       version: "Version 0.1.0 · India ke liye banaaya",
     },
     onboarding: {
-      welcomeTitle: "Khata, ab aur aasaan",
+      welcomeTitle: "Billing, ab aur aasaan",
       welcomeBody:
         "Customer dues track karo, seconds mein bill banao, aur WhatsApp par share karo.",
       welcomeCta: "Continue",
@@ -1222,7 +1222,7 @@ export const messages = {
       websiteBookingTagline: "Bill karte hue customers book karo",
     },
     share: {
-      appText: "MoneyKit try karo — India mein apne business ke liye simple billing aur khata.",
+      appText: "MoneyKit try karo — India mein apne business ke liye simple billing.",
       entryCustomer: "Customer: {name}",
       entryDate: "Date: {date}",
       entryNote: "Note: {note}",

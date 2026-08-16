@@ -283,7 +283,7 @@ export async function buildCustomerStatementPdf({
 
   doc.setProperties({
     title: `Statement ${billNo} — ${customer?.name || "Customer"}`,
-    subject: `Customer khata statement from ${APP_NAME}`,
+    subject: `Customer statement from ${APP_NAME}`,
     author: business?.name || APP_NAME,
     creator: APP_NAME,
   });

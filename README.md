@@ -1,6 +1,6 @@
 # MoneyKit
 
-Simple customer khata + bills for Indian businesses. Built with Next.js, shadcn/ui, and JSX.
+Simple customer accounts and bills for Indian businesses. Built with Next.js, shadcn/ui, and JSX.
 
 ## Run locally
 
@@ -28,6 +28,6 @@ MoneyKit is a Progressive Web App. After deploying:
 
 1. Open the site in **Chrome** (Android) or **Safari** (iOS).
 2. Use **Install app** / **Add to Home Screen**.
-3. The app opens full-screen with your khata data available offline (cached shell + local storage).
+3. The app opens full-screen with your data available offline (cached shell + local storage).
 
 Production builds generate a service worker automatically (`npm run build` uses webpack for PWA support).

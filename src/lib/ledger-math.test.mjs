@@ -152,7 +152,7 @@ describe("deposit due: never overpay, never create To Pay", () => {
     assert.equal(collectableRupees(customerBalance(over.entries, A)), 0);
   });
 
-  it("exact deposit clears the khata", () => {
+  it("exact deposit clears the balance", () => {
     const { entries } = playLedger(A, [bill(2000, 500), deposit(500)]);
     assert.deepEqual(totalsOf(entries), {
       billed: 2000,
@@ -422,7 +422,7 @@ describe("shop login identity", () => {
     assert.equal(shopLoginEmail("9876543210"), "9876543210@phone.moneykit.app");
   });
 
-  it("signs into the shop that already has khata data", () => {
+  it("signs into the shop that already has billing data", () => {
     const emptyNew = {
       id: "new",
       entries: 0,

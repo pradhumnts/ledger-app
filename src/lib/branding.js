@@ -1,7 +1,7 @@
 export const APP_NAME = "MoneyKit";
 export const APP_SHORT_NAME = "MoneyKit";
 export const APP_DESCRIPTION =
-  "Super simple customer khata, bills, and UPI payment QR for Indian businesses.";
+  "Super simple customer accounts, bills, and UPI payment QR for Indian businesses.";
 export const APP_TAGLINE = "Simple billing for India";
 
 export const APP_ICON_SVG = "/moneykit-icon.svg";

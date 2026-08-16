@@ -1,5 +1,5 @@
 /**
- * Money math for khata / bills / deposits.
+ * Money math for bills / deposits.
  *
  * All running totals are integer paise so 10.15 + 10.15 never drifts.
  * Rupee values at the edges are converted with rupeesToPaise / paiseToRupees.

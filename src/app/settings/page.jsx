@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   Building2,
   History,
-  Info,
   Languages,
   LogOut,
   Moon,
@@ -149,13 +148,6 @@ export default function SettingsPage() {
             onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
           />
         </div>
-        <Divider />
-        <ListRow
-          href="/settings/about"
-          icon={<Info className="size-4" />}
-          title={t("settings.about")}
-          subtitle={t("settings.aboutSubtitle")}
-        />
         <Divider />
         <ListRow
           icon={<LogOut className="size-4" />}
