@@ -23,17 +23,17 @@ export function useDeviceContacts() {
 
   const importContacts = useCallback(async () => {
     if (!isContactPickerSupported() || busy) return loadDeviceContacts();
-    markContactsPrompted();
     setBusy(true);
     try {
       const picked = await pickDeviceContacts();
+      markContactsPrompted();
       const merged = mergeDeviceContacts(loadDeviceContacts(), picked);
       saveDeviceContacts(merged);
       setContacts(merged);
       return merged;
     } catch (error) {
-      if (error?.name === "AbortError" || error?.name === "InvalidStateError") {
-        return loadDeviceContacts();
+      if (error?.name === "AbortError") {
+        markContactsPrompted();
       }
       return loadDeviceContacts();
     } finally {
@@ -56,5 +56,6 @@ export function useDeviceContacts() {
     supported,
     busy,
     requestAccess,
+    importContacts,
   };
 }

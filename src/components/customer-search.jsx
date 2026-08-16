@@ -23,7 +23,8 @@ export function CustomerSearch({
   onPick,
   t,
 }) {
-  const { contacts, supported, requestAccess } = useDeviceContacts();
+  const { contacts, supported, requestAccess, importContacts } =
+    useDeviceContacts();
 
   const matches = useMemo(
     () =>
@@ -43,7 +44,7 @@ export function CustomerSearch({
         kind="name"
         value={value}
         onValueChange={onNameChange}
-        onFocus={includeContacts ? requestAccess : undefined}
+        onPointerDown={includeContacts ? requestAccess : undefined}
         placeholder={placeholder}
         className={cn("h-12 rounded-2xl", fieldInvalidClass(error))}
         aria-invalid={Boolean(error)}
@@ -51,7 +52,13 @@ export function CustomerSearch({
       />
       <FieldError id={`${id}-error`}>{error ? t(error) : null}</FieldError>
       {includeContacts && supported ? (
-        <p className="text-xs text-zinc-500">{t("contacts.hint")}</p>
+        <button
+          type="button"
+          onClick={importContacts}
+          className="text-left text-xs text-zinc-500"
+        >
+          {t("contacts.hint")}
+        </button>
       ) : null}
 
       {matches.length > 0 && !selectedId ? (

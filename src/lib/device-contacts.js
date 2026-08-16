@@ -1,13 +1,12 @@
 import { digitsOnly, phoneKey } from "@/lib/validation";
 
 const STORAGE_KEY = "moneykit-device-contacts-v1";
-const PROMPT_KEY = "moneykit-contacts-prompted-v1";
+const PROMPT_KEY = "moneykit-contacts-prompted-v2";
 
 export function isContactPickerSupported() {
   return (
     typeof window !== "undefined" &&
-    "contacts" in navigator &&
-    "ContactsManager" in window
+    typeof navigator.contacts?.select === "function"
   );
 }
 
@@ -93,17 +92,9 @@ export async function pickDeviceContacts() {
   if (!isContactPickerSupported()) {
     throw new Error("unsupported");
   }
-  let properties = ["name", "tel"];
-  try {
-    const available = await navigator.contacts.getProperties?.();
-    if (Array.isArray(available) && available.length) {
-      properties = properties.filter((item) => available.includes(item));
-    }
-  } catch {
-    // Older pickers only accept the default name/tel set.
-  }
-  if (!properties.length) properties = ["name", "tel"];
-  const rows = await navigator.contacts.select(properties, { multiple: true });
+  const rows = await navigator.contacts.select(["name", "tel"], {
+    multiple: true,
+  });
   return normalizePickedContacts(rows);
 }
 
