@@ -19,7 +19,10 @@ export function SplashScreen() {
   const [minElapsed, setMinElapsed] = useState(false);
 
   const blocking =
-    !ready || (pathname !== "/onboarding" && !settings?.onboardingComplete);
+    !ready ||
+    (pathname !== "/onboarding" &&
+      pathname !== "/p" &&
+      !settings?.onboardingComplete);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setMinElapsed(true), MIN_MS);
@@ -34,6 +37,7 @@ export function SplashScreen() {
   }, [blocking, minElapsed, phase]);
 
   if (pathname === "/onboarding" && ready) return null;
+  if (pathname === "/p") return null;
   if (!blocking && phase === "hidden") return null;
 
   return (

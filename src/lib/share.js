@@ -1,8 +1,35 @@
 import { formatINR, formatEntryDate, entryTypeLabel } from "@/lib/format";
 import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
 import { normalizeLanguage, translate } from "@/lib/i18n";
+import { collectableRupees } from "@/lib/ledger-math";
+import { buildHttpsPayLink } from "@/lib/upi";
 
-function businessLine(business, language) {
+function payAmountForEntry(entry) {
+  if (!entry) return undefined;
+  const due = Number(entry.due);
+  if (Number.isFinite(due) && due > 0) return due;
+  if (entry.type === "got") return undefined;
+  const amount = Number(entry.amount);
+  return Number.isFinite(amount) && amount > 0 ? amount : undefined;
+}
+
+function withPayLink(lines, { business, amount, language }) {
+  const href = buildHttpsPayLink({
+    upiId: business?.upiId,
+    name: business?.name,
+    amount,
+    origin: getAppUrl(),
+  });
+  if (!href) return lines;
+  return [
+    ...lines,
+    "",
+    translate(language, "share.payNow"),
+    href,
+  ];
+}
+
+function businessLine(business) {
   if (!business?.name) return "";
   const bits = [business.name];
   if (business.phone) bits.push(business.phone);
@@ -38,8 +65,10 @@ export function buildEntryMessage({ entry, customer, business, language = "en" }
     );
   }
 
-  lines.push("", translate(lang, "common.sentViaMoneyKit"));
-  return lines.filter(Boolean).join("\n");
+  return withPayLink(
+    [...lines, "", translate(lang, "common.sentViaMoneyKit")].filter(Boolean),
+    { business, amount: payAmountForEntry(entry), language: lang }
+  ).join("\n");
 }
 
 export function buildCustomerStatementMessage({
@@ -94,7 +123,11 @@ export function buildCustomerStatementMessage({
   });
 
   lines.push("", translate(lang, "common.sentViaMoneyKit"));
-  return lines.filter(Boolean).join("\n");
+  return withPayLink(lines.filter(Boolean), {
+    business,
+    amount: collectableRupees(balance),
+    language: lang,
+  }).join("\n");
 }
 
 function toWhatsAppPhone(phone) {

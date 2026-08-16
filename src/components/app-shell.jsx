@@ -12,14 +12,16 @@ import { cn } from "@/lib/utils";
 export function AppShell({ children }) {
   const pathname = usePathname();
   const isPay = pathname === "/pay";
+  const isPayLink = pathname === "/p";
   const isOnboarding = pathname === "/onboarding";
   const isThemePage =
     pathname === "/settings/qr-theme" || pathname === "/settings/bill-theme";
-  const fullBleed = isPay || isOnboarding || isThemePage;
+  const fullBleed = isPay || isPayLink || isOnboarding || isThemePage;
 
   useEffect(() => {
+    if (isPayLink) return;
     rememberPath(pathname);
-  }, [pathname]);
+  }, [pathname, isPayLink]);
 
   return (
     <>
@@ -41,7 +43,7 @@ export function AppShell({ children }) {
           >
             {children}
           </main>
-          {!isOnboarding ? <BottomNav /> : null}
+          {!isOnboarding && !isPayLink ? <BottomNav /> : null}
         </div>
         <SaveErrorToast />
       </OnboardingGuard>

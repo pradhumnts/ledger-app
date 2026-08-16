@@ -1,7 +1,8 @@
 import { formatINR } from "@/lib/format";
 import { normalizeLanguage, translate } from "@/lib/i18n";
 import { POSTER_HEIGHT, POSTER_WIDTH } from "@/lib/qr-theme-styles";
-import { openWhatsApp } from "@/lib/share";
+import { getAppUrl, openWhatsApp } from "@/lib/share";
+import { buildHttpsPayLink } from "@/lib/upi";
 
 export function buildPayShareText({
   businessName,
@@ -26,6 +27,16 @@ export function buildPayShareText({
 
   if (upiId) {
     lines.push(translate(lang, "pay.shareUpi", { upi: upiId }));
+  }
+
+  const payHref = buildHttpsPayLink({
+    upiId,
+    name: businessName,
+    amount: hasAmount ? value : undefined,
+    origin: getAppUrl(),
+  });
+  if (payHref) {
+    lines.push("", translate(lang, "share.payNow"), payHref);
   }
 
   lines.push("", translate(lang, "pay.shareHint"));

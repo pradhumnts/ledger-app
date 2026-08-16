@@ -21,6 +21,7 @@ export function BottomNav() {
     pathname?.startsWith("/invoice/") ||
     pathname?.startsWith("/settings/") ||
     pathname === "/pay" ||
+    pathname === "/p" ||
     pathname === "/onboarding";
 
   const isHidden = hidden && pathname !== "/settings";

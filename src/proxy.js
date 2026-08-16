@@ -10,8 +10,9 @@ export function proxy(request) {
 
   const onboarded = request.cookies.get(ONBOARDING_COOKIE)?.value === "1";
   const onOnboarding = pathname === "/onboarding";
+  const onPayLink = pathname === "/p";
 
-  if (!onboarded && !onOnboarding) {
+  if (!onboarded && !onOnboarding && !onPayLink) {
     return NextResponse.redirect(new URL("/onboarding", request.url));
   }
 

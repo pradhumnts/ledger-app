@@ -9,11 +9,13 @@ export function OnboardingGuard({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const onOnboarding = pathname === "/onboarding";
+  const onPayLink = pathname === "/p";
   const onboarded = Boolean(settings?.onboardingComplete);
-  const allowed = ready && (onboarded ? !onOnboarding : onOnboarding);
+  const allowed =
+    onPayLink || (ready && (onboarded ? !onOnboarding : onOnboarding));
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || onPayLink) return;
     if (!onboarded && !onOnboarding) {
       router.replace("/onboarding");
       return;
@@ -21,7 +23,7 @@ export function OnboardingGuard({ children }) {
     if (onboarded && onOnboarding) {
       router.replace("/");
     }
-  }, [ready, onboarded, onOnboarding, router]);
+  }, [ready, onboarded, onOnboarding, onPayLink, router]);
 
   if (!allowed) {
     return (
