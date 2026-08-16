@@ -4,7 +4,7 @@ const ONBOARDING_COOKIE = "mk_onboarded";
 
 export function proxy(request) {
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/api/")) {
+  if (pathname.startsWith("/api/") || pathname.startsWith("/.well-known/")) {
     return NextResponse.next();
   }
 
@@ -24,6 +24,6 @@ export function proxy(request) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|_next/data|favicon.ico|manifest.webmanifest|sw.js|workbox|icon|apple-touch-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|map)$).*)",
+    "/((?!api|_next/static|_next/image|_next/data|favicon.ico|manifest.webmanifest|sw.js|workbox|icon|apple-touch-icon|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|map)$).*)",
   ],
 };

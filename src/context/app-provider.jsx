@@ -19,6 +19,7 @@ import {
 } from "@/lib/store";
 import { DEFAULT_LANGUAGE, getHtmlLang, normalizeLanguage } from "@/lib/i18n";
 import { persistOnboardingGate } from "@/lib/onboarding-gate";
+import { restorePlayPurchases } from "@/lib/buy-theme";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { requestPhoneOtp, verifyPhoneOtp } from "@/lib/supabase/sign-in";
 import { pushShop, pullShop } from "@/lib/supabase/sync";
@@ -178,6 +179,38 @@ export function AppProvider({ children }) {
       };
     });
   }, []);
+
+  const grantUnlockedTheme = useCallback((kind, themeId) => {
+    setState((prev) => {
+      if (kind === "bill") {
+        const unlocked = prev.settings.unlockedBillThemes || [];
+        if (unlocked.includes(themeId)) return prev;
+        return {
+          ...prev,
+          settings: {
+            ...prev.settings,
+            unlockedBillThemes: [...unlocked, themeId],
+          },
+        };
+      }
+      const unlocked = prev.settings.unlockedQrThemes || [];
+      if (unlocked.includes(themeId)) return prev;
+      return {
+        ...prev,
+        settings: {
+          ...prev.settings,
+          unlockedQrThemes: [...unlocked, themeId],
+        },
+      };
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!ready || !userId) return;
+    restorePlayPurchases({
+      onUnlocked: (kind, themeId) => grantUnlockedTheme(kind, themeId),
+    }).catch(() => {});
+  }, [ready, userId, grantUnlockedTheme]);
 
   const updateBusiness = useCallback((business) => {
     setState((prev) => ({

@@ -1,11 +1,16 @@
 import { getBillTheme } from "@/lib/bill-themes";
-import { APP_NAME } from "@/lib/branding";
+import {
+  APP_ICON_192,
+  APP_LOGO_WEBP,
+  APP_NAME,
+  APP_SITE_URL,
+  APP_TAGLINE,
+} from "@/lib/branding";
 import {
   formatBillNumber,
   formatEntryDate,
   formatEntryDateTime,
 } from "@/lib/format";
-import { getAppUrl } from "@/lib/share";
 import { collectableRupees } from "@/lib/ledger-math";
 import { paiseToRupees, rupeesToPaise } from "@/lib/supabase/money";
 
@@ -23,6 +28,44 @@ const WHITE = [255, 255, 255];
 
 const PAGE = { w: 210, h: 297 };
 const MARGIN = 16;
+const BRAND_MARK = APP_NAME.toUpperCase();
+
+async function loadBrandLogoPng() {
+  const sources = [APP_LOGO_WEBP, APP_ICON_192];
+  for (const src of sources) {
+    try {
+      const res = await fetch(src);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      if (blob.type === "image/png" || src.endsWith(".png")) {
+        const dataUrl = await blobToDataUrl(blob);
+        if (dataUrl) return dataUrl;
+        continue;
+      }
+      const bitmap = await createImageBitmap(blob);
+      const canvas = document.createElement("canvas");
+      const size = 192;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(bitmap, 0, 0, size, size);
+      bitmap.close?.();
+      return canvas.toDataURL("image/png");
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
 
 function resolveTheme(billThemeId) {
   return getBillTheme(billThemeId).pdf;
@@ -74,7 +117,26 @@ async function loadPdf() {
   return { jsPDF, autoTable: autoTableModule.default };
 }
 
-function drawMark(doc, x, y, size = 8, colors = resolveTheme()) {
+function drawMark(doc, x, y, size = 8, colors = resolveTheme(), logoDataUrl = null) {
+  if (logoDataUrl) {
+    doc.setFillColor(...WHITE);
+    doc.roundedRect(x, y, size, size, 1.6, 1.6, "F");
+    const pad = size * 0.08;
+    try {
+      doc.addImage(
+        logoDataUrl,
+        "PNG",
+        x + pad,
+        y + pad,
+        size - pad * 2,
+        size - pad * 2
+      );
+      return;
+    } catch {
+      // Fall through to the letter mark.
+    }
+  }
+
   doc.setFillColor(...(colors.markBg || colors.lime || LIME));
   doc.roundedRect(x, y, size, size, 1.6, 1.6, "F");
   doc.setTextColor(...(colors.markText || colors.forest || FOREST));
@@ -83,13 +145,13 @@ function drawMark(doc, x, y, size = 8, colors = resolveTheme()) {
   doc.text("M", x + size / 2, y + size * 0.72, { align: "center" });
 }
 
-function drawFooter(doc, url, colors = resolveTheme()) {
+function drawFooter(doc, url, colors = resolveTheme(), logoDataUrl = null) {
   const y = PAGE.h - 18;
   doc.setDrawColor(...LINE);
   doc.setLineWidth(0.3);
   doc.line(MARGIN, y, PAGE.w - MARGIN, y);
 
-  drawMark(doc, MARGIN, y + 3.2, 6.5, colors);
+  drawMark(doc, MARGIN, y + 3.2, 6.5, colors, logoDataUrl);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
@@ -109,7 +171,7 @@ function drawFooter(doc, url, colors = resolveTheme()) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(...MUTED);
-  doc.text("Simple billing for India", MARGIN + 9, y + 11.4);
+  doc.text(APP_TAGLINE, MARGIN + 9, y + 11.4);
 
   const link = String(url || "").replace(/^https?:\/\//, "");
   if (link) {
@@ -144,7 +206,7 @@ function createBillNumber(kind = "bill", seed = "") {
   return `${prefix}-${yy}${mm}${dd}-${suffix}`;
 }
 
-function drawCoverHeader(doc, { kicker, business, url, billNo, colors }) {
+function drawCoverHeader(doc, { kicker, business, url, billNo, colors, logoDataUrl }) {
   const theme = colors || resolveTheme();
   const phone = String(business?.phone || "").trim();
   const address = String(business?.address || "").trim();
@@ -171,15 +233,16 @@ function drawCoverHeader(doc, { kicker, business, url, billNo, colors }) {
   doc.setFillColor(...(theme.forest || FOREST));
   doc.rect(0, 0, PAGE.w, bannerH, "F");
 
-  drawMark(doc, MARGIN, 8, 7.2, theme);
+  drawMark(doc, MARGIN, 8, 7.2, theme, logoDataUrl);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
   doc.setTextColor(...(theme.lime || LIME));
   if (url) {
-    doc.textWithLink("LEDGER", MARGIN + 10, 13.2, { url });
-    doc.link(MARGIN, 7, 34, 9, { url });
+    doc.textWithLink(BRAND_MARK, MARGIN + 10, 13.2, { url });
+    const brandW = doc.getTextWidth(BRAND_MARK);
+    doc.link(MARGIN, 7, 10 + brandW, 9, { url });
   } else {
-    doc.text("LEDGER", MARGIN + 10, 13.2);
+    doc.text(BRAND_MARK, MARGIN + 10, 13.2);
   }
 
   doc.setFontSize(7.5);
@@ -269,9 +332,12 @@ export async function buildCustomerStatementPdf({
   business,
   billThemeId,
 }) {
-  const { jsPDF, autoTable } = await loadPdf();
+  const [{ jsPDF, autoTable }, logoDataUrl] = await Promise.all([
+    loadPdf(),
+    loadBrandLogoPng(),
+  ]);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const url = getAppUrl();
+  const url = APP_SITE_URL;
   const billNo = createBillNumber(
     "statement",
     `${customer?.id || "cust"}-${entries?.length || 0}-${customer?.name || ""}`
@@ -294,6 +360,7 @@ export async function buildCustomerStatementPdf({
     url,
     billNo,
     colors,
+    logoDataUrl,
   });
 
   doc.setFont("helvetica", "normal");
@@ -383,7 +450,7 @@ export async function buildCustomerStatementPdf({
       if (entry?.type === "got") data.cell.styles.textColor = MINT;
     },
     didDrawPage: () => {
-      drawFooter(doc, url, colors);
+      drawFooter(doc, url, colors, logoDataUrl);
     },
   });
 
@@ -403,9 +470,12 @@ export async function exportEntryPdf(args) {
 }
 
 export async function buildEntryPdf({ entry, customer, business, billThemeId }) {
-  const { jsPDF } = await loadPdf();
+  const [{ jsPDF }, logoDataUrl] = await Promise.all([
+    loadPdf(),
+    loadBrandLogoPng(),
+  ]);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const url = getAppUrl();
+  const url = APP_SITE_URL;
   const billNo = formatBillNumber(entry);
   const label = typeLabel(entry?.type);
   const colors = resolveTheme(billThemeId);
@@ -423,6 +493,7 @@ export async function buildEntryPdf({ entry, customer, business, billThemeId }) 
     url,
     billNo,
     colors,
+    logoDataUrl,
   });
 
   const noteWidth = PAGE.w - MARGIN * 2 - 40;
@@ -490,7 +561,7 @@ export async function buildEntryPdf({ entry, customer, business, billThemeId }) 
     rowY += Math.max(8, lines.length * 5 + 3);
   });
 
-  drawFooter(doc, url, colors);
+  drawFooter(doc, url, colors, logoDataUrl);
 
   const filename = `${safeFilename(customer?.name)}-${billNo}.pdf`;
   const title = `${label} for ${customer?.name || "customer"}`;

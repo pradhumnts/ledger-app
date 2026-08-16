@@ -460,6 +460,7 @@ export function QrThemeDisplay({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          data-poster-bg="true"
           src={theme.image}
           alt=""
           className="absolute inset-0 h-full w-full object-cover object-center"

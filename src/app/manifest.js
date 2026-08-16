@@ -6,10 +6,14 @@ import {
   APP_NAME,
   APP_SHORT_NAME,
   BACKGROUND_COLOR,
+  PLAY_PACKAGE_NAME,
   THEME_COLOR,
 } from "@/lib/branding";
 
 export default function manifest() {
+  const playPackage =
+    process.env.NEXT_PUBLIC_PLAY_PACKAGE_NAME || PLAY_PACKAGE_NAME;
+
   return {
     id: "/",
     name: `${APP_NAME} — Simple billing for India`,
@@ -22,6 +26,16 @@ export default function manifest() {
     background_color: BACKGROUND_COLOR,
     theme_color: THEME_COLOR,
     categories: ["business", "finance", "productivity"],
+    prefer_related_applications: false,
+    related_applications: playPackage
+      ? [
+          {
+            platform: "play",
+            id: playPackage,
+            url: `https://play.google.com/store/apps/details?id=${playPackage}`,
+          },
+        ]
+      : [],
     icons: [
       {
         src: APP_ICON_SVG,

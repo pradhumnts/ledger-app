@@ -34,6 +34,7 @@ import {
   buildCustomerStatementMessage,
   openSMS,
   shareOnWhatsApp,
+  telHref,
 } from "@/lib/share";
 import { exportCustomerStatementPdf } from "@/lib/pdf";
 import {
@@ -128,6 +129,7 @@ export default function CustomerDetailPage() {
       : balance > 0
         ? t("common.toCollect")
         : t("common.toPay");
+  const callHref = telHref(customer.phone);
 
   return (
     <>
@@ -180,6 +182,15 @@ export default function CustomerDetailPage() {
               </p>
             )}
           </div>
+          {callHref ? (
+            <a
+              href={callHref}
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-900 transition-[color,background-color,transform] duration-200 ease-out hover:bg-zinc-50 active:scale-[0.98] dark:border-white/12 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
+              aria-label={t("customers.call")}
+            >
+              <Phone className="size-4" />
+            </a>
+          ) : null}
         </div>
 
         <p className="mb-1 text-xs font-medium tracking-wide text-zinc-400 uppercase">

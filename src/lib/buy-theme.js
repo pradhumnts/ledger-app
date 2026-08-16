@@ -1,4 +1,10 @@
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  isPlayBillingAvailable,
+  listPlayPurchases,
+  requestPlayPurchase,
+} from "@/lib/play-billing";
+import { playSkuFor, themeFromPlaySku } from "@/lib/theme-catalog";
 
 let checkoutPromise = null;
 
@@ -57,6 +63,80 @@ function authHeaders(token) {
 
 export async function buyTheme({ kind, themeId, name, contact, onUnlocked }) {
   const accessToken = await getAccessToken();
+  if (await isPlayBillingAvailable()) {
+    return buyWithPlay({ kind, themeId, accessToken, onUnlocked });
+  }
+  return buyWithRazorpay({ kind, themeId, name, contact, accessToken, onUnlocked });
+}
+
+async function verifyPlayPurchase({ sku, purchaseToken, accessToken }) {
+  const headers = authHeaders(accessToken);
+  const verifyResponse = await fetch("/api/payments/verify-play", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ sku, purchaseToken, accessToken }),
+  });
+  const payload = await verifyResponse.json().catch(() => ({}));
+  if (verifyResponse.status === 401) throw new Error("buyNeedLogin");
+  if (!verifyResponse.ok) {
+    throw new Error(payload.error || "buyFailed");
+  }
+  return payload;
+}
+
+async function buyWithPlay({ kind, themeId, accessToken, onUnlocked }) {
+  const sku = playSkuFor(kind, themeId);
+  if (!sku) throw new Error("buyFailed");
+
+  const pending = await requestPlayPurchase(sku);
+  try {
+    const payload = await verifyPlayPurchase({
+      sku: pending.sku,
+      purchaseToken: pending.purchaseToken,
+      accessToken,
+    });
+    await pending.complete(true);
+    onUnlocked?.(payload.themeId || themeId);
+    return { ok: true, provider: "play" };
+  } catch (error) {
+    try {
+      await pending.complete(false);
+    } catch {
+      // Ignore PaymentResponse complete errors.
+    }
+    throw error;
+  }
+}
+
+export async function restorePlayPurchases({ onUnlocked } = {}) {
+  if (!(await isPlayBillingAvailable())) return [];
+  const accessToken = await getAccessToken();
+  const purchases = await listPlayPurchases();
+  const unlocked = [];
+  for (const purchase of purchases) {
+    const sku = purchase.itemId || purchase.sku || "";
+    const purchaseToken = purchase.purchaseToken || "";
+    const theme = themeFromPlaySku(sku);
+    if (!theme || !purchaseToken) continue;
+    try {
+      const payload = await verifyPlayPurchase({ sku, purchaseToken, accessToken });
+      onUnlocked?.(payload.kind || theme.kind, payload.themeId || theme.themeId);
+      unlocked.push(payload);
+    } catch {
+      // Skip tokens Google or our server will not accept.
+    }
+  }
+  return unlocked;
+}
+
+async function buyWithRazorpay({
+  kind,
+  themeId,
+  name,
+  contact,
+  accessToken,
+  onUnlocked,
+}) {
   const headers = authHeaders(accessToken);
   const orderResponse = await fetch("/api/payments/create-order", {
     method: "POST",

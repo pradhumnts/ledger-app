@@ -1,5 +1,5 @@
 import { formatINR, formatEntryDate, entryTypeLabel } from "@/lib/format";
-import { APP_NAME } from "@/lib/branding";
+import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
 import { normalizeLanguage, translate } from "@/lib/i18n";
 
 function businessLine(business, language) {
@@ -106,6 +106,11 @@ function toWhatsAppPhone(phone) {
   return digits;
 }
 
+export function telHref(phone) {
+  const withCountry = toWhatsAppPhone(phone);
+  return withCountry ? `tel:+${withCountry}` : "";
+}
+
 export function openWhatsApp({ phone, text }) {
   const withCountry = toWhatsAppPhone(phone);
   const url = withCountry
@@ -158,8 +163,10 @@ export function openSMS({ phone, text }) {
 }
 
 export function getAppUrl() {
-  if (typeof window === "undefined") return "";
-  return window.location.origin;
+  if (typeof window === "undefined") return APP_SITE_URL;
+  const origin = window.location.origin;
+  if (/localhost|127\.0\.0\.1/.test(origin)) return APP_SITE_URL;
+  return origin;
 }
 
 export function getAppShareContent(language = "en") {

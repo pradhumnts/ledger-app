@@ -121,6 +121,7 @@ export const messages = {
       shareAllDialogTitle: "Share all entries",
       shareAllDialogDesc: "Save a branded PDF, or send the full statement",
       edit: "Edit customer",
+      call: "Call",
       addBill: "Create bill",
     },
     customerNew: {
@@ -539,6 +540,7 @@ export const messages = {
       shareAllDialogTitle: "सभी एंट्री साझा करें",
       shareAllDialogDesc: "PDF सेव करें, या पूरा स्टेटमेंट भेजें",
       edit: "ग्राहक संपादित करें",
+      call: "कॉल करें",
       addBill: "बिल बनाएं",
     },
     customerNew: {
@@ -957,6 +959,7 @@ export const messages = {
       shareAllDialogTitle: "Saari entries share karo",
       shareAllDialogDesc: "PDF save karo, ya poora statement bhejo",
       edit: "Customer edit karo",
+      call: "Call karo",
       addBill: "Bill banao",
     },
     customerNew: {

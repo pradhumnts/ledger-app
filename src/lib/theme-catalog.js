@@ -26,3 +26,29 @@ export function getPaidTheme(kind, themeId) {
   }
   return null;
 }
+
+export function playSkuFor(kind, themeId) {
+  const theme = getPaidTheme(kind, themeId);
+  if (!theme) return "";
+  return `${theme.kind}_theme_${theme.themeId.replace(/-/g, "_")}`;
+}
+
+export function themeFromPlaySku(sku) {
+  const raw = String(sku || "").trim();
+  const bill = raw.match(/^bill_theme_(.+)$/);
+  if (bill) return getPaidTheme("bill", bill[1].replace(/_/g, "-"));
+  const qr = raw.match(/^qr_theme_(.+)$/);
+  if (qr) return getPaidTheme("qr", qr[1].replace(/_/g, "-"));
+  return null;
+}
+
+export function allPlaySkus() {
+  return [
+    ...BILL_THEMES.filter((theme) => !theme.free).map((theme) =>
+      playSkuFor("bill", theme.id)
+    ),
+    ...QR_THEMES.filter((theme) => !theme.free).map((theme) =>
+      playSkuFor("qr", theme.id)
+    ),
+  ];
+}
