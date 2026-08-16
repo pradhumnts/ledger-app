@@ -3,6 +3,7 @@ import {
   QR_THEMES,
 } from "@/lib/qr-themes";
 import { uniqueUid } from "@/lib/format";
+import { phoneKey } from "@/lib/validation";
 import {
   customerBalance,
   customerBalancePaise,
@@ -237,6 +238,12 @@ export function findCustomersByName(customers, query) {
   return customers
     .filter((c) => c.name.toLowerCase().includes(q))
     .slice(0, 6);
+}
+
+export function findCustomerByPhone(customers, phone) {
+  const key = phoneKey(phone);
+  if (!key || key.length < 10) return null;
+  return (customers || []).find((item) => phoneKey(item.phone) === key) || null;
 }
 
 export function entriesForCustomer(entries, customerId) {

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Palette } from "lucide-react";
+import { CustomerSearch } from "@/components/customer-search";
 import { FieldError } from "@/components/field-error";
 import { PageHeader } from "@/components/page-header";
 import { SubmitButton } from "@/components/submit-button";
@@ -16,10 +17,7 @@ import { useFieldErrors } from "@/hooks/use-field-errors";
 import { useSubmitting } from "@/hooks/use-submitting";
 import { useTranslation } from "@/hooks/use-translation";
 import { firstName, formatINR, toDateInputValue } from "@/lib/format";
-import {
-  customerBalance,
-  findCustomersByName,
-} from "@/lib/store";
+import { customerBalance, findCustomerByPhone } from "@/lib/store";
 import {
   collectableRupees,
   remainingAfterDeposit,
@@ -82,6 +80,7 @@ function InvoiceForm() {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(toDateInputValue());
   const [selectedId, setSelectedId] = useState(presetCustomer?.id || null);
+  const [contactLocked, setContactLocked] = useState(false);
 
   useEffect(() => {
     if (!presetCustomer) return;
@@ -90,25 +89,31 @@ function InvoiceForm() {
     setPhone(presetCustomer.phone || "");
   }, [presetCustomer]);
 
-  const matches = useMemo(
-    () => (presetCustomer ? [] : findCustomersByName(customers, name)),
-    [customers, name, presetCustomer]
-  );
-
   const exactMatch = useMemo(() => {
     if (presetCustomer) return presetCustomer;
     const q = name.trim().toLowerCase();
+    if (!q) return null;
     return customers.find((c) => c.name.toLowerCase() === q) || null;
   }, [customers, name, presetCustomer]);
 
-  const needsNewCustomer =
-    !presetCustomer &&
-    Boolean(name.trim()) &&
-    !selectedId &&
-    !exactMatch &&
-    matches.length === 0;
+  const phoneMatch = useMemo(
+    () => (presetCustomer ? null : findCustomerByPhone(customers, phone)),
+    [customers, phone, presetCustomer]
+  );
 
-  const previewCustomerId = presetCustomer?.id || selectedId || exactMatch?.id;
+  const resolvedCustomer =
+    presetCustomer ||
+    (selectedId ? customers.find((item) => item.id === selectedId) : null) ||
+    phoneMatch ||
+    exactMatch;
+
+  const needsNewCustomer =
+    !presetCustomer && Boolean(name.trim()) && !resolvedCustomer;
+
+  const phoneAlreadyValid =
+    Boolean(phone.trim()) && !validateOptionalPhone(phone);
+
+  const previewCustomerId = resolvedCustomer?.id;
   const currentDue = previewCustomerId
     ? customerBalance(entries, previewCustomerId)
     : 0;
@@ -151,10 +156,40 @@ function InvoiceForm() {
 
   function pickCustomer(customer) {
     setSelectedId(customer.id);
+    setContactLocked(false);
     setName(customer.name);
     setPhone(customer.phone || "");
     clearField("customer");
     clearField("phone");
+    if (kind === "due") {
+      setAmount("");
+      clearField("amount");
+    }
+  }
+
+  function pickPerson(person) {
+    if (person.source === "contact") {
+      const existing = findCustomerByPhone(customers, person.phone);
+      if (existing) {
+        pickCustomer(existing);
+        return;
+      }
+      setSelectedId(null);
+      setContactLocked(true);
+      setName(person.name);
+      setPhone(person.phone || "");
+      clearField("customer");
+      clearField("phone");
+      return;
+    }
+    pickCustomer(person);
+  }
+
+  function onCustomerNameChange(next) {
+    setName(next);
+    setSelectedId(null);
+    setContactLocked(false);
+    clearField("customer");
     if (kind === "due") {
       setAmount("");
       clearField("amount");
@@ -180,7 +215,7 @@ function InvoiceForm() {
       return;
     }
 
-    let customerId = presetCustomer?.id || selectedId || exactMatch?.id;
+    let customerId = resolvedCustomer?.id;
     if (kind === "due") {
       if (!customerId) {
         showErrors({ customer: "validation.nameRequired" });
@@ -289,53 +324,18 @@ function InvoiceForm() {
           />
 
           {kind === "due" && !presetCustomer ? (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="customer">{t("invoice.customer")}</Label>
-                <VoiceField
-                  id="customer"
-                  kind="name"
-                  value={name}
-                  onValueChange={(next) => {
-                    setName(next);
-                    setSelectedId(null);
-                    setAmount("");
-                    clearField("customer");
-                    clearField("amount");
-                  }}
-                  placeholder={t("invoice.customerPlaceholder")}
-                  className={cn(
-                    "h-12 rounded-2xl",
-                    fieldInvalidClass(errors.customer)
-                  )}
-                  aria-invalid={Boolean(errors.customer)}
-                  aria-describedby={errors.customer ? "customer-error" : undefined}
-                />
-                <FieldError id="customer-error">
-                  {errors.customer ? t(errors.customer) : null}
-                </FieldError>
-
-                {matches.length > 0 && !selectedId ? (
-                  <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-white/12 dark:bg-[var(--card)]">
-                    {matches.map((customer) => (
-                      <button
-                        key={customer.id}
-                        type="button"
-                        onClick={() => pickCustomer(customer)}
-                        className="flex w-full items-center justify-between border-b border-zinc-100 px-4 py-3 text-left last:border-b-0 hover:bg-zinc-50 dark:border-white/[0.08] dark:hover:bg-white/[0.04]"
-                      >
-                        <span className="text-sm font-medium text-zinc-900 dark:text-white">
-                          {customer.name}
-                        </span>
-                        <span className="text-xs text-zinc-500">
-                          {customer.phone || t("customers.noPhone")}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            </>
+            <CustomerSearch
+              label={t("invoice.customer")}
+              value={name}
+              error={errors.customer}
+              placeholder={t("invoice.customerPlaceholder")}
+              customers={customers}
+              selectedId={selectedId}
+              includeContacts={false}
+              onNameChange={onCustomerNameChange}
+              onPick={pickPerson}
+              t={t}
+            />
           ) : null}
 
           <div className="space-y-2">
@@ -429,52 +429,20 @@ function InvoiceForm() {
           ) : null}
 
           {kind === "bill" && !presetCustomer ? (
-            <div className="space-y-2">
-              <Label htmlFor="customer">{t("invoice.customer")}</Label>
-              <VoiceField
-                id="customer"
-                kind="name"
-                value={name}
-                onValueChange={(next) => {
-                  setName(next);
-                  setSelectedId(null);
-                  clearField("customer");
-                }}
-                placeholder={t("invoice.customerPlaceholder")}
-                className={cn(
-                  "h-12 rounded-2xl",
-                  fieldInvalidClass(errors.customer)
-                )}
-                aria-invalid={Boolean(errors.customer)}
-                aria-describedby={errors.customer ? "customer-error" : undefined}
-              />
-              <FieldError id="customer-error">
-                {errors.customer ? t(errors.customer) : null}
-              </FieldError>
-
-              {matches.length > 0 && !selectedId ? (
-                <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-white/12 dark:bg-[var(--card)]">
-                  {matches.map((customer) => (
-                    <button
-                      key={customer.id}
-                      type="button"
-                      onClick={() => pickCustomer(customer)}
-                      className="flex w-full items-center justify-between border-b border-zinc-100 px-4 py-3 text-left last:border-b-0 hover:bg-zinc-50 dark:border-white/[0.08] dark:hover:bg-white/[0.04]"
-                    >
-                      <span className="text-sm font-medium text-zinc-900 dark:text-white">
-                        {customer.name}
-                      </span>
-                      <span className="text-xs text-zinc-500">
-                        {customer.phone || t("customers.noPhone")}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
+            <CustomerSearch
+              label={t("invoice.customer")}
+              value={name}
+              error={errors.customer}
+              placeholder={t("invoice.customerPlaceholder")}
+              customers={customers}
+              selectedId={selectedId || (contactLocked ? "contact" : null)}
+              onNameChange={onCustomerNameChange}
+              onPick={pickPerson}
+              t={t}
+            />
           ) : null}
 
-          {needsNewCustomer && kind === "bill" ? (
+          {needsNewCustomer && kind === "bill" && !phoneAlreadyValid ? (
             <div className="space-y-2">
               <Label htmlFor="phone" className="w-full justify-between">
                 {t("customerNew.phone")}

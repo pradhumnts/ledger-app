@@ -4,6 +4,15 @@ export function digitsOnly(value) {
   return String(value || "").replace(/\D/g, "");
 }
 
+/** Last 10 digits so 91 / 0 prefixes still match. */
+export function phoneKey(phone) {
+  const digits = digitsOnly(phone);
+  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  if (digits.length > 10) return digits.slice(-10);
+  return digits;
+}
+
 export function validateRequiredName(value) {
   const name = String(value || "").trim();
   if (!name) return "validation.nameRequired";

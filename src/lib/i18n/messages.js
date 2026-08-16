@@ -133,6 +133,11 @@ export const messages = {
       phonePlaceholder: "10-digit mobile",
       save: "Save customer",
     },
+    contacts: {
+      usePhone: "Use phone contacts",
+      fromPhone: "Phone contact",
+      hint: "Pick contacts once and they will show up as you type a name.",
+    },
     customerEdit: {
       title: "Edit customer",
       subtitle: "Update the name or phone number.",
@@ -198,7 +203,7 @@ export const messages = {
       selectCustomerForDue: "Select a customer to load due amount.",
       saveDue: "Save deposit",
       customer: "Customer",
-      customerPlaceholder: "Search customer name",
+      customerPlaceholder: "Search name or phone",
       amount: "Amount",
       description: "Description",
       descriptionPlaceholder: "Items or services",
@@ -563,6 +568,11 @@ export const messages = {
       phonePlaceholder: "10 अंकों का मोबाइल",
       save: "ग्राहक सेव करें",
     },
+    contacts: {
+      usePhone: "फ़ोन संपर्क",
+      fromPhone: "फ़ोन से",
+      hint: "एक बार संपर्क चुनें, फिर नाम लिखते ही वे दिखेंगे।",
+    },
     customerEdit: {
       title: "ग्राहक संपादित करें",
       subtitle: "नाम या फ़ोन नंबर बदलें।",
@@ -628,7 +638,7 @@ export const messages = {
       selectCustomerForDue: "बकाया राशि देखने के लिए ग्राहक चुनें।",
       saveDue: "डिपॉज़िट सेव करें",
       customer: "ग्राहक",
-      customerPlaceholder: "ग्राहक का नाम खोजें",
+      customerPlaceholder: "नाम या फ़ोन खोजें",
       amount: "राशि",
       description: "विवरण",
       descriptionPlaceholder: "सामान या सेवाएँ",
@@ -993,6 +1003,11 @@ export const messages = {
       phonePlaceholder: "10 digit mobile",
       save: "Customer save karo",
     },
+    contacts: {
+      usePhone: "Phone contacts",
+      fromPhone: "Phone se",
+      hint: "Ek baar contacts chuno, phir naam type karte hi woh dikhenge.",
+    },
     customerEdit: {
       title: "Customer edit karo",
       subtitle: "Naam ya phone number badlo.",
@@ -1058,7 +1073,7 @@ export const messages = {
       selectCustomerForDue: "Due amount dekhne ke liye customer chuno.",
       saveDue: "Deposit save karo",
       customer: "Customer",
-      customerPlaceholder: "Customer ka naam search karo",
+      customerPlaceholder: "Naam ya phone search karo",
       amount: "Amount",
       description: "Description",
       descriptionPlaceholder: "Items ya services",
