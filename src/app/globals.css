@@ -197,6 +197,39 @@
   animation: splash-exit 450ms ease forwards;
 }
 
+@keyframes mk-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes mk-marquee-reverse {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.mk-marquee {
+  animation: mk-marquee 42s linear infinite;
+}
+
+.mk-marquee-reverse {
+  animation: mk-marquee-reverse 48s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-marquee,
+  .mk-marquee-reverse {
+    animation: none;
+  }
+}
+
 @keyframes qr-amount-in {
   from {
     opacity: 0;

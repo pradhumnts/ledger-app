@@ -22,6 +22,7 @@ export function SplashScreen() {
     !ready ||
     (pathname !== "/onboarding" &&
       pathname !== "/p" &&
+      pathname !== "/" &&
       !settings?.onboardingComplete);
 
   useEffect(() => {

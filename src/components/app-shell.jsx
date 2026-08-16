@@ -4,13 +4,16 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { rememberPath } from "@/lib/nav-memory";
 import { BottomNav } from "@/components/bottom-nav";
+import { MarketingLanding } from "@/components/marketing-landing";
 import { OnboardingGuard } from "@/components/onboarding-guard";
 import { SaveErrorToast } from "@/components/save-error-toast";
 import { SplashScreen } from "@/components/splash-screen";
+import { useLandingGate } from "@/context/landing-gate";
 import { cn } from "@/lib/utils";
 
 export function AppShell({ children }) {
   const pathname = usePathname();
+  const { showLanding } = useLandingGate();
   const isPay = pathname === "/pay";
   const isPayLink = pathname === "/p";
   const isOnboarding = pathname === "/onboarding";
@@ -34,6 +37,10 @@ export function AppShell({ children }) {
       document.removeEventListener("gestureend", blockZoom);
     };
   }, []);
+
+  if (showLanding) {
+    return <MarketingLanding />;
+  }
 
   return (
     <>

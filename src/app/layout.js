@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppProvider } from "@/context/app-provider";
+import { LandingGateProvider } from "@/context/landing-gate";
 import { AppShell } from "@/components/app-shell";
 import {
   APP_APPLE_TOUCH_ICON,
@@ -69,7 +70,9 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} min-h-full font-sans antialiased`}
       >
         <AppProvider>
-          <AppShell>{children}</AppShell>
+          <LandingGateProvider>
+            <AppShell>{children}</AppShell>
+          </LandingGateProvider>
         </AppProvider>
       </body>
     </html>

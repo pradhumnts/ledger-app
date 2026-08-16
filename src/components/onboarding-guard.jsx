@@ -12,7 +12,8 @@ export function OnboardingGuard({ children }) {
   const onPayLink = pathname === "/p";
   const onboarded = Boolean(settings?.onboardingComplete);
   const allowed =
-    onPayLink || (ready && (onboarded ? !onOnboarding : onOnboarding));
+    onPayLink ||
+    (ready && (onboarded ? !onOnboarding : onOnboarding));
 
   useEffect(() => {
     if (!ready || onPayLink) return;
