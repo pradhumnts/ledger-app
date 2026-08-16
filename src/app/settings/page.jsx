@@ -1,19 +1,29 @@
 "use client";
 
+import { useState } from "react";
 import {
   Building2,
   History,
   Info,
   Languages,
+  LogOut,
   Moon,
   Palette,
   QrCode,
   Share2,
   Sun,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { SettingsPromoCard } from "@/components/settings-promo-card";
 import { SoftCard, ListRow, Divider } from "@/components/ui-kit";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
@@ -23,9 +33,12 @@ import { requestWebsitePlan, shareApp } from "@/lib/share";
 import { WEBSITE_PLANS } from "@/lib/website-plans";
 
 export default function SettingsPage() {
-  const { settings, setTheme, business } = useApp();
+  const { settings, setTheme, business, signOut } = useApp();
   const { t, language, themeLabel, websitePlanLabel } = useTranslation();
+  const router = useRouter();
   const dark = settings.theme === "dark";
+  const [logOutOpen, setLogOutOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const billThemeSubtitle = themeLabel("bill", settings.billTheme || "classic", "name");
 
@@ -42,6 +55,18 @@ export default function SettingsPage() {
 
   const currentLang = LANGUAGES.find((lang) => lang.id === language);
   const languageSubtitle = currentLang ? t(currentLang.labelKey) : t("language.english");
+
+  async function confirmLogOut() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await signOut();
+      router.replace("/onboarding");
+    } finally {
+      setLoggingOut(false);
+      setLogOutOpen(false);
+    }
+  }
 
   return (
     <>
@@ -131,7 +156,51 @@ export default function SettingsPage() {
           title={t("settings.about")}
           subtitle={t("settings.aboutSubtitle")}
         />
+        <Divider />
+        <ListRow
+          icon={<LogOut className="size-4" />}
+          title={t("settings.logOut")}
+          subtitle={t("settings.logOutSubtitle")}
+          onClick={() => setLogOutOpen(true)}
+        />
       </SoftCard>
+
+      <Dialog open={logOutOpen} onOpenChange={setLogOutOpen}>
+        <DialogContent
+          showCloseButton={false}
+          className="max-w-sm rounded-[1.75rem] p-5"
+        >
+          <DialogHeader className="gap-2">
+            <div className="flex size-11 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-200">
+              <LogOut className="size-5" />
+            </div>
+            <DialogTitle className="pt-1 text-lg font-semibold tracking-tight text-zinc-950 dark:text-white">
+              {t("settings.logOut")}
+            </DialogTitle>
+            <DialogDescription className="text-sm leading-relaxed text-zinc-500">
+              {t("settings.logOutConfirm")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 grid grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              disabled={loggingOut}
+              onClick={() => setLogOutOpen(false)}
+              className="h-11 rounded-full border border-zinc-200 bg-white text-sm font-semibold text-zinc-700 transition-[opacity,transform] duration-200 active:scale-[0.98] disabled:opacity-50 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200"
+            >
+              {t("common.cancel")}
+            </button>
+            <button
+              type="button"
+              disabled={loggingOut}
+              onClick={confirmLogOut}
+              className="h-11 rounded-full bg-[var(--forest)] text-sm font-semibold text-white transition-[opacity,transform] duration-200 active:scale-[0.98] disabled:opacity-50 dark:bg-[var(--lime)] dark:text-[var(--forest)]"
+            >
+              {loggingOut ? t("common.loading") : t("settings.logOut")}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="my-6 flex items-center gap-3 px-1">
         <div className="h-px flex-1 bg-zinc-200 dark:bg-white/[0.08]" />

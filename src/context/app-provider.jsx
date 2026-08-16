@@ -14,6 +14,7 @@ import {
   defaultState,
   loadState,
   saveState,
+  STORAGE_KEY,
   updateCustomer as patchCustomer,
 } from "@/lib/store";
 import { DEFAULT_LANGUAGE, getHtmlLang, normalizeLanguage } from "@/lib/i18n";
@@ -194,6 +195,22 @@ export function AppProvider({ children }) {
     }));
   }, []);
 
+  const signOut = useCallback(async () => {
+    setUserId(null);
+    persistOnboardingGate(false);
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Private mode can block storage.
+    }
+    document.documentElement.classList.remove("dark");
+    setState(defaultState);
+  }, []);
+
   const sendPhoneOtp = useCallback(async (phone) => {
     const result = await requestPhoneOtp(phone);
     if (result.userId) setUserId(result.userId);
@@ -275,6 +292,7 @@ export function AppProvider({ children }) {
       unlockQrTheme,
       updateBusiness,
       completeOnboarding,
+      signOut,
       addCustomer,
       updateCustomer,
       addEntry,
@@ -296,6 +314,7 @@ export function AppProvider({ children }) {
       unlockQrTheme,
       updateBusiness,
       completeOnboarding,
+      signOut,
       addCustomer,
       updateCustomer,
       addEntry,

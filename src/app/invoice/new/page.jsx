@@ -1,7 +1,9 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Palette } from "lucide-react";
 import { FieldError } from "@/components/field-error";
 import { PageHeader } from "@/components/page-header";
 import { SubmitButton } from "@/components/submit-button";
@@ -13,7 +15,7 @@ import { useApp } from "@/context/app-provider";
 import { useFieldErrors } from "@/hooks/use-field-errors";
 import { useSubmitting } from "@/hooks/use-submitting";
 import { useTranslation } from "@/hooks/use-translation";
-import { formatINR, toDateInputValue } from "@/lib/format";
+import { firstName, formatINR, toDateInputValue } from "@/lib/format";
 import {
   customerBalance,
   findCustomersByName,
@@ -232,6 +234,21 @@ function InvoiceForm() {
 
   const backHref = presetCustomer ? `/customers/${presetCustomer.id}` : "/";
   const backLabel = presetCustomer ? presetCustomer.name : t("common.back");
+  const customerFirstName = firstName(presetCustomer?.name);
+  const headerTitle = presetCustomer
+    ? kind === "due"
+      ? t("invoice.dueTitleForCustomer", { name: customerFirstName })
+      : t("invoice.titleForCustomer", { name: customerFirstName })
+    : kind === "due"
+      ? t("invoice.dueTitle")
+      : t("invoice.title");
+  const headerSubtitle = presetCustomer
+    ? kind === "due"
+      ? t("invoice.dueSubtitleForCustomer")
+      : t("invoice.subtitleForCustomer")
+    : kind === "due"
+      ? t("invoice.dueSubtitle")
+      : t("invoice.subtitle");
 
   if (!ready) {
     return <p className="text-sm text-zinc-500">{t("common.loading")}</p>;
@@ -240,16 +257,21 @@ function InvoiceForm() {
   return (
     <>
       <PageHeader
-        title={kind === "due" ? t("invoice.dueTitle") : t("invoice.title")}
-        subtitle={
-          presetCustomer
-            ? presetCustomer.name
-            : kind === "due"
-              ? t("invoice.dueSubtitle")
-              : t("invoice.subtitle")
-        }
+        title={headerTitle}
+        subtitle={headerSubtitle}
         backHref={backHref}
         backLabel={backLabel}
+        action={
+          kind === "bill" ? (
+            <Link
+              href="/settings/bill-theme"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-black/5 bg-white text-zinc-700 shadow-sm dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200"
+              aria-label={t("invoice.changeTheme")}
+            >
+              <Palette className="size-4" />
+            </Link>
+          ) : null
+        }
       />
 
       <SoftCard className="p-5">

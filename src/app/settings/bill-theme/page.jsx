@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Check, ChevronLeft, Lock, MessageCircle } from "lucide-react";
 import { ThemePreviewCard, billCarouselCardSize } from "@/components/bill-theme-previews";
 import { ThemeRequestCard } from "@/components/theme-request-card";
@@ -29,6 +29,7 @@ const REQUEST_INDEX = BILL_THEMES.length;
 const CAROUSEL_COUNT = BILL_THEMES.length + 1;
 
 export default function BillThemePage() {
+  const router = useRouter();
   const { business, settings, setBillTheme, unlockBillTheme } = useApp();
   const { t, language, themeLabel } = useTranslation();
   const selectedId = settings.billTheme || "classic";
@@ -177,13 +178,20 @@ export default function BillThemePage() {
       <div className="relative z-10 mx-auto flex h-full w-full max-w-md flex-col px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+0.5rem))]">
         <div className="shrink-0">
           <div className="mb-3 flex items-center gap-2">
-            <Link
-              href="/settings"
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined" && window.history.length > 1) {
+                  router.back();
+                  return;
+                }
+                router.replace("/settings");
+              }}
               className="inline-flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-zinc-700 shadow-sm dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200"
-              aria-label={t("settings.title")}
+              aria-label={t("common.back")}
             >
               <ChevronLeft className="size-5" />
-            </Link>
+            </button>
             <h1 className="text-base font-semibold text-zinc-950 dark:text-white">
               {t("billTheme.title")}
             </h1>

@@ -1,6 +1,7 @@
 import Image from "next/image";
+import logoSrc from "../../public/moneykit-logo.webp";
 import { cn } from "@/lib/utils";
-import { APP_LOGO_WEBP, APP_NAME } from "@/lib/branding";
+import { APP_NAME } from "@/lib/branding";
 
 const BADGE_SIZES = {
   sm: 40,
@@ -20,7 +21,7 @@ export function MoneyKitLogo({
   if (variant !== "badge") {
     return (
       <Image
-        src={APP_LOGO_WEBP}
+        src={logoSrc}
         alt={alt}
         width={size}
         height={size}
@@ -34,7 +35,7 @@ export function MoneyKitLogo({
 
   return (
     <Image
-      src={APP_LOGO_WEBP}
+      src={logoSrc}
       alt={alt}
       width={badgeSizePx}
       height={badgeSizePx}

@@ -106,6 +106,10 @@ export function startOfMonth(date = new Date()) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+export function firstName(name = "") {
+  return String(name).trim().split(/\s+/).filter(Boolean)[0] || "";
+}
+
 export function initials(name = "") {
   const letters = name
     .trim()
