@@ -52,13 +52,17 @@ export function CustomerSearch({
       />
       <FieldError id={`${id}-error`}>{error ? t(error) : null}</FieldError>
       {includeContacts && supported ? (
-        <button
-          type="button"
-          onClick={importContacts}
-          className="text-left text-xs text-zinc-500"
-        >
-          {t("contacts.hint")}
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={importContacts}
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white text-sm font-semibold text-zinc-900 dark:border-white/12 dark:bg-white/[0.06] dark:text-white"
+          >
+            <Contact className="size-4" />
+            {contacts.length ? t("contacts.addMore") : t("contacts.choose")}
+          </button>
+          <p className="text-xs text-zinc-500">{t("contacts.pickerHint")}</p>
+        </>
       ) : null}
 
       {matches.length > 0 && !selectedId ? (

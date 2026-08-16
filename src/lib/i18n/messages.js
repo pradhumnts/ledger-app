@@ -136,6 +136,9 @@ export const messages = {
     contacts: {
       fromPhone: "Phone contact",
       hint: "You can search your phone contacts as well.",
+      choose: "Choose phone contacts",
+      addMore: "Add more phone contacts",
+      pickerHint: "Tick several names, then Done. There is no Select all.",
     },
     customerEdit: {
       title: "Edit customer",
@@ -570,6 +573,9 @@ export const messages = {
     contacts: {
       fromPhone: "फ़ोन से",
       hint: "आप अपने फ़ोन संपर्क भी खोज सकते हैं।",
+      choose: "फ़ोन संपर्क चुनें",
+      addMore: "और फ़ोन संपर्क जोड़ें",
+      pickerHint: "कई नाम टिक करें, फिर Done दबाएं। Select all नहीं होता।",
     },
     customerEdit: {
       title: "ग्राहक संपादित करें",
@@ -1004,6 +1010,9 @@ export const messages = {
     contacts: {
       fromPhone: "Phone se",
       hint: "Aap apne phone contacts bhi search kar sakte ho.",
+      choose: "Phone contacts chuno",
+      addMore: "Aur phone contacts add karo",
+      pickerHint: "Kai names tick karo, phir Done. Select all nahi hota.",
     },
     customerEdit: {
       title: "Customer edit karo",
