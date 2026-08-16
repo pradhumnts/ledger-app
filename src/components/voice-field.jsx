@@ -16,6 +16,7 @@ export function VoiceField({
   className,
   disabled,
   multiline = false,
+  endAction = null,
   ...props
 }) {
   const { t, language } = useTranslation();
@@ -29,6 +30,7 @@ export function VoiceField({
   });
 
   const Control = multiline ? Textarea : Input;
+  const hasEndAction = Boolean(endAction);
 
   return (
     <div className="space-y-1.5">
@@ -39,11 +41,24 @@ export function VoiceField({
           disabled={disabled}
           onChange={(event) => onValueChange(event.target.value)}
           className={cn(
-            supported && "pr-12",
+            supported && hasEndAction && "pr-24",
+            supported && !hasEndAction && "pr-12",
+            !supported && hasEndAction && "pr-12",
             multiline && "min-h-[7.5rem] resize-none py-3",
             className
           )}
         />
+        {hasEndAction ? (
+          <div
+            className={cn(
+              "absolute flex size-9 items-center justify-center",
+              supported ? "right-11" : "right-1.5",
+              multiline ? "top-2.5" : "top-1/2 -translate-y-1/2"
+            )}
+          >
+            {endAction}
+          </div>
+        ) : null}
         {supported ? (
           <button
             type="button"

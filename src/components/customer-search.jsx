@@ -23,8 +23,18 @@ export function CustomerSearch({
   onPick,
   t,
 }) {
-  const { contacts, supported, requestAccess, importContacts } =
-    useDeviceContacts();
+  const { contacts, supported, busy, importContacts } = useDeviceContacts();
+
+  async function onImportContacts(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const previousIds = new Set(contacts.map((item) => item.id));
+    const merged = await importContacts();
+    const added = (merged || []).filter((item) => !previousIds.has(item.id));
+    if (added.length === 1 && !value.trim() && !selectedId) {
+      onPick({ ...added[0], source: "contact" });
+    }
+  }
 
   const matches = useMemo(
     () =>
@@ -44,26 +54,25 @@ export function CustomerSearch({
         kind="name"
         value={value}
         onValueChange={onNameChange}
-        onPointerDown={includeContacts ? requestAccess : undefined}
         placeholder={placeholder}
         className={cn("h-12 rounded-2xl", fieldInvalidClass(error))}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
+        endAction={
+          includeContacts && supported ? (
+            <button
+              type="button"
+              onClick={onImportContacts}
+              disabled={busy}
+              className="inline-flex size-9 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:opacity-40 dark:hover:bg-white/10 dark:hover:text-zinc-200"
+              aria-label={t("contacts.choose")}
+            >
+              <Contact className="size-4" />
+            </button>
+          ) : null
+        }
       />
       <FieldError id={`${id}-error`}>{error ? t(error) : null}</FieldError>
-      {includeContacts && supported ? (
-        <>
-          <button
-            type="button"
-            onClick={importContacts}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white text-sm font-semibold text-zinc-900 dark:border-white/12 dark:bg-white/[0.06] dark:text-white"
-          >
-            <Contact className="size-4" />
-            {contacts.length ? t("contacts.addMore") : t("contacts.choose")}
-          </button>
-          <p className="text-xs text-zinc-500">{t("contacts.pickerHint")}</p>
-        </>
-      ) : null}
 
       {matches.length > 0 && !selectedId ? (
         <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-white/12 dark:bg-[var(--card)]">

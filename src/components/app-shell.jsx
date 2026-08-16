@@ -23,6 +23,18 @@ export function AppShell({ children }) {
     rememberPath(pathname);
   }, [pathname, isPayLink]);
 
+  useEffect(() => {
+    const blockZoom = (event) => event.preventDefault();
+    document.addEventListener("gesturestart", blockZoom);
+    document.addEventListener("gesturechange", blockZoom);
+    document.addEventListener("gestureend", blockZoom);
+    return () => {
+      document.removeEventListener("gesturestart", blockZoom);
+      document.removeEventListener("gesturechange", blockZoom);
+      document.removeEventListener("gestureend", blockZoom);
+    };
+  }, []);
+
   return (
     <>
       <SplashScreen />

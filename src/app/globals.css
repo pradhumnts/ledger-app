@@ -258,9 +258,9 @@
   overflow: hidden;
 }
 
-html:has(.theme-page),
-html:has(.theme-page) body {
-  background: #f4f5f3;
+html,
+body {
+  touch-action: pan-x pan-y;
 }
 
 html.dark:has(.theme-page),
