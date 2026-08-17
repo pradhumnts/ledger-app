@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   CalendarDays,
   Eye,
@@ -331,6 +332,15 @@ export function MarketingLanding() {
             </button>
             <p className="mt-2 text-xs text-zinc-400">Coming soon on Play Store</p>
           </div>
+          <footer className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-zinc-400">
+            <Link href="/privacy" className="transition-colors hover:text-zinc-700">
+              Privacy Policy
+            </Link>
+            <span aria-hidden>·</span>
+            <Link href="/terms" className="transition-colors hover:text-zinc-700">
+              Terms of Service
+            </Link>
+          </footer>
         </div>
       </div>
     </div>

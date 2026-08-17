@@ -9,6 +9,7 @@ import { OnboardingGuard } from "@/components/onboarding-guard";
 import { SaveErrorToast } from "@/components/save-error-toast";
 import { SplashScreen } from "@/components/splash-screen";
 import { useLandingGate } from "@/context/landing-gate";
+import { isPublicLegalPath } from "@/lib/onboarding-gate";
 import { cn } from "@/lib/utils";
 
 export function AppShell({ children }) {
@@ -17,6 +18,7 @@ export function AppShell({ children }) {
   const isPay = pathname === "/pay";
   const isPayLink = pathname === "/p";
   const isOnboarding = pathname === "/onboarding";
+  const isLegalPage = isPublicLegalPath(pathname);
   const isThemePage =
     pathname === "/settings/qr-theme" || pathname === "/settings/bill-theme";
   const fullBleed = isPay || isPayLink || isOnboarding || isThemePage;
@@ -62,7 +64,7 @@ export function AppShell({ children }) {
           >
             {children}
           </main>
-          {!isOnboarding && !isPayLink ? <BottomNav /> : null}
+          {!isOnboarding && !isPayLink && !isLegalPage ? <BottomNav /> : null}
         </div>
         <SaveErrorToast />
       </OnboardingGuard>

@@ -4,6 +4,7 @@ export const APP_DESCRIPTION =
   "Super simple customer accounts, bills, and UPI payment QR for Indian businesses.";
 export const APP_TAGLINE = "Simple billing for India";
 export const APP_SITE_URL = "https://moneykitapp.com";
+export const SUPPORT_EMAIL = "support@moneykitapp.com";
 export const PLAY_PACKAGE_NAME = "app.moneykit.android";
 
 export const APP_ICON_SVG = "/moneykit-icon.svg";

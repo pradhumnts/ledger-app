@@ -69,6 +69,13 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-full font-sans antialiased`}
       >
+        {process.env.NODE_ENV === "production" ? (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js");`,
+            }}
+          />
+        ) : null}
         <AppProvider>
           <LandingGateProvider>
             <AppShell>{children}</AppShell>

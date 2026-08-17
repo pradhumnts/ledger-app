@@ -1,5 +1,19 @@
 export const ONBOARDING_COOKIE = "mk_onboarded";
 
+export function isPublicLegalPath(pathname) {
+  return pathname === "/privacy" || pathname === "/terms";
+}
+
+/** Routes anyone can open without finishing onboarding. */
+export function isUnauthedAllowedPath(pathname) {
+  return (
+    pathname === "/" ||
+    pathname === "/onboarding" ||
+    pathname === "/p" ||
+    isPublicLegalPath(pathname)
+  );
+}
+
 export function persistOnboardingGate(complete) {
   if (typeof document === "undefined") return;
   const secure = window.location.protocol === "https:" ? "; Secure" : "";

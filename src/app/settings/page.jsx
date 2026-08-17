@@ -3,13 +3,16 @@
 import { useState } from "react";
 import {
   Building2,
+  FileText,
   History,
+  Info,
   Languages,
   LogOut,
   Moon,
   Palette,
   QrCode,
   Share2,
+  Shield,
   Sun,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -148,6 +151,27 @@ export default function SettingsPage() {
             onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
           />
         </div>
+        <Divider />
+        <ListRow
+          href="/settings/about"
+          icon={<Info className="size-4" />}
+          title={t("settings.about")}
+          subtitle={t("settings.aboutSubtitle")}
+        />
+        <Divider />
+        <ListRow
+          href="/privacy"
+          icon={<Shield className="size-4" />}
+          title={t("settings.privacy")}
+          subtitle={t("settings.privacySubtitle")}
+        />
+        <Divider />
+        <ListRow
+          href="/terms"
+          icon={<FileText className="size-4" />}
+          title={t("settings.terms")}
+          subtitle={t("settings.termsSubtitle")}
+        />
         <Divider />
         <ListRow
           icon={<LogOut className="size-4" />}

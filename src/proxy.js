@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-
-const ONBOARDING_COOKIE = "mk_onboarded";
+import {
+  ONBOARDING_COOKIE,
+  isUnauthedAllowedPath,
+} from "@/lib/onboarding-gate";
 
 export function proxy(request) {
   const { pathname } = request.nextUrl;
@@ -10,10 +12,8 @@ export function proxy(request) {
 
   const onboarded = request.cookies.get(ONBOARDING_COOKIE)?.value === "1";
   const onOnboarding = pathname === "/onboarding";
-  const onPayLink = pathname === "/p";
-  const onHome = pathname === "/";
 
-  if (!onboarded && !onOnboarding && !onPayLink && !onHome) {
+  if (!onboarded && !isUnauthedAllowedPath(pathname)) {
     return NextResponse.redirect(new URL("/onboarding", request.url));
   }
 

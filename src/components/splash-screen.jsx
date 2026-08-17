@@ -6,6 +6,7 @@ import { MoneyKitLogo } from "@/components/moneykit-logo";
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
 import { APP_NAME } from "@/lib/branding";
+import { isPublicLegalPath } from "@/lib/onboarding-gate";
 import { cn } from "@/lib/utils";
 
 const MIN_MS = 900;
@@ -23,6 +24,7 @@ export function SplashScreen() {
     (pathname !== "/onboarding" &&
       pathname !== "/p" &&
       pathname !== "/" &&
+      !isPublicLegalPath(pathname) &&
       !settings?.onboardingComplete);
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export function SplashScreen() {
   }, [blocking, minElapsed, phase]);
 
   if (pathname === "/onboarding" && ready) return null;
-  if (pathname === "/p") return null;
+  if (pathname === "/p" || isPublicLegalPath(pathname)) return null;
   if (!blocking && phase === "hidden") return null;
 
   return (

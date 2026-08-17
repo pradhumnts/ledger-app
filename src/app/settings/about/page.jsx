@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { MoneyKitLogo } from "@/components/moneykit-logo";
 import { PageHeader } from "@/components/page-header";
 import { SoftCard } from "@/components/ui-kit";
@@ -30,6 +31,20 @@ export default function AboutPage() {
         </p>
         <div className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm text-zinc-500 dark:bg-[var(--well)]">
           {t("about.version")}
+        </div>
+        <div className="flex flex-wrap gap-4 border-t border-zinc-100 pt-4 dark:border-white/[0.08]">
+          <Link
+            href="/privacy"
+            className="text-sm font-medium text-[var(--forest)] dark:text-[var(--lime)]"
+          >
+            {t("legal.privacyTitle")}
+          </Link>
+          <Link
+            href="/terms"
+            className="text-sm font-medium text-[var(--forest)] dark:text-[var(--lime)]"
+          >
+            {t("legal.termsTitle")}
+          </Link>
         </div>
       </SoftCard>
     </>
