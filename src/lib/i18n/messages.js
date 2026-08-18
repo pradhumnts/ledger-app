@@ -289,6 +289,8 @@ export const messages = {
       privacySubtitle: "How we collect, use, and protect your information.",
       termsTitle: "Terms of Service",
       termsSubtitle: "Your agreement for using MoneyKit.",
+      deletionTitle: "Delete your MoneyKit account",
+      deletionSubtitle: "How to request deletion of your account and shop data.",
       lastUpdated: "Last updated",
       englishNotice:
         "This legal document is provided in English. Contact us if you need help understanding it.",
@@ -736,6 +738,8 @@ export const messages = {
       privacySubtitle: "हम आपकी जानकारी कैसे एकत्र, उपयोग और सुरक्षित करते हैं।",
       termsTitle: "सेवा की शर्तें",
       termsSubtitle: "MoneyKit उपयोग के लिए आपका समझौता।",
+      deletionTitle: "MoneyKit खाता हटाएँ",
+      deletionSubtitle: "अपना खाता और दुकान का डेटा हटाने का अनुरोध कैसे करें।",
       lastUpdated: "अंतिम अपडेट",
       englishNotice:
         "यह कानूनी दस्तावेज़ English में है। समझने में मदद चाहिए तो हमसे संपर्क करें।",
@@ -1183,6 +1187,8 @@ export const messages = {
       privacySubtitle: "Hum aapki information kaise collect, use aur protect karte hain.",
       termsTitle: "Terms of Service",
       termsSubtitle: "MoneyKit use karne ka agreement.",
+      deletionTitle: "MoneyKit account delete karein",
+      deletionSubtitle: "Account aur shop data delete karne ka request kaise karein.",
       lastUpdated: "Last updated",
       englishNotice:
         "Yeh legal document English mein hai. Samajhne mein help chahiye to humse contact karo.",

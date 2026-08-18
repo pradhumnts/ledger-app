@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { msg91SendOtp } from "@/lib/msg91";
+import { PLAY_REVIEW_REQ_ID, isPlayReviewLogin } from "@/lib/play-review-auth";
 import { indianMobileDigits, toE164India } from "@/lib/supabase/phone";
 import { validateRequiredPhone } from "@/lib/validation";
 
@@ -16,6 +17,13 @@ export async function POST(request) {
   const phoneError = validateRequiredPhone(body.phone);
   if (phoneError) {
     return NextResponse.json({ error: phoneError }, { status: 400 });
+  }
+
+  if (isPlayReviewLogin(body.phone)) {
+    return NextResponse.json({
+      reqId: PLAY_REVIEW_REQ_ID,
+      phone: toE164India(body.phone),
+    });
   }
 
   try {

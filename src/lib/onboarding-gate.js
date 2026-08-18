@@ -1,7 +1,11 @@
 export const ONBOARDING_COOKIE = "mk_onboarded";
 
 export function isPublicLegalPath(pathname) {
-  return pathname === "/privacy" || pathname === "/terms";
+  return (
+    pathname === "/privacy" ||
+    pathname === "/terms" ||
+    pathname === "/account-deletion"
+  );
 }
 
 /** Routes anyone can open without finishing onboarding. */

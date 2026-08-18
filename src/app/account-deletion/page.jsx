@@ -3,30 +3,30 @@
 import { LegalDocument } from "@/components/legal-document";
 import { useLegalBack, useLegalInApp } from "@/hooks/use-legal-back";
 import { useTranslation } from "@/hooks/use-translation";
-import { TERMS_OF_SERVICE } from "@/lib/legal-content";
+import { ACCOUNT_DELETION } from "@/lib/legal-content";
 
-export default function TermsPage() {
+export default function AccountDeletionPage() {
   const { t } = useTranslation();
   const back = useLegalBack();
   const inApp = useLegalInApp();
 
   const relatedLinks = [
     { href: "/privacy", label: t("legal.privacyTitle") },
-    { href: "/account-deletion", label: t("legal.deletionTitle") },
+    { href: "/terms", label: t("legal.termsTitle") },
     ...(inApp ? [{ href: "/settings/about", label: t("about.title") }] : []),
   ];
 
   return (
     <LegalDocument
-      title={t("legal.termsTitle")}
-      subtitle={t("legal.termsSubtitle")}
+      title={t("legal.deletionTitle")}
+      subtitle={t("legal.deletionSubtitle")}
       backHref={back.href}
       backLabel={back.label}
-      effectiveDate={TERMS_OF_SERVICE.effectiveDate}
+      effectiveDate={ACCOUNT_DELETION.effectiveDate}
       lastUpdatedLabel={t("legal.lastUpdated")}
       englishNotice={t("legal.englishNotice")}
-      intro={TERMS_OF_SERVICE.intro}
-      sections={TERMS_OF_SERVICE.sections}
+      intro={ACCOUNT_DELETION.intro}
+      sections={ACCOUNT_DELETION.sections}
       relatedLinks={relatedLinks}
     />
   );

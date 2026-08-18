@@ -62,7 +62,7 @@ export const PRIVACY_POLICY = {
         "You can use the app without cloud login; in that case data stays on your device only.",
         "You can update or delete business and customer information inside the app.",
         "You can log out to remove local data from the current device.",
-        "To request access, correction, or deletion of cloud data, contact us at the email below.",
+        `To delete your entire ${APP_NAME} account and cloud data, follow the steps at ${APP_SITE_URL}/account-deletion or email ${SUPPORT_EMAIL}.`,
       ],
     },
     {
@@ -89,6 +89,50 @@ export const PRIVACY_POLICY = {
       title: "Contact us",
       body: [
         `Questions about this Privacy Policy or your data? Email us at ${SUPPORT_EMAIL}.`,
+      ],
+    },
+  ],
+};
+
+/** @type {{ effectiveDate: string, intro: string[], sections: LegalSection[] }} */
+export const ACCOUNT_DELETION = {
+  effectiveDate: "18 August 2026",
+  intro: [
+    `${APP_NAME} is a billing app for Indian shops. If you created an account with your mobile number, you can ask us to delete that account and the shop data stored with it. This page explains how.`,
+  ],
+  sections: [
+    {
+      title: "How to request deletion",
+      body: [
+        `Email ${SUPPORT_EMAIL} from a mailbox you can access.`,
+        `Use the subject line: Delete ${APP_NAME} account.`,
+        "Include the 10-digit Indian mobile number you used to sign in, and the shop name if you remember it.",
+        "We will verify the request and delete the account within 30 days. You will get a confirmation email when it is done.",
+      ],
+    },
+    {
+      title: "What we delete",
+      body: [
+        `Your ${APP_NAME} login (the mobile number used to sign in).`,
+        "Shop profile: name, address, logo, UPI ID, and settings.",
+        "Customers you added, including names and phone numbers.",
+        "Bills, leftover due, and related ledger entries.",
+        `Theme purchase records stored in ${APP_NAME}.`,
+      ],
+    },
+    {
+      title: "What we may keep",
+      body: [
+        "Google Play purchase history stays with Google. We cannot delete Play Store payment records.",
+        "Encrypted backups may retain a copy for up to 30 days, then they are removed.",
+        "We may keep a minimal record of the deletion request (date and mobile number) if the law requires it.",
+      ],
+    },
+    {
+      title: "After deletion",
+      body: [
+        "Deleting your account signs you out on all devices.",
+        `You can create a new ${APP_NAME} shop later with the same number; it will start empty.`,
       ],
     },
   ],

@@ -11,6 +11,7 @@ export default function PrivacyPage() {
   const inApp = useLegalInApp();
 
   const relatedLinks = [
+    { href: "/account-deletion", label: t("legal.deletionTitle") },
     { href: "/terms", label: t("legal.termsTitle") },
     ...(inApp ? [{ href: "/settings/about", label: t("about.title") }] : []),
   ];

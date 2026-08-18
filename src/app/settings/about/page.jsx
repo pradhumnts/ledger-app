@@ -34,6 +34,12 @@ export default function AboutPage() {
         </div>
         <div className="flex flex-wrap gap-4 border-t border-zinc-100 pt-4 dark:border-white/[0.08]">
           <Link
+            href="/account-deletion"
+            className="text-sm font-medium text-[var(--forest)] dark:text-[var(--lime)]"
+          >
+            {t("legal.deletionTitle")}
+          </Link>
+          <Link
             href="/privacy"
             className="text-sm font-medium text-[var(--forest)] dark:text-[var(--lime)]"
           >
