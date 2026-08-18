@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   Building2,
   History,
-  Info,
   Languages,
   LogOut,
   Moon,
@@ -152,13 +151,6 @@ export default function SettingsPage() {
         </div>
         <Divider />
         <ListRow
-          href="/settings/about"
-          icon={<Info className="size-4" />}
-          title={t("settings.about")}
-          subtitle={t("settings.aboutSubtitle")}
-        />
-        <Divider />
-        <ListRow
           icon={<LogOut className="size-4" />}
           title={t("settings.logOut")}
           subtitle={t("settings.logOutSubtitle")}
@@ -231,7 +223,14 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      <footer className="mb-2 flex items-center justify-center gap-x-3 px-1 text-xs text-zinc-400">
+      <footer className="mb-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 px-1 text-xs text-zinc-400">
+        <Link
+          href="/settings/about"
+          className="transition-colors hover:text-zinc-600 dark:hover:text-zinc-300"
+        >
+          {t("settings.about")}
+        </Link>
+        <span aria-hidden>·</span>
         <Link
           href="/privacy"
           className="transition-colors hover:text-zinc-600 dark:hover:text-zinc-300"
