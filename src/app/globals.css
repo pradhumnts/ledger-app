@@ -299,23 +299,18 @@ body {
 @media (display-mode: standalone),
   (display-mode: fullscreen),
   (display-mode: minimal-ui) {
-  html,
-  html body {
-    background: #0b301f;
-  }
-
   .marketing-landing {
     display: none !important;
   }
 }
 
-html[data-installed-app="1"],
-html[data-installed-app="1"] body {
-  background: #0b301f;
-}
-
 html[data-installed-app="1"] .marketing-landing {
   display: none !important;
+}
+
+html[data-splash="1"],
+html[data-splash="1"] body {
+  background: #0b301f;
 }
 
 html.dark:has(.theme-page),

@@ -6,6 +6,7 @@ import { MoneyKitLogo } from "@/components/moneykit-logo";
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
 import { APP_NAME } from "@/lib/branding";
+import { isInstalledApp, setSplashChrome } from "@/lib/installed-app";
 import { isPublicLegalPath } from "@/lib/onboarding-gate";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,19 @@ export function SplashScreen() {
     const timer = window.setTimeout(() => setPhase("hidden"), FADE_MS);
     return () => window.clearTimeout(timer);
   }, [blocking, minElapsed, phase]);
+
+  const splashPainted =
+    !(pathname === "/onboarding" && ready) &&
+    pathname !== "/p" &&
+    !isPublicLegalPath(pathname) &&
+    (blocking || phase !== "hidden");
+  const forestChrome =
+    splashPainted && (blocking || phase === "visible") && isInstalledApp();
+
+  useEffect(() => {
+    setSplashChrome(forestChrome);
+    return () => setSplashChrome(false);
+  }, [forestChrome]);
 
   if (pathname === "/onboarding" && ready) return null;
   if (pathname === "/p" || isPublicLegalPath(pathname)) return null;
