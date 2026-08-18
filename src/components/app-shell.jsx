@@ -40,34 +40,33 @@ export function AppShell({ children }) {
     };
   }, []);
 
-  if (showLanding) {
-    return <MarketingLanding />;
-  }
-
   return (
     <>
+      {showLanding ? <MarketingLanding /> : null}
       <SplashScreen />
-      <OnboardingGuard>
-        <div
-          className={cn(
-            "mx-auto min-h-dvh w-full max-w-md bg-[var(--app-bg)] text-foreground",
-            (isPay || isThemePage) && "h-dvh overflow-hidden"
-          )}
-        >
-          <main
+      {showLanding ? null : (
+        <OnboardingGuard>
+          <div
             className={cn(
-              fullBleed
-                ? "p-0"
-                : "px-5 pb-32 pt-[max(1.5rem,env(safe-area-inset-top))]",
-              (isPay || isThemePage) && "h-full overflow-hidden"
+              "mx-auto min-h-dvh w-full max-w-md bg-[var(--app-bg)] text-foreground",
+              (isPay || isThemePage) && "h-dvh overflow-hidden"
             )}
           >
-            {children}
-          </main>
-          {!isOnboarding && !isPayLink && !isLegalPage ? <BottomNav /> : null}
-        </div>
-        <SaveErrorToast />
-      </OnboardingGuard>
+            <main
+              className={cn(
+                fullBleed
+                  ? "p-0"
+                  : "px-5 pb-32 pt-[max(1.5rem,env(safe-area-inset-top))]",
+                (isPay || isThemePage) && "h-full overflow-hidden"
+              )}
+            >
+              {children}
+            </main>
+            {!isOnboarding && !isPayLink && !isLegalPage ? <BottomNav /> : null}
+          </div>
+          <SaveErrorToast />
+        </OnboardingGuard>
+      )}
     </>
   );
 }

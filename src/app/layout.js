@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { AppProvider } from "@/context/app-provider";
 import { LandingGateProvider } from "@/context/landing-gate";
 import { AppShell } from "@/components/app-shell";
+import { INSTALLED_APP_BOOT_SCRIPT } from "@/lib/installed-app";
 import {
   APP_APPLE_TOUCH_ICON,
   APP_DESCRIPTION,
@@ -69,6 +70,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-full font-sans antialiased`}
       >
+        <script
+          dangerouslySetInnerHTML={{ __html: INSTALLED_APP_BOOT_SCRIPT }}
+        />
         {process.env.NODE_ENV === "production" ? (
           <script
             dangerouslySetInnerHTML={{

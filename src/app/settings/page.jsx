@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Building2,
-  FileText,
   History,
   Info,
   Languages,
@@ -12,7 +12,6 @@ import {
   Palette,
   QrCode,
   Share2,
-  Shield,
   Sun,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -160,20 +159,6 @@ export default function SettingsPage() {
         />
         <Divider />
         <ListRow
-          href="/privacy"
-          icon={<Shield className="size-4" />}
-          title={t("settings.privacy")}
-          subtitle={t("settings.privacySubtitle")}
-        />
-        <Divider />
-        <ListRow
-          href="/terms"
-          icon={<FileText className="size-4" />}
-          title={t("settings.terms")}
-          subtitle={t("settings.termsSubtitle")}
-        />
-        <Divider />
-        <ListRow
           icon={<LogOut className="size-4" />}
           title={t("settings.logOut")}
           subtitle={t("settings.logOutSubtitle")}
@@ -245,6 +230,22 @@ export default function SettingsPage() {
           />
         ))}
       </div>
+
+      <footer className="mb-2 flex items-center justify-center gap-x-3 px-1 text-xs text-zinc-400">
+        <Link
+          href="/privacy"
+          className="transition-colors hover:text-zinc-600 dark:hover:text-zinc-300"
+        >
+          {t("legal.privacyTitle")}
+        </Link>
+        <span aria-hidden>·</span>
+        <Link
+          href="/terms"
+          className="transition-colors hover:text-zinc-600 dark:hover:text-zinc-300"
+        >
+          {t("legal.termsTitle")}
+        </Link>
+      </footer>
     </>
   );
 }

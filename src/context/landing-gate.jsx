@@ -1,11 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { isInstalledApp } from "@/lib/installed-app";
+import { isInstalledApp, markInstalledApp } from "@/lib/installed-app";
 
 const LandingGateContext = createContext({
-  showLanding: true,
+  showLanding: false,
 });
 
 export function LandingGateProvider({ children }) {
@@ -13,7 +13,7 @@ export function LandingGateProvider({ children }) {
   const onSiteRoot = pathname === "/";
   const [skipLanding, setSkipLanding] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!onSiteRoot) {
       setSkipLanding(true);
       return;
@@ -25,7 +25,13 @@ export function LandingGateProvider({ children }) {
       return;
     }
 
-    setSkipLanding(isInstalledApp());
+    if (isInstalledApp()) {
+      markInstalledApp();
+      setSkipLanding(true);
+      return;
+    }
+
+    setSkipLanding(false);
   }, [onSiteRoot]);
 
   return (

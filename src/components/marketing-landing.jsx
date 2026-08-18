@@ -263,7 +263,7 @@ function PhoneHomePreview() {
 export function MarketingLanding() {
 
   return (
-    <div className="marketing-landing relative isolate min-h-dvh overflow-x-clip bg-[#f3f4f1] text-zinc-950">
+    <div className="marketing-landing fixed inset-0 z-[200] isolate overflow-x-clip overflow-y-auto bg-[#f3f4f1] text-zinc-950">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 bottom-0 h-[42vh] bg-[radial-gradient(ellipse_at_bottom,rgba(255,255,255,0.95),transparent_70%)]"
