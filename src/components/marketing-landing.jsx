@@ -17,7 +17,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { MoneyKitLogo } from "@/components/moneykit-logo";
-import { APP_NAME, APP_TAGLINE } from "@/lib/branding";
+import { APP_NAME, APP_TAGLINE, SUPPORT_WHATSAPP } from "@/lib/branding";
+import { openWhatsApp } from "@/lib/share";
 import { cn } from "@/lib/utils";
 
 const TAGS = ["#Shopkeepers", "#Salons", "#Clinics", "#Tutors", "#Retail"];
@@ -330,7 +331,18 @@ export function MarketingLanding() {
             >
               Get it on Android
             </button>
-            <p className="mt-2 text-xs text-zinc-400">Coming soon on Play Store</p>
+            <button
+              type="button"
+              onClick={() =>
+                openWhatsApp({
+                  phone: SUPPORT_WHATSAPP,
+                  text: "Hi MoneyKit team,\n\nPlease notify me when the Android app is on the Play Store.",
+                })
+              }
+              className="mt-2 text-xs font-medium text-zinc-500 underline-offset-2 hover:text-zinc-800 hover:underline"
+            >
+              Coming soon — notify me on WhatsApp
+            </button>
           </div>
           <footer className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-zinc-400">
             <Link href="/privacy" className="transition-colors hover:text-zinc-700">

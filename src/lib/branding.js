@@ -5,6 +5,7 @@ export const APP_DESCRIPTION =
 export const APP_TAGLINE = "Simple billing for India";
 export const APP_SITE_URL = "https://moneykitapp.com";
 export const SUPPORT_EMAIL = "support@moneykitapp.com";
+export const SUPPORT_WHATSAPP = "6350052979";
 export const PLAY_PACKAGE_NAME = "app.moneykit.android";
 
 export const APP_ICON_SVG = "/moneykit-icon.svg";

@@ -1,5 +1,5 @@
 import { formatINR, formatEntryDate, entryTypeLabel } from "@/lib/format";
-import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
+import { APP_NAME, APP_SITE_URL, SUPPORT_WHATSAPP } from "@/lib/branding";
 import { normalizeLanguage, translate } from "@/lib/i18n";
 import { collectableRupees } from "@/lib/ledger-math";
 import { buildUpiPaymentUrl } from "@/lib/upi";
@@ -246,7 +246,7 @@ export function requestCustomTheme({ kind, businessName = "", language = "en" })
     business,
     kind: label,
   });
-  openWhatsApp({ text });
+  openWhatsApp({ phone: SUPPORT_WHATSAPP, text });
 }
 
 export function requestWebsitePlan({
@@ -265,5 +265,5 @@ export function requestWebsitePlan({
     plan: planTitle,
     price: formatINR(price),
   });
-  openWhatsApp({ text });
+  openWhatsApp({ phone: SUPPORT_WHATSAPP, text });
 }
