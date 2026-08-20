@@ -13,7 +13,7 @@ import {
 } from "@/lib/format";
 import { collectableRupees } from "@/lib/ledger-math";
 import { paiseToRupees, rupeesToPaise } from "@/lib/supabase/money";
-import { buildPublicBillUrl } from "@/lib/public-bill";
+import { buildPublicBillUrl } from "@/lib/public-bill-url";
 
 /** Bills / PDFs always use English — Helvetica can't render Hindi glyphs reliably. */
 const PDF_LANG = "en";
@@ -484,7 +484,7 @@ export async function buildEntryPdf({ entry, customer, business, billThemeId }) 
     loadBrandLogoPng(),
   ]);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const url = buildPublicBillUrl({
+  const url = await buildPublicBillUrl({
     entry,
     customer,
     business,

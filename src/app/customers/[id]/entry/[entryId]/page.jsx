@@ -40,7 +40,7 @@ export default function EntryDetailPage() {
   }
 
   async function shareEntry(channel) {
-    const text = buildEntryMessage({
+    const text = await buildEntryMessage({
       entry,
       customer,
       business,

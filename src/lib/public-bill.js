@@ -11,6 +11,27 @@ const MAX_TEXT = {
   theme: 40,
 };
 
+/** Crockford-ish: no 0/O/1/I/l so ids stay easy to read aloud. */
+export const PUBLIC_BILL_ID_ALPHABET =
+  "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
+export const PUBLIC_BILL_ID_PATTERN = new RegExp(
+  `^[${PUBLIC_BILL_ID_ALPHABET}]{8}$`
+);
+
+export function isPublicBillId(id) {
+  return PUBLIC_BILL_ID_PATTERN.test(String(id || ""));
+}
+
+export function randomPublicBillId() {
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  let out = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    out += PUBLIC_BILL_ID_ALPHABET[bytes[i] % PUBLIC_BILL_ID_ALPHABET.length];
+  }
+  return out;
+}
+
 function clip(value, max) {
   return String(value || "").trim().slice(0, max);
 }
@@ -55,6 +76,12 @@ export function encodePublicBill({ entry, customer, business, themeId }) {
   return toBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
 }
 
+/** Normalized snapshot stored in the cloud (and accepted by decode round-trip). */
+export function snapshotPublicBill(input) {
+  if (!input || typeof input !== "object") return null;
+  return decodePublicBill(encodePublicBill(input));
+}
+
 export function decodePublicBill(token) {
   try {
     const data = JSON.parse(new TextDecoder().decode(fromBase64Url(token)));
@@ -91,7 +118,12 @@ export function decodePublicBill(token) {
   }
 }
 
-export function buildPublicBillUrl({ entry, customer, business, themeId }) {
+export function buildLegacyPublicBillUrl({
+  entry,
+  customer,
+  business,
+  themeId,
+}) {
   const token = encodePublicBill({ entry, customer, business, themeId });
   return `${APP_SITE_URL}/b?d=${token}`;
 }

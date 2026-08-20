@@ -10,7 +10,11 @@ export function isPublicLegalPath(pathname) {
 
 /** Public UPI pay page and shared bill links — no login. */
 export function isPublicSharePath(pathname) {
-  return pathname === "/p" || pathname === "/b";
+  return (
+    pathname === "/p" ||
+    pathname === "/b" ||
+    Boolean(pathname?.startsWith("/b/"))
+  );
 }
 
 /** Routes anyone can open without finishing onboarding. */
