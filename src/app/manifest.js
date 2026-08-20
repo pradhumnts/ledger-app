@@ -2,8 +2,6 @@ import {
   APP_DESCRIPTION,
   APP_ICON_192,
   APP_ICON_512,
-  APP_ICON_SPLASH_192,
-  APP_ICON_SPLASH_512,
   APP_ICON_SVG,
   APP_NAME,
   APP_SHORT_NAME,
@@ -23,6 +21,9 @@ const SHORTCUT_ICONS = [
 export default function manifest() {
   const playPackage =
     process.env.NEXT_PUBLIC_PLAY_PACKAGE_NAME || PLAY_PACKAGE_NAME;
+  const iarcRatingId = String(
+    process.env.NEXT_PUBLIC_IARC_RATING_ID || ""
+  ).trim();
 
   return {
     id: "/",
@@ -42,6 +43,7 @@ export default function manifest() {
     // Default OS chrome (status + nav). Splash briefly switches this to forest via JS.
     theme_color: BACKGROUND_COLOR,
     categories: ["business", "finance", "productivity"],
+    ...(iarcRatingId ? { iarc_rating_id: iarcRatingId } : {}),
     prefer_related_applications: false,
     related_applications: playPackage
       ? [
@@ -54,13 +56,19 @@ export default function manifest() {
       : [],
     icons: [
       {
-        src: APP_ICON_SPLASH_192,
+        src: APP_ICON_SVG,
+        sizes: "any",
+        type: "image/svg+xml",
+        purpose: "any",
+      },
+      {
+        src: APP_ICON_192,
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: APP_ICON_SPLASH_512,
+        src: APP_ICON_512,
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
