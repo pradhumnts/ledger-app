@@ -18,12 +18,14 @@ export function CustomerSearch({
   placeholder,
   customers,
   selectedId,
-  includeContacts = true,
+  includeContacts = false,
   onNameChange,
   onPick,
   t,
 }) {
-  const { contacts, supported, busy, importContacts } = useDeviceContacts();
+  const { contacts, supported, busy, importContacts } = useDeviceContacts({
+    enabled: includeContacts,
+  });
 
   async function onImportContacts(event) {
     event.preventDefault();

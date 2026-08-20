@@ -2,6 +2,7 @@ import { formatINR, formatEntryDate, entryTypeLabel } from "@/lib/format";
 import { APP_NAME, APP_SITE_URL, SUPPORT_WHATSAPP } from "@/lib/branding";
 import { normalizeLanguage, translate } from "@/lib/i18n";
 import { collectableRupees } from "@/lib/ledger-math";
+import { buildPublicBillUrl } from "@/lib/public-bill";
 import { buildUpiPaymentUrl } from "@/lib/upi";
 
 function payAmountForEntry(entry) {
@@ -35,9 +36,16 @@ function businessLine(business) {
   return bits.join(" · ");
 }
 
-export function buildEntryMessage({ entry, customer, business, language = "en" }) {
+export function buildEntryMessage({
+  entry,
+  customer,
+  business,
+  language = "en",
+  themeId,
+}) {
   const lang = normalizeLanguage(language);
   const typeLabel = entryTypeLabel(entry.type, lang);
+  const billUrl = buildPublicBillUrl({ entry, customer, business, themeId });
 
   const lines = [
     businessLine(business, lang),
@@ -64,10 +72,17 @@ export function buildEntryMessage({ entry, customer, business, language = "en" }
     );
   }
 
-  return withPayLink(
-    [...lines, "", translate(lang, "common.sentViaMoneyKit")].filter(Boolean),
+  const withLink = withPayLink(
+    [
+      ...lines,
+      "",
+      translate(lang, "share.viewOnline"),
+      billUrl,
+    ].filter(Boolean),
     { business, amount: payAmountForEntry(entry), language: lang }
-  ).join("\n");
+  );
+
+  return [...withLink, "", translate(lang, "common.sentViaMoneyKit")].join("\n");
 }
 
 export function buildCustomerStatementMessage({

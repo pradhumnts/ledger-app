@@ -9,24 +9,24 @@ import { OnboardingGuard } from "@/components/onboarding-guard";
 import { SaveErrorToast } from "@/components/save-error-toast";
 import { SplashScreen } from "@/components/splash-screen";
 import { useLandingGate } from "@/context/landing-gate";
-import { isPublicLegalPath } from "@/lib/onboarding-gate";
+import { isPublicLegalPath, isPublicSharePath } from "@/lib/onboarding-gate";
 import { cn } from "@/lib/utils";
 
 export function AppShell({ children }) {
   const pathname = usePathname();
   const { showLanding } = useLandingGate();
   const isPay = pathname === "/pay";
-  const isPayLink = pathname === "/p";
+  const isPublicShare = isPublicSharePath(pathname);
   const isOnboarding = pathname === "/onboarding";
   const isLegalPage = isPublicLegalPath(pathname);
   const isThemePage =
     pathname === "/settings/qr-theme" || pathname === "/settings/bill-theme";
-  const fullBleed = isPay || isPayLink || isOnboarding || isThemePage;
+  const fullBleed = isPay || isPublicShare || isOnboarding || isThemePage;
 
   useEffect(() => {
-    if (isPayLink) return;
+    if (isPublicShare) return;
     rememberPath(pathname);
-  }, [pathname, isPayLink]);
+  }, [pathname, isPublicShare]);
 
   useEffect(() => {
     const blockZoom = (event) => event.preventDefault();
@@ -62,7 +62,9 @@ export function AppShell({ children }) {
             >
               {children}
             </main>
-            {!isOnboarding && !isPayLink && !isLegalPage ? <BottomNav /> : null}
+            {!isOnboarding && !isPublicShare && !isLegalPage ? (
+              <BottomNav />
+            ) : null}
           </div>
           <SaveErrorToast />
         </OnboardingGuard>

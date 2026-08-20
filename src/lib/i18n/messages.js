@@ -243,6 +243,10 @@ export const messages = {
       hint: "Tap below if your UPI app didn’t open.",
       invalid: "This payment link isn’t valid.",
     },
+    publicBill: {
+      invalid: "This bill link isn’t valid.",
+      pay: "Pay with UPI",
+    },
     settings: {
       title: "Settings",
       shareTitle: "Share MoneyKit with a friend",
@@ -420,6 +424,7 @@ export const messages = {
       toCollectSuffix: " (to collect)",
       toPaySuffix: " (to pay)",
       payNow: "Pay now:",
+      viewOnline: "View bill online:",
       themeRequestQr: "QR payment poster theme",
       themeRequestBill: "bill theme",
       themeRequestBody: "Hi MoneyKit team,{business}\n\nI'd like to request a custom {kind}.\n\nMy business type:\n\nWhat I'd like it to look like:\n",
@@ -687,6 +692,10 @@ export const messages = {
       hint: "ऐप न खुले तो नीचे टैप करें।",
       invalid: "यह भुगतान लिंक सही नहीं है।",
     },
+    publicBill: {
+      invalid: "यह बिल लिंक सही नहीं है।",
+      pay: "UPI से भुगतान करें",
+    },
     settings: {
       title: "सेटिंग्स",
       shareTitle: "दोस्त के साथ MoneyKit साझा करें",
@@ -864,6 +873,7 @@ export const messages = {
       toCollectSuffix: " (लेना है)",
       toPaySuffix: " (देना है)",
       payNow: "अभी भुगतान करें:",
+      viewOnline: "बिल ऑनलाइन देखें:",
       themeRequestQr: "QR भुगतान पोस्टर थीम",
       themeRequestBill: "बिल थीम",
       themeRequestBody: "नमस्ते MoneyKit team,{business}\n\nमुझे कस्टम {kind} चाहिए।\n\nमेरा व्यवसाय:\n\nमुझे कैसा चाहिए:\n",
@@ -1131,6 +1141,10 @@ export const messages = {
       hint: "App nahi khula to neeche tap karo.",
       invalid: "Yeh payment link sahi nahi hai.",
     },
+    publicBill: {
+      invalid: "Yeh bill link sahi nahi hai.",
+      pay: "UPI se pay karo",
+    },
     settings: {
       title: "Settings",
       shareTitle: "Dost ke saath MoneyKit share karo",
@@ -1308,6 +1322,7 @@ export const messages = {
       toCollectSuffix: " (lena hai)",
       toPaySuffix: " (dena hai)",
       payNow: "Abhi pay karo:",
+      viewOnline: "Bill online dekho:",
       themeRequestQr: "QR payment poster theme",
       themeRequestBill: "bill theme",
       themeRequestBody: "Hi MoneyKit team,{business}\n\nMujhe custom {kind} chahiye.\n\nMera business type:\n\nMujhe kaisa chahiye:\n",

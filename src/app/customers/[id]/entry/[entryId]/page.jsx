@@ -40,7 +40,13 @@ export default function EntryDetailPage() {
   }
 
   async function shareEntry(channel) {
-    const text = buildEntryMessage({ entry, customer, business, language });
+    const text = buildEntryMessage({
+      entry,
+      customer,
+      business,
+      language,
+      themeId: settings.billTheme,
+    });
     if (channel === "sms") {
       openSMS({ phone: customer.phone, text });
       return;

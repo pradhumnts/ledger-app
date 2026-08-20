@@ -8,12 +8,17 @@ export function isPublicLegalPath(pathname) {
   );
 }
 
+/** Public UPI pay page and shared bill links — no login. */
+export function isPublicSharePath(pathname) {
+  return pathname === "/p" || pathname === "/b";
+}
+
 /** Routes anyone can open without finishing onboarding. */
 export function isUnauthedAllowedPath(pathname) {
   return (
     pathname === "/" ||
     pathname === "/onboarding" ||
-    pathname === "/p" ||
+    isPublicSharePath(pathname) ||
     isPublicLegalPath(pathname)
   );
 }

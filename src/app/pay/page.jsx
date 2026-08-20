@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { ChevronLeft, Copy, Loader2, Palette, QrCode, Share2 } from "lucide-react";
 import { FieldError } from "@/components/field-error";
+import { QrCodeBlock } from "@/components/qr-code-block";
 import { QrThemeDisplay } from "@/components/qr-theme-display";
 import { SoftCard } from "@/components/ui-kit";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,8 +20,6 @@ import { sampleImageTopColor } from "@/lib/theme-color";
 import { buildUpiPaymentUrl } from "@/lib/upi";
 import { cn } from "@/lib/utils";
 import { fieldInvalidClass } from "@/lib/validation";
-
-const QRCode = dynamic(() => import("react-qr-code"), { ssr: false });
 
 const MAX_PAY_AMOUNT = 100000;
 
@@ -346,14 +344,8 @@ export default function PayPage() {
         </div>
 
         <div className="flex flex-col items-center px-6 py-8">
-          <div className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/12 dark:bg-white">
-            <QRCode
-              value={paymentUrl}
-              size={220}
-              level="M"
-              bgColor="#ffffff"
-              fgColor="#18181b"
-            />
+          <div className="w-[220px] rounded-3xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/12 dark:bg-white">
+            <QrCodeBlock value={paymentUrl} />
           </div>
           <Link
             href="/settings/qr-theme"

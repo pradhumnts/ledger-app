@@ -11,18 +11,23 @@ import {
   saveDeviceContacts,
 } from "@/lib/device-contacts";
 
-export function useDeviceContacts() {
+export function useDeviceContacts({ enabled = true } = {}) {
   const [contacts, setContacts] = useState([]);
   const [supported, setSupported] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    if (!enabled) {
+      setSupported(false);
+      setContacts([]);
+      return;
+    }
     setSupported(isContactPickerSupported());
     setContacts(loadDeviceContacts());
-  }, []);
+  }, [enabled]);
 
   const importContacts = useCallback(async () => {
-    if (!isContactPickerSupported() || busy) return loadDeviceContacts();
+    if (!enabled || !isContactPickerSupported() || busy) return loadDeviceContacts();
     setBusy(true);
     try {
       const picked = await pickDeviceContacts();
@@ -39,9 +44,10 @@ export function useDeviceContacts() {
     } finally {
       setBusy(false);
     }
-  }, [busy]);
+  }, [busy, enabled]);
 
   const requestAccess = useCallback(async () => {
+    if (!enabled) return;
     if (!isContactPickerSupported()) return;
     if (hasPromptedContacts()) return;
     if (loadDeviceContacts().length) {
@@ -49,7 +55,7 @@ export function useDeviceContacts() {
       return;
     }
     await importContacts();
-  }, [importContacts]);
+  }, [enabled, importContacts]);
 
   return {
     contacts,

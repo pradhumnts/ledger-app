@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import QRCodeStyling from "qr-code-styling";
+import { APP_LOGO_WEBP } from "@/lib/branding";
+import { cn } from "@/lib/utils";
 
 const QR_SHAPES = {
   square: {
@@ -42,7 +44,7 @@ export function QrCodeBlock({
         type: "svg",
         data: value,
         margin: 0,
-        qrOptions: { errorCorrectionLevel: "M" },
+        qrOptions: { errorCorrectionLevel: "H" },
         dotsOptions: { color: fg, type: shape.dots },
         cornersSquareOptions: { color: fg, type: shape.cornersSquare },
         cornersDotOptions: { color: fg, type: shape.cornersDot },
@@ -62,9 +64,21 @@ export function QrCodeBlock({
 
   return (
     <div
-      ref={ref}
-      className={`[&_svg]:h-auto [&_svg]:w-full ${className}`}
+      className={cn("relative", className)}
       aria-hidden={!value}
-    />
+    >
+      <div ref={ref} className="[&_svg]:h-auto [&_svg]:w-full" />
+      {value ? (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="size-[24%] overflow-hidden rounded-[22%] bg-white p-[1%]">
+            <img
+              src={APP_LOGO_WEBP}
+              alt=""
+              className="size-full scale-[1.16] object-cover"
+            />
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }

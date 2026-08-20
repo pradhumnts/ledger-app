@@ -436,6 +436,7 @@ function InvoiceForm() {
               placeholder={t("invoice.customerPlaceholder")}
               customers={customers}
               selectedId={selectedId || (contactLocked ? "contact" : null)}
+              includeContacts={false}
               onNameChange={onCustomerNameChange}
               onPick={pickPerson}
               t={t}

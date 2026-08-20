@@ -13,6 +13,7 @@ import {
 } from "@/lib/format";
 import { collectableRupees } from "@/lib/ledger-math";
 import { paiseToRupees, rupeesToPaise } from "@/lib/supabase/money";
+import { buildPublicBillUrl } from "@/lib/public-bill";
 
 /** Bills / PDFs always use English — Helvetica can't render Hindi glyphs reliably. */
 const PDF_LANG = "en";
@@ -156,14 +157,15 @@ function drawFooter(doc, url, colors = resolveTheme(), logoDataUrl = null) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...(colors.forest || FOREST));
-  const brand = `Made with ${APP_NAME}`;
-  if (url) {
-    doc.textWithLink(brand, MARGIN + 9, y + 7.6, { url });
+  const brand = `Created with ${APP_NAME}`;
+  const brandUrl = APP_SITE_URL;
+  if (brandUrl) {
+    doc.textWithLink(brand, MARGIN + 9, y + 7.6, { url: brandUrl });
     const brandWidth = doc.getTextWidth(brand);
     doc.setDrawColor(...(colors.lime || LIME));
     doc.setLineWidth(0.6);
     doc.line(MARGIN + 9, y + 8.6, MARGIN + 9 + brandWidth, y + 8.6);
-    doc.link(MARGIN, y + 2, 78, 12, { url });
+    doc.link(MARGIN, y + 2, 78, 12, { url: brandUrl });
   } else {
     doc.text(brand, MARGIN + 9, y + 7.6);
   }
@@ -173,12 +175,19 @@ function drawFooter(doc, url, colors = resolveTheme(), logoDataUrl = null) {
   doc.setTextColor(...MUTED);
   doc.text(APP_TAGLINE, MARGIN + 9, y + 11.4);
 
-  const link = String(url || "").replace(/^https?:\/\//, "");
-  if (link) {
+  const link = String(url || brandUrl || "").replace(/^https?:\/\//, "");
+  if (url && url !== APP_SITE_URL) {
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...(colors.forest || FOREST));
+    doc.textWithLink("View this bill online", PAGE.w - MARGIN, y + 8.2, {
+      url,
+      align: "right",
+    });
+  } else if (link) {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...(colors.forest || FOREST));
     doc.textWithLink(link, PAGE.w - MARGIN, y + 8.2, {
-      url,
+      url: url || brandUrl,
       align: "right",
     });
   }
@@ -475,7 +484,12 @@ export async function buildEntryPdf({ entry, customer, business, billThemeId }) 
     loadBrandLogoPng(),
   ]);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const url = APP_SITE_URL;
+  const url = buildPublicBillUrl({
+    entry,
+    customer,
+    business,
+    themeId: billThemeId,
+  });
   const billNo = formatBillNumber(entry);
   const label = typeLabel(entry?.type);
   const colors = resolveTheme(billThemeId);

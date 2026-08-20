@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Settings, Users } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
-import { isPublicLegalPath } from "@/lib/onboarding-gate";
+import { isPublicLegalPath, isPublicSharePath } from "@/lib/onboarding-gate";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -22,7 +22,7 @@ export function BottomNav() {
     pathname?.startsWith("/invoice/") ||
     pathname?.startsWith("/settings/") ||
     pathname === "/pay" ||
-    pathname === "/p" ||
+    isPublicSharePath(pathname) ||
     isPublicLegalPath(pathname) ||
     pathname === "/onboarding";
 

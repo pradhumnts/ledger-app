@@ -7,7 +7,7 @@ import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
 import { APP_NAME } from "@/lib/branding";
 import { isInstalledApp, setSplashChrome } from "@/lib/installed-app";
-import { isPublicLegalPath } from "@/lib/onboarding-gate";
+import { isPublicLegalPath, isPublicSharePath } from "@/lib/onboarding-gate";
 import { cn } from "@/lib/utils";
 
 const MIN_MS = 900;
@@ -20,10 +20,11 @@ export function SplashScreen() {
   const [phase, setPhase] = useState("visible");
   const [minElapsed, setMinElapsed] = useState(false);
 
+  const onPublicShare = isPublicSharePath(pathname);
   const blocking =
     !ready ||
     (pathname !== "/onboarding" &&
-      pathname !== "/p" &&
+      !onPublicShare &&
       pathname !== "/" &&
       !isPublicLegalPath(pathname) &&
       !settings?.onboardingComplete);
@@ -42,7 +43,7 @@ export function SplashScreen() {
 
   const splashPainted =
     !(pathname === "/onboarding" && ready) &&
-    pathname !== "/p" &&
+    !onPublicShare &&
     !isPublicLegalPath(pathname) &&
     (blocking || phase !== "hidden");
   const forestChrome =
@@ -54,7 +55,7 @@ export function SplashScreen() {
   }, [forestChrome]);
 
   if (pathname === "/onboarding" && ready) return null;
-  if (pathname === "/p" || isPublicLegalPath(pathname)) return null;
+  if (onPublicShare || isPublicLegalPath(pathname)) return null;
   if (!blocking && phase === "hidden") return null;
 
   return (
