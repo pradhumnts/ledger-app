@@ -49,7 +49,7 @@ export function BackLink({
       type="button"
       onClick={goBack}
       className={cn(
-        "inline-flex items-center gap-0.5 text-sm text-zinc-500 transition-colors duration-200 hover:text-zinc-800 dark:hover:text-zinc-200",
+        "inline-flex items-center gap-0.5 text-sm font-medium text-zinc-800 transition-colors duration-200 hover:text-zinc-950 dark:text-zinc-200 dark:hover:text-white",
         className
       )}
     >
