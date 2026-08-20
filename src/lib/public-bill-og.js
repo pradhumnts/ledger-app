@@ -1,5 +1,8 @@
+import { writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { APP_NAME } from "@/lib/branding";
+import { GEIST_REGULAR_TTF_B64 } from "@/lib/og/geist-regular-b64";
 import {
   clipPublicBillName,
   publicBillDisplayAmount,
@@ -11,10 +14,16 @@ export const OG_CONTENT_TYPE = "image/png";
 
 const FOREST = "#0b301f";
 const LIME = "#c8e86a";
-const FONT_PATH = join(
-  process.cwd(),
-  "node_modules/next/dist/compiled/@vercel/og/Geist-Regular.ttf"
-);
+
+let cachedFontPath = "";
+
+function geistFontPath() {
+  if (cachedFontPath) return cachedFontPath;
+  const dest = join(tmpdir(), "moneykit-geist-regular.ttf");
+  writeFileSync(dest, Buffer.from(GEIST_REGULAR_TTF_B64, "base64"));
+  cachedFontPath = dest;
+  return dest;
+}
 
 function xml(value) {
   return String(value)
@@ -57,10 +66,11 @@ function publicBillSvg(snapshot) {
 
 export async function renderPublicBillOgImage(snapshot) {
   const { Resvg } = await import("@resvg/resvg-js");
+  const fontFile = geistFontPath();
   const resvg = new Resvg(publicBillSvg(snapshot), {
     fitTo: { mode: "width", value: OG_SIZE.width },
     font: {
-      fontFiles: [FONT_PATH],
+      fontFiles: [fontFile],
       loadSystemFonts: false,
       defaultFontFamily: "Geist",
     },

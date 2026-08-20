@@ -79,11 +79,11 @@ export async function buildEntryMessage({
 
   const withLink = withPayLink(
     [
-      ...lines,
+      ...lines.filter(Boolean),
       "",
       translate(lang, "share.viewOnline"),
       billUrl,
-    ].filter(Boolean),
+    ],
     { business, amount: payAmountForEntry(entry), language: lang }
   );
 
