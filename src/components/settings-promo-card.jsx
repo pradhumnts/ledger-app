@@ -1,6 +1,7 @@
 "use client";
 
-import { CalendarDays, ChevronRight, Globe } from "lucide-react";
+import { CalendarDays, ChevronRight, Globe, Loader2 } from "lucide-react";
+import { useBusyAction } from "@/hooks/use-busy-action";
 import { useTranslation } from "@/hooks/use-translation";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -12,15 +13,18 @@ const ICONS = {
 
 export function SettingsPromoCard({ plan, onSelect, className }) {
   const { t, websitePlanLabel } = useTranslation();
+  const { busy, run } = useBusyAction();
   const Icon = ICONS[plan.icon] || Globe;
   const isFeatured = plan.featured;
 
   return (
     <button
       type="button"
-      onClick={() => onSelect?.(plan)}
+      onClick={() => run(() => onSelect?.(plan))}
+      disabled={busy}
+      aria-busy={busy}
       className={cn(
-        "group relative w-full overflow-hidden rounded-[1.75rem] p-[1px] text-left transition-[transform,box-shadow] duration-300 ease-out active:scale-[0.985]",
+        "group relative w-full overflow-hidden rounded-[1.75rem] p-[1px] text-left transition-[transform,box-shadow] duration-300 ease-out active:scale-[0.985] disabled:pointer-events-none disabled:opacity-70",
         isFeatured
           ? "shadow-[0_20px_50px_rgba(11,48,31,0.18)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
           : "shadow-[0_16px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.25)]",
@@ -152,12 +156,13 @@ export function SettingsPromoCard({ plan, onSelect, className }) {
 
           <span
             className={cn(
-              "rounded-full px-3.5 py-2 text-xs font-semibold transition-colors duration-200",
+              "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition-colors duration-200",
               isFeatured
                 ? "bg-[var(--forest)] text-white group-hover:bg-[var(--forest-soft)] dark:bg-[var(--lime)] dark:text-[var(--forest)] dark:group-hover:bg-[var(--lime)]/90"
                 : "bg-white/15 text-white backdrop-blur-sm group-hover:bg-white/20"
             )}
           >
+            {busy ? <Loader2 className="size-3 animate-spin" /> : null}
             {t("common.notifyMe")}
           </span>
         </div>

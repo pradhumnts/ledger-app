@@ -2,6 +2,7 @@
 
 import { BackLink } from "@/components/back-link";
 import { EntryBillPreview } from "@/components/entry-bill-preview";
+import { PageSpinner } from "@/components/page-spinner";
 import { ShareActions } from "@/components/share-actions";
 import { SoftCard } from "@/components/ui-kit";
 import { useApp } from "@/context/app-provider";
@@ -22,7 +23,7 @@ export default function EntryDetailPage() {
   const entry = entries.find((item) => item.id === entryId);
 
   if (!ready) {
-    return <p className="text-sm text-zinc-500">{t("common.loading")}</p>;
+    return <PageSpinner />;
   }
 
   if (!customer || !entry || entry.customerId !== customer.id) {

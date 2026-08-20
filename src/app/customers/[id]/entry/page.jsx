@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useTranslation } from "@/hooks/use-translation";
+import { PageSpinner } from "@/components/page-spinner";
 
 function Redirect() {
   const params = useParams();
@@ -14,16 +14,13 @@ function Redirect() {
     router.replace(`/invoice/new?customerId=${id}`);
   }, [id, router]);
 
-  return null;
+  return <PageSpinner />;
 }
 
 export default function CustomerEntryRedirect() {
-  const { t } = useTranslation();
-
   return (
-    <Suspense fallback={<p className="text-sm text-zinc-500">{t("common.loading")}</p>}>
+    <Suspense fallback={<PageSpinner />}>
       <Redirect />
-      <p className="text-sm text-zinc-500">{t("common.loading")}</p>
     </Suspense>
   );
 }

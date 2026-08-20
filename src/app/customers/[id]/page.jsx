@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { ActivityRow } from "@/components/activity-row";
 import { BackLink } from "@/components/back-link";
+import { PageSpinner } from "@/components/page-spinner";
 import { ShareActions } from "@/components/share-actions";
 import { SoftCard, Divider } from "@/components/ui-kit";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -79,7 +80,7 @@ export default function CustomerDetailPage() {
   );
 
   if (!ready) {
-    return <p className="text-sm text-zinc-500">{t("common.loading")}</p>;
+    return <PageSpinner />;
   }
 
   if (!customer) {
@@ -309,8 +310,8 @@ export default function CustomerDetailPage() {
               await shareAll("whatsapp");
               setShareOpen(false);
             }}
-            onSMS={() => {
-              shareAll("sms");
+            onSMS={async () => {
+              await shareAll("sms");
               setShareOpen(false);
             }}
             onPDF={async () => {

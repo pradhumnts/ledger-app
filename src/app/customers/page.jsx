@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
+import { PageSpinner } from "@/components/page-spinner";
 import { SoftCard, ListRow, Divider } from "@/components/ui-kit";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import { customerBalance } from "@/lib/store";
 import { useMemo, useState } from "react";
 
 export default function CustomersPage() {
-  const { customers, entries } = useApp();
+  const { ready, customers, entries } = useApp();
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
 
@@ -60,7 +61,9 @@ export default function CustomersPage() {
       </div>
 
       <SoftCard>
-        {list.length === 0 ? (
+        {!ready ? (
+          <PageSpinner compact />
+        ) : list.length === 0 ? (
           <div className="px-4 py-12 text-center">
             <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
               {customers.length === 0

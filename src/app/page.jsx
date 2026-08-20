@@ -10,6 +10,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { ActivityRow } from "@/components/activity-row";
+import { PageSpinner } from "@/components/page-spinner";
 import { SoftCard, Divider } from "@/components/ui-kit";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useApp } from "@/context/app-provider";
@@ -136,9 +137,7 @@ export default function HomePage() {
 
       <SoftCard>
         {!ready ? (
-          <p className="px-4 py-8 text-center text-sm text-zinc-500">
-            {t("common.loading")}
-          </p>
+          <PageSpinner compact />
         ) : activity.length === 0 ? (
           <div className="px-4 py-10 text-center">
             <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">

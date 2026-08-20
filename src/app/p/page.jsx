@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Copy, IndianRupee } from "lucide-react";
 import { MoneyKitLogo } from "@/components/moneykit-logo";
+import { PageSpinner } from "@/components/page-spinner";
 import { SoftCard } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/use-translation";
 import { APP_NAME } from "@/lib/branding";
@@ -103,18 +104,12 @@ function PayLinkForm() {
 }
 
 export default function PayLinkPage() {
-  const { t } = useTranslation();
-
   return (
     <div className="flex min-h-dvh flex-col px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="mb-8 flex justify-center">
         <MoneyKitLogo size={44} priority />
       </div>
-      <Suspense
-        fallback={
-          <p className="text-center text-sm text-zinc-500">{t("common.loading")}</p>
-        }
-      >
+      <Suspense fallback={<PageSpinner />}>
         <PayLinkForm />
       </Suspense>
     </div>

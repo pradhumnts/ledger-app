@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, Lock, MessageCircle } from "lucide-react";
+import { Check, ChevronLeft, Loader2, Lock, MessageCircle } from "lucide-react";
 import { ThemePreviewCard, billCarouselCardSize } from "@/components/bill-theme-previews";
 import { ThemeRequestCard } from "@/components/theme-request-card";
 import {
@@ -17,6 +17,7 @@ import {
   linearOffset,
 } from "@/lib/theme-carousel";
 import { useApp } from "@/context/app-provider";
+import { useBusyAction } from "@/hooks/use-busy-action";
 import { useTranslation } from "@/hooks/use-translation";
 import { buyTheme } from "@/lib/buy-theme";
 import { formatINR } from "@/lib/format";
@@ -45,6 +46,7 @@ export default function BillThemePage() {
   const [stageSize, setStageSize] = useState({ width: 390, height: 420 });
   const [buying, setBuying] = useState(false);
   const [buyError, setBuyError] = useState("");
+  const { busy: requesting, run: runRequest } = useBusyAction();
   const stageRef = useRef(null);
   const startX = useRef(0);
 
@@ -128,13 +130,15 @@ export default function BillThemePage() {
   }
 
   async function onAction() {
-    if (buying) return;
+    if (buying || requesting) return;
     if (isRequestCard) {
-      requestCustomTheme({
-        kind: "bill",
-        businessName: business.name,
-        language,
-      });
+      runRequest(() =>
+        requestCustomTheme({
+          kind: "bill",
+          businessName: business.name,
+          language,
+        })
+      );
       return;
     }
     if (isSelected) return;
@@ -299,10 +303,10 @@ export default function BillThemePage() {
           <button
             type="button"
             onClick={onAction}
-            disabled={buying || (!isRequestCard && isSelected)}
+            disabled={buying || requesting || (!isRequestCard && isSelected)}
             className={cn(
-              "mx-auto flex h-12 w-[70%] items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-[opacity,transform] duration-200 active:scale-[0.98]",
-              buying || (!isRequestCard && isSelected)
+              "mx-auto flex h-12 w-[70%] items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-[opacity,transform] duration-200 active:scale-[0.98] disabled:pointer-events-none",
+              buying || requesting || (!isRequestCard && isSelected)
                 ? "cursor-default bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
                 : isRequestCard
                   ? "border border-[var(--forest)]/15 bg-white text-[var(--forest)] shadow-sm dark:border-[var(--lime)]/20 dark:bg-zinc-900 dark:text-[var(--lime)]"
@@ -312,7 +316,11 @@ export default function BillThemePage() {
             )}
           >
             {isRequestCard ? (
-              <MessageCircle className="size-4" />
+              requesting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <MessageCircle className="size-4" />
+              )
             ) : !unlockedActive ? (
               <Lock className="size-4" />
             ) : null}

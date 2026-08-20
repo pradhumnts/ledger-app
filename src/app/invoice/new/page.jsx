@@ -7,6 +7,7 @@ import { Palette } from "lucide-react";
 import { CustomerSearch } from "@/components/customer-search";
 import { FieldError } from "@/components/field-error";
 import { PageHeader } from "@/components/page-header";
+import { PageSpinner } from "@/components/page-spinner";
 import { SubmitButton } from "@/components/submit-button";
 import { SoftCard } from "@/components/ui-kit";
 import { Input } from "@/components/ui/input";
@@ -286,7 +287,7 @@ function InvoiceForm() {
       : t("invoice.subtitle");
 
   if (!ready) {
-    return <p className="text-sm text-zinc-500">{t("common.loading")}</p>;
+    return <PageSpinner />;
   }
 
   return (
@@ -525,10 +526,8 @@ function InvoiceForm() {
 }
 
 export default function NewInvoicePage() {
-  const { t } = useTranslation();
-
   return (
-    <Suspense fallback={<p className="text-sm text-zinc-500">{t("common.loading")}</p>}>
+    <Suspense fallback={<PageSpinner />}>
       <InvoiceForm />
     </Suspense>
   );

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FieldError } from "@/components/field-error";
 import { PageHeader } from "@/components/page-header";
+import { PageSpinner } from "@/components/page-spinner";
 import { SubmitButton } from "@/components/submit-button";
 import { SoftCard } from "@/components/ui-kit";
 import { Input } from "@/components/ui/input";
@@ -41,7 +42,7 @@ export default function EditCustomerPage() {
   }, [customer]);
 
   if (!ready) {
-    return <p className="text-sm text-zinc-500">{t("common.loading")}</p>;
+    return <PageSpinner />;
   }
 
   if (!customer) {

@@ -6,6 +6,7 @@ import { rememberPath } from "@/lib/nav-memory";
 import { BottomNav } from "@/components/bottom-nav";
 import { MarketingLanding } from "@/components/marketing-landing";
 import { OnboardingGuard } from "@/components/onboarding-guard";
+import { RouteProgress } from "@/components/route-progress";
 import { SaveErrorToast } from "@/components/save-error-toast";
 import { SplashScreen } from "@/components/splash-screen";
 import { useLandingGate } from "@/context/landing-gate";
@@ -46,27 +47,29 @@ export function AppShell({ children }) {
       <SplashScreen />
       {showLanding ? null : (
         <OnboardingGuard>
-          <div
-            className={cn(
-              "mx-auto min-h-dvh w-full max-w-md bg-[var(--app-bg)] text-foreground",
-              (isPay || isThemePage) && "h-dvh overflow-hidden"
-            )}
-          >
-            <main
+          <RouteProgress>
+            <div
               className={cn(
-                fullBleed
-                  ? "p-0"
-                  : "px-5 pb-32 pt-[max(1.5rem,env(safe-area-inset-top))]",
-                (isPay || isThemePage) && "h-full overflow-hidden"
+                "mx-auto min-h-dvh w-full max-w-md bg-[var(--app-bg)] text-foreground",
+                (isPay || isThemePage) && "h-dvh overflow-hidden"
               )}
             >
-              {children}
-            </main>
-            {!isOnboarding && !isPublicShare && !isLegalPage ? (
-              <BottomNav />
-            ) : null}
-          </div>
-          <SaveErrorToast />
+              <main
+                className={cn(
+                  fullBleed
+                    ? "p-0"
+                    : "px-5 pb-32 pt-[max(1.5rem,env(safe-area-inset-top))]",
+                  (isPay || isThemePage) && "h-full overflow-hidden"
+                )}
+              >
+                {children}
+              </main>
+              {!isOnboarding && !isPublicShare && !isLegalPage ? (
+                <BottomNav />
+              ) : null}
+            </div>
+            <SaveErrorToast />
+          </RouteProgress>
         </OnboardingGuard>
       )}
     </>

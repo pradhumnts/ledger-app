@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
+import { useRouteProgress } from "@/components/route-progress";
 import { getCustomerOrigin, getPreviousPath } from "@/lib/nav-memory";
 import { cn } from "@/lib/utils";
 
@@ -15,8 +16,10 @@ export function BackLink({
   className,
 }) {
   const router = useRouter();
+  const { start } = useRouteProgress();
 
   function goBack() {
+    start();
     if (to) {
       router.replace(to);
       return;

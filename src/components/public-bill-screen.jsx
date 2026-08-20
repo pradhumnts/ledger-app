@@ -5,6 +5,7 @@ import { ActivityRow } from "@/components/activity-row";
 import { CreatedWithMoneyKit } from "@/components/created-with-moneykit";
 import { EntryBillPreview } from "@/components/entry-bill-preview";
 import { MoneyKitLogo } from "@/components/moneykit-logo";
+import { PageSpinner } from "@/components/page-spinner";
 import { Divider, SoftCard } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/use-translation";
 import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
@@ -30,7 +31,7 @@ export function PublicBillScreen({ snapshot, loading = false }) {
         </p>
       </a>
       {loading ? (
-        <p className="text-center text-sm text-zinc-500">{t("common.loading")}</p>
+        <PageSpinner />
       ) : snapshot ? (
         isPublicStatement(snapshot) ? (
           <PublicStatementBody snapshot={snapshot} />

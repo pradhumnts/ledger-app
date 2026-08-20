@@ -6,6 +6,7 @@ import {
   Building2,
   History,
   Languages,
+  Loader2,
   LogOut,
   Moon,
   Palette,
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useApp } from "@/context/app-provider";
+import { useBusyAction } from "@/hooks/use-busy-action";
 import { useTranslation } from "@/hooks/use-translation";
 import { LANGUAGES } from "@/lib/i18n";
 import { isQrThemeUnlocked, QR_THEMES } from "@/lib/qr-themes";
@@ -39,6 +41,7 @@ export default function SettingsPage() {
   const dark = settings.theme === "dark";
   const [logOutOpen, setLogOutOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const { busy: sharingApp, run: runShareApp } = useBusyAction();
 
   const billThemeSubtitle = themeLabel("bill", settings.billTheme || "classic", "name");
 
@@ -75,14 +78,20 @@ export default function SettingsPage() {
       <SoftCard className="mb-5 overflow-hidden">
         <button
           type="button"
-          onClick={() => shareApp(language)}
-          className="relative w-full bg-[var(--forest)] px-5 py-5 text-left text-white transition-opacity hover:opacity-95 active:opacity-90"
+          onClick={() => runShareApp(() => shareApp(language))}
+          disabled={sharingApp}
+          aria-busy={sharingApp}
+          className="relative w-full bg-[var(--forest)] px-5 py-5 text-left text-white transition-opacity hover:opacity-95 active:opacity-90 disabled:pointer-events-none disabled:opacity-80"
         >
           <div className="pointer-events-none absolute -top-8 -right-6 size-28 rounded-full bg-white/10" />
           <div className="pointer-events-none absolute -bottom-10 left-10 size-24 rounded-full bg-white/5" />
           <div className="relative flex items-start gap-3">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/15">
-              <Share2 className="size-5" />
+              {sharingApp ? (
+                <Loader2 className="size-5 animate-spin" />
+              ) : (
+                <Share2 className="size-5" />
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-lg font-semibold tracking-tight text-white">
