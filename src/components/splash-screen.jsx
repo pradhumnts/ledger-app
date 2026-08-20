@@ -6,7 +6,7 @@ import { MoneyKitLogo } from "@/components/moneykit-logo";
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
 import { APP_NAME } from "@/lib/branding";
-import { isInstalledApp, setSplashChrome } from "@/lib/installed-app";
+import { isInstalledApp, setSplashChrome, skipWebSplash } from "@/lib/installed-app";
 import { isPublicLegalPath, isPublicSharePath } from "@/lib/onboarding-gate";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +19,7 @@ export function SplashScreen() {
   const pathname = usePathname();
   const [phase, setPhase] = useState("visible");
   const [minElapsed, setMinElapsed] = useState(false);
+  const [hideWebSplash, setHideWebSplash] = useState(false);
 
   const onPublicShare = isPublicSharePath(pathname);
   const blocking =
@@ -30,6 +31,7 @@ export function SplashScreen() {
       !settings?.onboardingComplete);
 
   useEffect(() => {
+    if (skipWebSplash()) setHideWebSplash(true);
     const timer = window.setTimeout(() => setMinElapsed(true), MIN_MS);
     return () => window.clearTimeout(timer);
   }, []);
@@ -47,13 +49,18 @@ export function SplashScreen() {
     !isPublicLegalPath(pathname) &&
     (blocking || phase !== "hidden");
   const forestChrome =
-    splashPainted && (blocking || phase === "visible") && isInstalledApp();
+    !hideWebSplash &&
+    !skipWebSplash() &&
+    splashPainted &&
+    (blocking || phase === "visible") &&
+    isInstalledApp();
 
   useEffect(() => {
     setSplashChrome(forestChrome);
     return () => setSplashChrome(false);
   }, [forestChrome]);
 
+  if (hideWebSplash) return null;
   if (pathname === "/onboarding" && ready) return null;
   if (onPublicShare || isPublicLegalPath(pathname)) return null;
   if (!blocking && phase === "hidden") return null;
@@ -62,6 +69,7 @@ export function SplashScreen() {
     <div
       className={cn(
         "fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[var(--forest)]",
+        "web-splash",
         !blocking && phase === "hiding" && "splash-exit pointer-events-none"
       )}
       aria-hidden={!blocking && phase === "hiding"}

@@ -12,6 +12,8 @@ export const APP_ICON_SVG = "/moneykit-icon.svg";
 export const APP_LOGO_WEBP = "/moneykit-logo.webp";
 export const APP_ICON_192 = "/icon-192.png";
 export const APP_ICON_512 = "/icon-512.png";
+export const APP_ICON_SPLASH_192 = "/icon-splash-192.png";
+export const APP_ICON_SPLASH_512 = "/icon-splash-512.png";
 export const APP_APPLE_TOUCH_ICON = "/apple-touch-icon.png";
 
 export const THEME_COLOR = "#0b301f";

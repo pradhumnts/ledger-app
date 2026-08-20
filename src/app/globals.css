@@ -313,6 +313,10 @@ html[data-splash="1"] body {
   background: #0b301f;
 }
 
+html[data-skip-web-splash="1"] .web-splash {
+  display: none !important;
+}
+
 html.dark:has(.theme-page),
 html.dark:has(.theme-page) body {
   background: #090b0a;

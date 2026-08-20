@@ -2,6 +2,8 @@ import {
   APP_DESCRIPTION,
   APP_ICON_192,
   APP_ICON_512,
+  APP_ICON_SPLASH_192,
+  APP_ICON_SPLASH_512,
   APP_ICON_SVG,
   APP_NAME,
   APP_SHORT_NAME,
@@ -34,8 +36,11 @@ export default function manifest() {
     display: "standalone",
     display_override: ["standalone", "browser"],
     orientation: "portrait",
-    background_color: BACKGROUND_COLOR,
-    theme_color: THEME_COLOR,
+    // Android 12+ / TWA splash uses this behind the launcher icon.
+    // Forest matches our web splash so users don't get a gray "huge logo" screen first.
+    background_color: THEME_COLOR,
+    // Default OS chrome (status + nav). Splash briefly switches this to forest via JS.
+    theme_color: BACKGROUND_COLOR,
     categories: ["business", "finance", "productivity"],
     prefer_related_applications: false,
     related_applications: playPackage
@@ -49,19 +54,13 @@ export default function manifest() {
       : [],
     icons: [
       {
-        src: APP_ICON_SVG,
-        sizes: "any",
-        type: "image/svg+xml",
-        purpose: "any",
-      },
-      {
-        src: APP_ICON_192,
+        src: APP_ICON_SPLASH_192,
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: APP_ICON_512,
+        src: APP_ICON_SPLASH_512,
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
