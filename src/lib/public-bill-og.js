@@ -1,4 +1,3 @@
-import { createRequire } from "node:module";
 import { join } from "node:path";
 import { APP_NAME } from "@/lib/branding";
 import {
@@ -6,10 +5,6 @@ import {
   publicBillDisplayAmount,
   publicBillShopInitials,
 } from "@/lib/public-bill-meta";
-
-const { Resvg } = createRequire(join(process.cwd(), "package.json"))(
-  "@resvg/resvg-js"
-);
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";
@@ -61,6 +56,7 @@ function publicBillSvg(snapshot) {
 }
 
 export async function renderPublicBillOgImage(snapshot) {
+  const { Resvg } = await import("@resvg/resvg-js");
   const resvg = new Resvg(publicBillSvg(snapshot), {
     fitTo: { mode: "width", value: OG_SIZE.width },
     font: {
