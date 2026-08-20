@@ -8,10 +8,9 @@ import { MoneyKitLogo } from "@/components/moneykit-logo";
 import { Divider, SoftCard } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/use-translation";
 import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
-import { entryTypeLabel, formatINR } from "@/lib/format";
+import { entryTypeLabel } from "@/lib/format";
 import { collectableRupees } from "@/lib/ledger-math";
 import { isPublicStatement, payAmountForPublicBill } from "@/lib/public-bill";
-import { cn } from "@/lib/utils";
 import { buildUpiPaymentUrl, isValidUpiId } from "@/lib/upi";
 
 export function PublicBillScreen({ snapshot, loading = false }) {
@@ -90,68 +89,22 @@ function PublicBillBody({ snapshot }) {
 
 function PublicStatementBody({ snapshot }) {
   const { t, language } = useTranslation();
-  const { customer, business, entries = [], balance, billed } = snapshot;
+  const { customer, business, entries = [], balance, billed, themeId } = snapshot;
   const due = collectableRupees(balance);
-  const details = [business?.phone, business?.address].filter(Boolean).join(" · ");
-  const balanceLabel =
-    balance === 0
-      ? t("common.settled")
-      : balance > 0
-        ? t("common.toCollect")
-        : t("common.toPay");
 
   return (
     <>
-      <SoftCard className="p-5">
-        <p className="text-[11px] font-semibold tracking-[0.16em] text-zinc-400 uppercase">
-          {t("publicBill.allBills")}
-        </p>
-        <p className="mt-1 text-lg font-semibold text-zinc-950 dark:text-white">
-          {business?.name || APP_NAME}
-        </p>
-        {details ? (
-          <p className="mt-0.5 text-sm text-zinc-500">{details}</p>
-        ) : null}
-
-        <p className="mt-5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
-          {t("entry.billedTo")}
-        </p>
-        <p className="mt-1 text-lg font-semibold text-zinc-950 dark:text-white">
-          {customer?.name || t("common.customer")}
-        </p>
-        {customer?.phone ? (
-          <p className="mt-1 text-sm text-zinc-500">{customer.phone}</p>
-        ) : null}
-
-        <p className="mt-5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
-          {balanceLabel}
-        </p>
-        <p
-          className={cn(
-            "mt-1 text-[2.35rem] font-semibold tracking-tight tabular-nums",
-            balance > 0
-              ? "text-[var(--mint)]"
-              : "text-zinc-950 dark:text-white"
-          )}
-        >
-          {formatINR(Math.abs(balance || 0))}
-        </p>
-
-        <div className="mt-4 grid grid-cols-2 gap-2.5">
-          <div className="rounded-2xl bg-zinc-50 px-3.5 py-3 dark:bg-[var(--well)]">
-            <p className="mb-1 text-xs text-zinc-500">{t("entry.billed")}</p>
-            <p className="text-base font-semibold tabular-nums text-zinc-950 dark:text-white">
-              {formatINR(billed)}
-            </p>
-          </div>
-          <div className="rounded-2xl bg-zinc-50 px-3.5 py-3 dark:bg-[var(--well)]">
-            <p className="mb-1 text-xs text-zinc-500">{t("entry.due")}</p>
-            <p className="text-base font-semibold tabular-nums text-[var(--mint)]">
-              {formatINR(due)}
-            </p>
-          </div>
-        </div>
-      </SoftCard>
+      <EntryBillPreview
+        customer={customer}
+        business={business}
+        themeId={themeId}
+        statement={{
+          balance,
+          billed,
+          due,
+          entries,
+        }}
+      />
 
       {entries.length > 0 ? (
         <SoftCard className="mt-4">

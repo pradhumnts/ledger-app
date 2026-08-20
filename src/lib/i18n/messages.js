@@ -251,7 +251,7 @@ export const messages = {
     settings: {
       title: "Settings",
       shareTitle: "Share MoneyKit with a friend",
-      shareSubtitle: "Help another shopkeeper keep simple accounts — one tap to invite.",
+      shareSubtitle: "Help another shopkeeper create and share bills."
       businessProfile: "Business profile",
       businessPlaceholder: "Logo, UPI, name, phone, address",
       history: "History",
@@ -701,7 +701,7 @@ export const messages = {
     settings: {
       title: "सेटिंग्स",
       shareTitle: "दोस्त के साथ MoneyKit साझा करें",
-      shareSubtitle: "दूसरे दुकानदार को सरल बिलिंग रखने में मदद करें — एक टैप में।",
+      shareSubtitle: "दूसरे दुकानदार को बिल बनाने और भेजने में मदद करें।"
       businessProfile: "व्यवसाय प्रोफ़ाइल",
       businessPlaceholder: "लोगो, UPI, नाम, फ़ोन, पता",
       history: "इतिहास",
@@ -1151,7 +1151,7 @@ export const messages = {
     settings: {
       title: "Settings",
       shareTitle: "Dost ke saath MoneyKit share karo",
-      shareSubtitle: "Doosre dukaandar ko simple billing rakhne mein help karo — ek tap mein.",
+      shareSubtitle: "Doosre dukaandar ko bill banana aur share karne mein help karo."
       businessProfile: "Business profile",
       businessPlaceholder: "Logo, UPI, naam, phone, address",
       history: "History",

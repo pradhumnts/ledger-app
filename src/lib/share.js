@@ -192,16 +192,27 @@ export function telHref(phone) {
   return withCountry ? `tel:+${withCountry}` : "";
 }
 
+function openExternalUrl(url) {
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.target = "_blank";
+  anchor.rel = "noopener noreferrer";
+  anchor.referrerPolicy = "no-referrer";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
 export function openWhatsApp({ phone, text }) {
   const withCountry = toWhatsAppPhone(phone);
   const url = withCountry
     ? `https://wa.me/${withCountry}?text=${encodeURIComponent(text)}`
     : `https://wa.me/?text=${encodeURIComponent(text)}`;
 
-  const opened = window.open(url, "_blank", "noopener,noreferrer");
-  if (!opened) {
-    window.location.href = url;
-  }
+  // `window.open(..., "noopener")` returns null, so the old null-check
+  // fallback always also set location.href — WhatsApp opened, and this
+  // tab went to a blank wa.me page. New-tab only keeps the app in place.
+  openExternalUrl(url);
 }
 
 /**
