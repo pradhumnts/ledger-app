@@ -94,12 +94,14 @@ export default function CustomerDetailPage() {
   }
 
   async function shareAll(channel) {
-    const text = buildCustomerStatementMessage({
+    const text = await buildCustomerStatementMessage({
       customer,
       entries: history,
       balance,
+      billed: totals.billed,
       business,
       language,
+      themeId: settings.billTheme,
     });
     if (channel === "sms") {
       openSMS({ phone: customer.phone, text });

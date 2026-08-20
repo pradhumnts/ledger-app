@@ -346,7 +346,15 @@ export async function buildCustomerStatementPdf({
     loadBrandLogoPng(),
   ]);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const url = APP_SITE_URL;
+  const url = await buildPublicBillUrl({
+    kind: "statement",
+    customer,
+    entries,
+    balance,
+    billed: totals?.billed,
+    business,
+    themeId: billThemeId,
+  });
   const billNo = createBillNumber(
     "statement",
     `${customer?.id || "cust"}-${entries?.length || 0}-${customer?.name || ""}`

@@ -1,8 +1,8 @@
 import { APP_SITE_URL } from "@/lib/branding";
 import {
-  buildLegacyPublicBillUrl,
+  buildLegacyPublicShareUrl,
   isPublicBillId,
-  snapshotPublicBill,
+  snapshotPublicShare,
 } from "@/lib/public-bill";
 
 function onCanonicalHost() {
@@ -40,7 +40,7 @@ function publicBillOrigin() {
  */
 export async function buildPublicBillUrl(args) {
   try {
-    const snapshot = snapshotPublicBill(args);
+    const snapshot = snapshotPublicShare(args);
     if (snapshot) {
       const headers = { "Content-Type": "application/json" };
       const token = await tryGetAccessToken();
@@ -67,5 +67,5 @@ export async function buildPublicBillUrl(args) {
   } catch {
     // fall through to encoded URL
   }
-  return buildLegacyPublicBillUrl(args);
+  return buildLegacyPublicShareUrl(args);
 }

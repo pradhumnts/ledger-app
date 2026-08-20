@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { decodePublicBill, isPublicBillId } from "@/lib/public-bill";
+import {
+  decodePublicShare,
+  isPublicBillId,
+  snapshotPublicStatement,
+} from "@/lib/public-bill";
 import { renderPublicBillOgImage } from "@/lib/public-bill-og";
 import { loadPublicBill } from "@/lib/public-bills-db";
 
@@ -15,7 +19,15 @@ export async function GET(request) {
   if (isPublicBillId(id)) {
     snapshot = await loadPublicBill(id);
   } else if (token) {
-    snapshot = decodePublicBill(token);
+    snapshot = decodePublicShare(token);
+  } else if (searchParams.get("kind") === "statement") {
+    snapshot = snapshotPublicStatement({
+      kind: "statement",
+      business: { name: searchParams.get("shop") || "Shop" },
+      customer: { name: searchParams.get("customer") || "Customer" },
+      entries: [],
+      balance: 0,
+    });
   }
 
   try {

@@ -246,6 +246,7 @@ export const messages = {
     publicBill: {
       invalid: "This bill link isn’t valid.",
       pay: "Pay with UPI",
+      allBills: "All bills",
     },
     settings: {
       title: "Settings",
@@ -423,8 +424,8 @@ export const messages = {
       balance: "Balance: {amount}{suffix}",
       toCollectSuffix: " (to collect)",
       toPaySuffix: " (to pay)",
-      payNow: "Pay now:",
-      viewOnline: "View Bill",
+      payNow: "Pay now",
+      viewOnline: "View bill",
       themeRequestQr: "QR payment poster theme",
       themeRequestBill: "bill theme",
       themeRequestBody: "Hi MoneyKit team,{business}\n\nI'd like to request a custom {kind}.\n\nMy business type:\n\nWhat I'd like it to look like:\n",
@@ -695,6 +696,7 @@ export const messages = {
     publicBill: {
       invalid: "यह बिल लिंक सही नहीं है।",
       pay: "UPI से भुगतान करें",
+      allBills: "सभी बिल",
     },
     settings: {
       title: "सेटिंग्स",
@@ -872,7 +874,7 @@ export const messages = {
       balance: "बैलेंस: {amount}{suffix}",
       toCollectSuffix: " (लेना है)",
       toPaySuffix: " (देना है)",
-      payNow: "अभी भुगतान करें:",
+      payNow: "अभी भुगतान करें",
       viewOnline: "बिल देखें",
       themeRequestQr: "QR भुगतान पोस्टर थीम",
       themeRequestBill: "बिल थीम",
@@ -1144,6 +1146,7 @@ export const messages = {
     publicBill: {
       invalid: "Yeh bill link sahi nahi hai.",
       pay: "UPI se pay karo",
+      allBills: "Saare bills",
     },
     settings: {
       title: "Settings",
@@ -1321,7 +1324,7 @@ export const messages = {
       balance: "Balance: {amount}{suffix}",
       toCollectSuffix: " (lena hai)",
       toPaySuffix: " (dena hai)",
-      payNow: "Abhi pay karo:",
+      payNow: "Abhi pay karo",
       viewOnline: "Bill dekho",
       themeRequestQr: "QR payment poster theme",
       themeRequestBill: "bill theme",

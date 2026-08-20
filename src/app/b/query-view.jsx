@@ -3,12 +3,12 @@
 import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { PublicBillScreen } from "@/components/public-bill-screen";
-import { decodePublicBill } from "@/lib/public-bill";
+import { decodePublicShare } from "@/lib/public-bill";
 
 function PublicBillFromQuery() {
   const searchParams = useSearchParams();
   const snapshot = useMemo(
-    () => decodePublicBill(searchParams.get("d") || ""),
+    () => decodePublicShare(searchParams.get("d") || ""),
     [searchParams]
   );
   return <PublicBillScreen snapshot={snapshot} />;

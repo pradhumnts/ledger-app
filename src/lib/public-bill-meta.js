@@ -1,6 +1,6 @@
 import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
 import { formatINRPlain } from "@/lib/format";
-import { payAmountForPublicBill } from "@/lib/public-bill";
+import { isPublicStatement, payAmountForPublicBill } from "@/lib/public-bill";
 
 export function publicBillDisplayAmount(snapshot) {
   const pay = payAmountForPublicBill(snapshot?.entry);
@@ -15,6 +15,13 @@ export function publicBillDisplayAmount(snapshot) {
 export function publicBillShareTitle(snapshot) {
   if (!snapshot) return `Bill · ${APP_NAME}`;
   const name = snapshot.business?.name?.trim() || "Shop";
+  if (isPublicStatement(snapshot)) {
+    const customer = snapshot.customer?.name?.trim();
+    if (customer && customer !== "Customer") {
+      return `${name} sent bills for ${customer}`;
+    }
+    return `${name} sent bills`;
+  }
   const amount = publicBillDisplayAmount(snapshot);
   if (snapshot.entry?.type === "got") {
     return `${name} received ${amount} INR`;
@@ -24,6 +31,9 @@ export function publicBillShareTitle(snapshot) {
 
 export function publicBillShareDescription(snapshot) {
   if (!snapshot) return `View this bill on ${APP_NAME}.`;
+  if (isPublicStatement(snapshot)) {
+    return `View all bills on ${APP_NAME}.`;
+  }
   const customer = snapshot.customer?.name?.trim();
   if (customer && customer !== "Customer") {
     return `Bill for ${customer}`;

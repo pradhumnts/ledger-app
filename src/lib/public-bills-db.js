@@ -1,25 +1,31 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   isPublicBillId,
+  isPublicStatement,
   randomPublicBillId,
-  snapshotPublicBill,
+  snapshotPublicShare,
 } from "@/lib/public-bill";
 
-function entryExternalId(snapshot) {
+function shareExternalId(snapshot) {
+  if (isPublicStatement(snapshot)) {
+    const id = snapshot?.customer?.id;
+    if (!id || id === "public") return null;
+    return `stmt:${id}`;
+  }
   const id = snapshot?.entry?.id;
   if (!id || id === "public") return null;
   return id;
 }
 
 export async function savePublicBill({ snapshot, userId }) {
-  const payload = snapshotPublicBill(snapshot);
+  const payload = snapshotPublicShare(snapshot);
   if (!payload) return { error: "invalid", status: 400 };
 
   const admin = getSupabaseAdmin();
   if (!admin) return { error: "unavailable", status: 503 };
 
   const ownerId = userId || null;
-  const externalId = entryExternalId(payload);
+  const externalId = shareExternalId(payload);
 
   if (ownerId && externalId) {
     const { data: existing } = await admin
@@ -75,5 +81,5 @@ export async function loadPublicBill(id) {
     .select("payload")
     .eq("id", id)
     .maybeSingle();
-  return snapshotPublicBill(data?.payload);
+  return snapshotPublicShare(data?.payload);
 }

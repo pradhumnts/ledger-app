@@ -136,3 +136,147 @@ export function payAmountForPublicBill(entry) {
   const amount = Number(entry.amount);
   return Number.isFinite(amount) && amount > 0 ? amount : undefined;
 }
+
+const MAX_STATEMENT_ENTRIES = 20;
+const MAX_URL_NOTE = 80;
+
+export function isPublicStatement(snapshot) {
+  return snapshot?.kind === "statement";
+}
+
+function clipStatementEntry(entry, noteMax = MAX_TEXT.note) {
+  const amount = Number(entry?.amount);
+  return {
+    id: clip(entry?.id, MAX_TEXT.id) || "public",
+    type: TYPES.has(entry?.type) ? entry.type : "invoice",
+    amount: Number.isFinite(amount) ? amount : 0,
+    due: Number(entry?.due) || 0,
+    date: String(entry?.date || new Date().toISOString()).slice(0, 40),
+    description: clip(entry?.description, noteMax),
+  };
+}
+
+export function snapshotPublicStatement(input) {
+  if (!input || typeof input !== "object") return null;
+  const shopName = clip(input.business?.name, MAX_TEXT.name);
+  const customerName = clip(input.customer?.name, MAX_TEXT.name);
+  if (!shopName && !customerName) return null;
+
+  const entries = Array.isArray(input.entries) ? input.entries : [];
+  const recent = [...entries]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, MAX_STATEMENT_ENTRIES)
+    .map((entry) => clipStatementEntry(entry));
+
+  const balance = Number(input.balance);
+  const billed = Number(input.billed);
+
+  return {
+    kind: "statement",
+    customer: {
+      id: clip(input.customer?.id, MAX_TEXT.id),
+      name: customerName || "Customer",
+      phone: clip(input.customer?.phone, MAX_TEXT.phone),
+    },
+    business: {
+      name: shopName || "Shop",
+      phone: clip(input.business?.phone, MAX_TEXT.phone),
+      address: clip(input.business?.address, MAX_TEXT.address),
+      upiId: clip(input.business?.upiId, MAX_TEXT.upi),
+    },
+    balance: Number.isFinite(balance) ? balance : 0,
+    billed: Number.isFinite(billed) ? billed : 0,
+    entries: recent,
+    themeId: clip(input.themeId, MAX_TEXT.theme),
+  };
+}
+
+export function snapshotPublicShare(input) {
+  if (!input || typeof input !== "object") return null;
+  if (input.kind === "statement" || (Array.isArray(input.entries) && !input.entry)) {
+    return snapshotPublicStatement(input);
+  }
+  return snapshotPublicBill(input);
+}
+
+export function encodePublicStatement(input) {
+  const snapshot = snapshotPublicStatement(input);
+  if (!snapshot) return "";
+  const payload = {
+    v: 2,
+    k: "s",
+    sn: snapshot.business.name,
+    sp: snapshot.business.phone,
+    sa: snapshot.business.address,
+    su: snapshot.business.upiId,
+    cn: snapshot.customer.name,
+    cp: snapshot.customer.phone,
+    ci: snapshot.customer.id,
+    b: snapshot.balance,
+    bl: snapshot.billed,
+    th: snapshot.themeId,
+    e: snapshot.entries.map((entry) => ({
+      t: entry.type,
+      a: entry.amount,
+      d: entry.due,
+      dt: entry.date,
+      n: clip(entry.description, MAX_URL_NOTE),
+      i: entry.id,
+    })),
+  };
+  return toBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
+}
+
+export function decodePublicShare(token) {
+  try {
+    const data = JSON.parse(new TextDecoder().decode(fromBase64Url(token)));
+    if (!data || typeof data !== "object") return null;
+    if (data.v === 2 && data.k === "s") {
+      return snapshotPublicStatement({
+        kind: "statement",
+        business: {
+          name: data.sn,
+          phone: data.sp,
+          address: data.sa,
+          upiId: data.su,
+        },
+        customer: {
+          id: data.ci,
+          name: data.cn,
+          phone: data.cp,
+        },
+        balance: data.b,
+        billed: data.bl,
+        themeId: data.th,
+        entries: Array.isArray(data.e)
+          ? data.e.map((row) => ({
+              type: row?.t,
+              amount: row?.a,
+              due: row?.d,
+              date: row?.dt,
+              description: row?.n,
+              id: row?.i,
+            }))
+          : [],
+      });
+    }
+    if (data.v !== 1) return null;
+    return decodePublicBill(token);
+  } catch {
+    return null;
+  }
+}
+
+export function buildLegacyPublicStatementUrl(args) {
+  const token = encodePublicStatement(args);
+  if (!token) return `${APP_SITE_URL}/b`;
+  return `${APP_SITE_URL}/b?d=${token}`;
+}
+
+export function buildLegacyPublicShareUrl(args) {
+  const snapshot = snapshotPublicShare(args);
+  if (isPublicStatement(snapshot)) {
+    return buildLegacyPublicStatementUrl(snapshot);
+  }
+  return buildLegacyPublicBillUrl(args);
+}

@@ -14,6 +14,10 @@ function payAmountForEntry(entry) {
   return Number.isFinite(amount) && amount > 0 ? amount : undefined;
 }
 
+function waBold(text) {
+  return `*${String(text || "").replace(/^\*|\*$/g, "")}*`;
+}
+
 function withPayLink(lines, { business, amount, language }) {
   const href = buildUpiPaymentUrl({
     upiId: business?.upiId,
@@ -24,7 +28,7 @@ function withPayLink(lines, { business, amount, language }) {
   return [
     ...lines,
     "",
-    translate(language, "share.payNow"),
+    waBold(translate(language, "share.payNow")),
     href,
   ];
 }
@@ -81,21 +85,27 @@ export async function buildEntryMessage({
     [
       ...lines.filter(Boolean),
       "",
-      translate(lang, "share.viewOnline"),
+      waBold(translate(lang, "share.viewOnline")),
       billUrl,
     ],
     { business, amount: payAmountForEntry(entry), language: lang }
   );
 
-  return [...withLink, "", translate(lang, "common.sentViaMoneyKit")].join("\n");
+  return [
+    ...withLink,
+    "",
+    waBold(translate(lang, "common.sentViaMoneyKit")),
+  ].join("\n");
 }
 
-export function buildCustomerStatementMessage({
+export async function buildCustomerStatementMessage({
   customer,
   entries,
   balance,
+  billed,
   business,
   language = "en",
+  themeId,
 }) {
   const lang = normalizeLanguage(language);
   const suffix =
@@ -104,6 +114,16 @@ export function buildCustomerStatementMessage({
       : balance < 0
         ? translate(lang, "share.toPaySuffix")
         : "";
+
+  const billUrl = await buildPublicBillUrl({
+    kind: "statement",
+    customer,
+    entries,
+    balance,
+    billed,
+    business,
+    themeId,
+  });
 
   const lines = [
     businessLine(business, lang),
@@ -141,12 +161,21 @@ export function buildCustomerStatementMessage({
     );
   });
 
-  lines.push("", translate(lang, "common.sentViaMoneyKit"));
-  return withPayLink(lines.filter(Boolean), {
-    business,
-    amount: collectableRupees(balance),
-    language: lang,
-  }).join("\n");
+  const withLink = withPayLink(
+    [
+      ...lines.filter(Boolean),
+      "",
+      waBold(translate(lang, "share.viewOnline")),
+      billUrl,
+    ],
+    { business, amount: collectableRupees(balance), language: lang }
+  );
+
+  return [
+    ...withLink,
+    "",
+    waBold(translate(lang, "common.sentViaMoneyKit")),
+  ].join("\n");
 }
 
 function toWhatsAppPhone(phone) {
