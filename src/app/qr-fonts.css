@@ -1,0 +1,15 @@
+/**
+ * Self-hosted QR poster fonts (public/fonts/). Same-origin so they work in the
+ * Play app, PWA, and offline — only used by themes that opt in.
+ */
+
+@font-face {
+  font-family: "Sutrika Display";
+  src:
+    url("/fonts/SutrikaDisplay-Regular.woff2") format("woff2"),
+    url("/fonts/SutrikaDisplay-Regular.otf") format("opentype"),
+    url("/fonts/SutrikaDisplay-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

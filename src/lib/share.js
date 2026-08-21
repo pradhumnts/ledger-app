@@ -76,17 +76,10 @@ export async function buildEntryMessage({
       (entry.type === "invoice" && Number(entry.due) !== Number(entry.amount)))
       ? `${translate(lang, "entry.due")}: ${formatINR(entry.due)}`
       : "",
-    translate(lang, "share.entryCustomer", { name: customer?.name || "—" }),
     translate(lang, "share.entryDate", {
       date: formatEntryDate(entry.date, lang),
     }),
   ];
-
-  if (entry.description) {
-    lines.push(
-      translate(lang, "share.entryNote", { note: entry.description })
-    );
-  }
 
   const withLink = withPayLink(
     [
@@ -137,9 +130,6 @@ export async function buildCustomerStatementMessage({
   const lines = [
     businessLine(business, lang),
     "",
-    translate(lang, "share.statementFor", {
-      name: customer?.name || translate(lang, "common.customer"),
-    }),
     translate(lang, "share.balance", {
       amount: formatINR(Math.abs(balance)),
       suffix,
@@ -158,7 +148,6 @@ export async function buildCustomerStatementMessage({
         : entry.type === "got"
           ? translate(lang, "entry.payment")
           : translate(lang, "entry.bill");
-    const note = entry.description ? ` — ${entry.description}` : "";
     const dueBit =
       Number(entry.due) > 0 &&
       (entry.type === "got" ||
@@ -166,7 +155,7 @@ export async function buildCustomerStatementMessage({
         ? ` · ${translate(lang, "entry.due")} ${formatINR(entry.due)}`
         : "";
     lines.push(
-      `${formatEntryDate(entry.date, lang)} · ${label} ${formatINR(entry.amount)}${dueBit}${note}`
+      `${formatEntryDate(entry.date, lang)} · ${label} ${formatINR(entry.amount)}${dueBit}`
     );
   });
 

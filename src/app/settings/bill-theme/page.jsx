@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, Loader2, Lock, MessageCircle } from "lucide-react";
+import { Check, ChevronLeft, Loader2, Lock } from "lucide-react";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { ThemePreviewCard, billCarouselCardSize } from "@/components/bill-theme-previews";
 import { ThemeRequestCard } from "@/components/theme-request-card";
 import {
@@ -313,18 +314,16 @@ export default function BillThemePage() {
               "mx-auto flex h-12 w-[70%] items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-[opacity,transform] duration-200 active:scale-[0.98] disabled:pointer-events-none",
               buying || requesting || (!isRequestCard && isSelected)
                 ? "cursor-default bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
-                : isRequestCard
-                  ? "border border-[var(--forest)]/15 bg-white text-[var(--forest)] shadow-sm dark:border-[var(--lime)]/20 dark:bg-zinc-900 dark:text-[var(--lime)]"
-                  : unlockedActive
-                    ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950"
-                    : "bg-[var(--forest)] text-white dark:bg-[var(--lime)] dark:text-[var(--forest)]"
+                : unlockedActive || isRequestCard
+                  ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950"
+                  : "bg-[var(--forest)] text-white dark:bg-[var(--lime)] dark:text-[var(--forest)]"
             )}
           >
             {isRequestCard ? (
               requesting ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                <MessageCircle className="size-4" />
+                <WhatsAppIcon className="size-4" />
               )
             ) : !unlockedActive ? (
               <Lock className="size-4" />

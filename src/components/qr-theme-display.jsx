@@ -161,6 +161,36 @@ function FitText({ children, className, style, minScale = 0.5 }) {
   );
 }
 
+function WrappingBusinessName({ name, cfg, top, maxLines = 2 }) {
+  const displayName = cfg.uppercase ? name.toUpperCase() : name;
+  const words = displayName.trim().split(/\s+/).filter(Boolean);
+  const lines = words.length > 1 ? splitIntoLines(displayName, maxLines) : [displayName];
+
+  return (
+    <div
+      className="absolute z-10 w-[88%] text-center"
+      style={{
+        ...posStyle(top ?? cfg.top),
+        fontFamily: cfg.fontFamily,
+        fontSize: cfg.fontSize,
+        fontWeight: cfg.fontWeight,
+        color: cfg.color,
+        letterSpacing: cfg.letterSpacing,
+        lineHeight: cfg.lineHeight,
+        fontStyle: cfg.fontStyle,
+        textShadow: cfg.textShadow,
+        transition: MOVE_EASE,
+      }}
+    >
+      {lines.map((line, index) => (
+        <FitText key={`${line}-${index}`} className="w-full">
+          {line}
+        </FitText>
+      ))}
+    </div>
+  );
+}
+
 function StackedBusinessName({ name, cfg, top }) {
   const baseStyle = {
     ...posStyle(top ?? cfg.top),
@@ -493,7 +523,17 @@ export function QrThemeDisplay({
           </div>
         ) : null}
 
-        {cfg.businessName.stacked ? (
+        {cfg.businessName.wrapLines ? (
+          <WrappingBusinessName
+            name={businessName}
+            cfg={{
+              ...cfg.businessName,
+              fontFamily: cfg.businessNameFontFamily || cfg.fontFamily,
+            }}
+            top={pickTop(cfg.businessName, showAmount)}
+            maxLines={cfg.businessName.wrapLines}
+          />
+        ) : cfg.businessName.stacked ? (
           <StackedBusinessName
             name={businessName}
             cfg={{

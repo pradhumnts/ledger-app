@@ -456,6 +456,22 @@ export const messages = {
         fitness: { name: "Fitness", tagline: "Gyms & trainers" },
         photographer: { name: "Photographer", tagline: "Studios & photographers" },
         "toy-store": { name: "Toy Store", tagline: "Kids shops & toys" },
+        "fashion-stitch": {
+          name: "Fashion & Stitch",
+          tagline: "Boutiques, tailors & stitching",
+        },
+        jewellery: {
+          name: "Jewellery",
+          tagline: "Jewellers & gold shops",
+        },
+        eyeglasses: {
+          name: "Eyeglasses",
+          tagline: "Opticians & eyewear shops",
+        },
+        "mobile-accessories": {
+          name: "Mobile & Accessories",
+          tagline: "Phone & gadget shops",
+        },
       },
     },
   },
@@ -913,6 +929,22 @@ export const messages = {
         fitness: { name: "फिटनेस", tagline: "जिम और ट्रेनर" },
         photographer: { name: "फोटोग्राफर", tagline: "स्टूडियो और फोटोग्राफर" },
         "toy-store": { name: "टॉय स्टोर", tagline: "बच्चों की दुकान" },
+        "fashion-stitch": {
+          name: "फैशन और सिलाई",
+          tagline: "बुटीक, टेलर और सिलाई",
+        },
+        jewellery: {
+          name: "ज्वेलरी",
+          tagline: "ज्वेलर और गोल्ड शॉप",
+        },
+        eyeglasses: {
+          name: "चश्मा",
+          tagline: "ऑप्टिशियन और आईवियर शॉप",
+        },
+        "mobile-accessories": {
+          name: "मोबाइल और एक्सेसरीज़",
+          tagline: "फोन और गैजेट शॉप",
+        },
       },
     },
   },
@@ -1370,6 +1402,22 @@ export const messages = {
         fitness: { name: "Fitness", tagline: "Gyms & trainers" },
         photographer: { name: "Photographer", tagline: "Studios & photographers" },
         "toy-store": { name: "Toy Store", tagline: "Kids shops & toys" },
+        "fashion-stitch": {
+          name: "Fashion & Stitch",
+          tagline: "Boutique, tailor aur stitching",
+        },
+        jewellery: {
+          name: "Jewellery",
+          tagline: "Jeweller aur gold shops",
+        },
+        eyeglasses: {
+          name: "Eyeglasses",
+          tagline: "Optician aur eyewear shops",
+        },
+        "mobile-accessories": {
+          name: "Mobile & Accessories",
+          tagline: "Phone aur gadget shops",
+        },
       },
     },
   },

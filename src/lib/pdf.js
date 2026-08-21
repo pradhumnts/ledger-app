@@ -373,45 +373,35 @@ async function tryNativeShare(payload) {
   }
 }
 
-function pdfSharePayloads(doc, filename, title, url) {
-  const buffer = doc.output("arraybuffer");
-  const files = [
-    new File([buffer], filename, {
-      type: "application/pdf",
-      lastModified: Date.now(),
-    }),
-    new File([buffer], filename, {
-      type: "application/octet-stream",
-      lastModified: Date.now(),
-    }),
-  ];
-  return [
-    ...files.map((file) => ({ files: [file], title, text: title })),
-    {
-      title,
-      text: url ? `${title}\n${url}` : title,
-      ...(url ? { url } : {}),
-    },
-  ];
-}
-
-async function sharePdfPayloads(payloads) {
-  let sawNoGesture = false;
-  for (const payload of payloads) {
-    const result = await tryNativeShare(payload);
-    if (result === "shared" || result === "cancelled") return result;
-    if (result === "no-gesture") sawNoGesture = true;
+function canSharePdfFile(file) {
+  if (typeof navigator.canShare !== "function") return true;
+  try {
+    return navigator.canShare({ files: [file] });
+  } catch {
+    return false;
   }
-  return sawNoGesture ? "no-gesture" : "failed";
 }
 
-function promptPdfShare(payloads) {
+function pdfLinkPayload(title, url) {
+  return {
+    title,
+    text: url ? `${title}\n${url}` : title,
+    ...(url ? { url } : {}),
+  };
+}
+
+function pdfFilePayload(doc, filename, title) {
+  const file = toPdfFile(doc, filename);
+  return { files: [file], title, text: title, file };
+}
+
+function promptPdfShare(payload) {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
     overlay.style.cssText =
-      "position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;background:rgba(11,48,31,.45);padding:20px 20px calc(20px + env(safe-area-inset-bottom));";
+      "position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;background:rgba(11,48,31,.45);padding:20px 20px calc(20px + env(safe-area-inset-bottom));";
 
     const sheet = document.createElement("div");
     sheet.style.cssText =
@@ -441,7 +431,7 @@ function promptPdfShare(payloads) {
 
     shareBtn.addEventListener("click", async () => {
       shareBtn.disabled = true;
-      const result = await sharePdfPayloads(payloads);
+      const result = await tryNativeShare(payload);
       if (result === "shared" || result === "cancelled") {
         finish(result);
         return;
@@ -460,15 +450,24 @@ function promptPdfShare(payloads) {
 }
 
 async function saveOrShare(doc, filename, title, url) {
-  const payloads = pdfSharePayloads(doc, filename, title, url);
+  if (typeof navigator.share !== "function") {
+    doc.save(filename);
+    return;
+  }
 
-  if (typeof navigator.share === "function") {
-    const result = await sharePdfPayloads(payloads);
-    if (result === "shared" || result === "cancelled") return;
-    if (isMobileShareDevice()) {
-      await promptPdfShare(payloads);
-      return;
-    }
+  const fileShare = pdfFilePayload(doc, filename, title);
+  const linkShare = pdfLinkPayload(title, url);
+  // Chrome Android allows only one share() per tap. A failed PDF-file share
+  // spends that tap, so never retry share() in the same click.
+  const first = canSharePdfFile(fileShare.file)
+    ? { files: fileShare.files, title: fileShare.title, text: fileShare.text }
+    : linkShare;
+  const result = await tryNativeShare(first);
+  if (result === "shared" || result === "cancelled") return;
+
+  if (isMobileShareDevice()) {
+    await promptPdfShare(linkShare);
+    return;
   }
 
   doc.save(filename);

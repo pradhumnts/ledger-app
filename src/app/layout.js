@@ -14,6 +14,7 @@ import {
   BACKGROUND_COLOR,
 } from "@/lib/branding";
 import "./globals.css";
+import "./qr-fonts.css";
 
 const geistSans = Geist({
   variable: "--font-sans",
