@@ -1,3 +1,5 @@
+import { arePaidThemesFree } from "@/lib/theme-access";
+
 export const QR_THEME_PRICE = 40;
 
 function imagePath(filename) {
@@ -77,6 +79,6 @@ export function getQrTheme(id) {
 
 export function isQrThemeUnlocked(theme, unlockedIds = []) {
   if (!theme) return false;
-  if (theme.free) return true;
+  if (theme.free || arePaidThemesFree()) return true;
   return unlockedIds.includes(theme.id);
 }

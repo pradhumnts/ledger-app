@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { isCatalogThemeFree } from "@/lib/theme-access";
 
 export const BILL_CARD_RATIO = 352 / 232;
 export const BILL_CAROUSEL_CARD_W = 232;
@@ -338,7 +339,7 @@ function StatementPreview({ businessName, free, active }) {
 }
 
 export function ThemePreviewCard({ theme, businessName, active }) {
-  const props = { businessName, free: theme.free, active };
+  const props = { businessName, free: isCatalogThemeFree(theme), active };
 
   switch (theme.style) {
     case "minimal":

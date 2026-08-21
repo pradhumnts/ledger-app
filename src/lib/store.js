@@ -1,8 +1,13 @@
 import {
+  getBillTheme,
+  isBillThemeUnlocked,
+} from "@/lib/bill-themes";
+import {
   isQrThemeUnlocked,
   QR_THEMES,
 } from "@/lib/qr-themes";
 import { uniqueUid } from "@/lib/format";
+import { mergeAdminThemeUnlocks } from "@/lib/admin-themes";
 import { phoneKey } from "@/lib/validation";
 import {
   customerBalance,
@@ -78,16 +83,27 @@ function sanitizeQrSettings(settings) {
   };
 }
 
-function sanitizeSettings(settings, business = {}) {
-  const sanitized = sanitizeQrSettings(settings);
-  if (!sanitized.onboardingComplete) {
+export function sanitizeSettings(settings, business = {}) {
+  const sanitized = mergeAdminThemeUnlocks(
+    sanitizeQrSettings(settings),
+    business.phone
+  );
+  const billUnlocked = sanitized.unlockedBillThemes || [];
+  const billTheme = getBillTheme(sanitized.billTheme);
+  const next = {
+    ...sanitized,
+    billTheme: isBillThemeUnlocked(billTheme, billUnlocked)
+      ? billTheme.id
+      : "classic",
+  };
+  if (!next.onboardingComplete) {
     const hasProfile =
       business.name?.trim() || business.phone?.trim();
     if (hasProfile) {
-      return { ...sanitized, onboardingComplete: true };
+      return { ...next, onboardingComplete: true };
     }
   }
-  return sanitized;
+  return next;
 }
 
 export function loadState() {

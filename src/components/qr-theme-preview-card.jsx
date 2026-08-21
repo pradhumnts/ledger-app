@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { isCatalogThemeFree } from "@/lib/theme-access";
 
 /** Portrait poster ratio (~853×1844). */
 export const QR_POSTER_RATIO = 1844 / 853;
@@ -27,7 +28,7 @@ export function QrThemePreviewCard({ theme, active }) {
         active && "shadow-[0_24px_50px_rgba(0,0,0,0.16)]"
       )}
     >
-      {theme.free ? (
+      {isCatalogThemeFree(theme) ? (
         <span className="absolute top-3 right-3 z-20 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase shadow-sm">
           Free
         </span>

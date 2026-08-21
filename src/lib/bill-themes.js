@@ -1,3 +1,5 @@
+import { arePaidThemesFree } from "@/lib/theme-access";
+
 export const BILL_THEME_PRICE = 20;
 
 /** Visual layout styles for carousel demos. PDF layouts come later. */
@@ -94,6 +96,6 @@ export function getBillTheme(id) {
 
 export function isBillThemeUnlocked(theme, unlockedIds = []) {
   if (!theme) return false;
-  if (theme.free) return true;
+  if (theme.free || arePaidThemesFree()) return true;
   return unlockedIds.includes(theme.id);
 }

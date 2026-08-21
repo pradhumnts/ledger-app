@@ -22,6 +22,7 @@ import { useTranslation } from "@/hooks/use-translation";
 import { buyTheme } from "@/lib/buy-theme";
 import { formatINR } from "@/lib/format";
 import { requestCustomTheme } from "@/lib/share";
+import { arePaidThemesFree } from "@/lib/theme-access";
 import { cn } from "@/lib/utils";
 
 const SIDE_PEEK = 18;
@@ -206,7 +207,11 @@ export default function BillThemePage() {
               {t("billTheme.pickTitle")}
             </h2>
             <p className="mx-auto mt-1 max-w-[19rem] text-sm leading-relaxed text-zinc-500">
-              {t("billTheme.pickSubtitle")}
+              {t(
+                arePaidThemesFree()
+                  ? "billTheme.pickSubtitleFree"
+                  : "billTheme.pickSubtitle"
+              )}
             </p>
           </div>
         </div>

@@ -14,11 +14,13 @@ import {
   defaultState,
   loadState,
   saveState,
+  sanitizeSettings,
   STORAGE_KEY,
   updateCustomer as patchCustomer,
 } from "@/lib/store";
 import { DEFAULT_LANGUAGE, getHtmlLang, normalizeLanguage } from "@/lib/i18n";
 import { persistOnboardingGate } from "@/lib/onboarding-gate";
+import { mergeAdminThemeUnlocks } from "@/lib/admin-themes";
 import { restorePlayPurchases } from "@/lib/buy-theme";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { requestPhoneOtp, verifyPhoneOtp } from "@/lib/supabase/sign-in";
@@ -32,16 +34,25 @@ export function AppProvider({ children }) {
   const [saveError, setSaveError] = useState(null);
   const [userId, setUserId] = useState(null);
 
-  const applyShop = useCallback((shop) => {
+  const applyShop = useCallback((shop, loginPhone) => {
     if (!shop) return;
     persistOnboardingGate(Boolean(shop.settings?.onboardingComplete));
-    setState((prev) => ({
-      ...prev,
-      business: { ...prev.business, ...shop.business },
-      customers: shop.customers,
-      entries: shop.entries,
-      settings: { ...prev.settings, ...shop.settings },
-    }));
+    setState((prev) => {
+      const business = { ...prev.business, ...shop.business };
+      return {
+        ...prev,
+        business,
+        customers: shop.customers,
+        entries: shop.entries,
+        settings: mergeAdminThemeUnlocks(
+          sanitizeSettings(
+            { ...prev.settings, ...shop.settings },
+            business
+          ),
+          loginPhone
+        ),
+      };
+    });
     const theme = shop.settings?.theme === "dark" ? "dark" : "light";
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, []);
@@ -68,10 +79,18 @@ export function AppProvider({ children }) {
       const session = data.session;
       if (!session || cancelled) return;
       setUserId(session.user.id);
+      setState((prev) => ({
+        ...prev,
+        settings: mergeAdminThemeUnlocks(
+          prev.settings,
+          prev.business.phone,
+          session.user.phone
+        ),
+      }));
       const loaded = loadState();
       if (loaded.settings?.onboardingComplete) return;
       const shop = await pullShop(supabase, session.user.id);
-      if (shop && !cancelled) applyShop(shop);
+      if (shop && !cancelled) applyShop(shop, session.user.phone);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
