@@ -38,7 +38,7 @@ import {
   shareOnWhatsApp,
   telHref,
 } from "@/lib/share";
-import { exportCustomerStatementPdf } from "@/lib/pdf";
+import { exportCustomerStatementPdf, prefetchCustomerStatementPdf } from "@/lib/pdf";
 import {
   customerBalance,
   customerTotals,
@@ -80,6 +80,25 @@ export default function CustomerDetailPage() {
     [entries, id]
   );
 
+  useEffect(() => {
+    if (!customer || history.length === 0) return;
+    prefetchCustomerStatementPdf({
+      customer,
+      entries: history,
+      balance,
+      totals,
+      business,
+      billThemeId: settings.billTheme,
+    });
+  }, [
+    customer,
+    history,
+    balance,
+    totals,
+    business,
+    settings.billTheme,
+  ]);
+
   if (!ready) {
     return <PageSpinner />;
   }
@@ -104,6 +123,7 @@ export default function CustomerDetailPage() {
       business,
       language,
       themeId: settings.billTheme,
+      format: channel === "sms" ? "sms" : "whatsapp",
     });
     if (channel === "sms") {
       openSMS({ phone: customer.phone, text });

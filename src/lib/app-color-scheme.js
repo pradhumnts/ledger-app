@@ -5,10 +5,6 @@ const SPLASH_ATTR = "data-splash";
 /** Keep in sync with STORAGE_KEY in src/lib/store.js */
 const PREFS_STORAGE_KEY = "ledger-app-v1";
 
-function schemeContent(theme) {
-  return theme === "dark" ? "only dark" : "only light";
-}
-
 function upsertMeta(name, content) {
   let meta = document.querySelector(`meta[name="${name}"]`);
   if (!meta) {
@@ -19,15 +15,20 @@ function upsertMeta(name, content) {
   meta.setAttribute("content", content);
 }
 
-/** Keep OS/browser auto-dark from inverting the page. Follow the in-app theme only. */
+/**
+ * Match Android chrome (status/nav icons) to the in-app theme, and tell Chrome
+ * we already support light+dark so it must not auto-invert the page.
+ */
 export function applyAppColorScheme(theme) {
   if (typeof document === "undefined") return;
   const dark = theme === "dark";
   const root = document.documentElement;
   root.classList.toggle("dark", dark);
-  root.style.colorScheme = schemeContent(theme);
-  upsertMeta("color-scheme", schemeContent(theme));
-  upsertMeta("supported-color-schemes", dark ? "dark" : "light");
+  root.setAttribute("data-theme", dark ? "dark" : "light");
+  root.style.colorScheme = dark ? "dark" : "light";
+  // Always advertise both so Android Chrome Force Dark will not invert us.
+  upsertMeta("color-scheme", "light dark");
+  upsertMeta("supported-color-schemes", "light dark");
 
   const chrome = dark ? DARK_BACKGROUND_COLOR : BACKGROUND_COLOR;
   const splashOn = root.getAttribute(SPLASH_ATTR) === "1";
@@ -41,5 +42,5 @@ export function applyAppColorScheme(theme) {
   });
 }
 
-/** Runs before React so Chrome/WebView never sees an undeclared color scheme. */
-export const APP_COLOR_SCHEME_BOOT_SCRIPT = `(function(){try{var theme="light";try{var raw=localStorage.getItem(${JSON.stringify(PREFS_STORAGE_KEY)});if(raw){var s=JSON.parse(raw);if(s&&s.settings&&s.settings.theme==="dark")theme="dark"}}catch(e){}var dark=theme==="dark";var root=document.documentElement;root.classList.toggle("dark",dark);root.style.colorScheme=dark?"only dark":"only light";function upsert(name,content){var metas=document.querySelectorAll('meta[name="'+name+'"]');if(!metas.length){var m=document.createElement("meta");m.setAttribute("name",name);m.setAttribute("content",content);(document.head||document.documentElement).appendChild(m);return}for(var i=0;i<metas.length;i++)metas[i].setAttribute("content",content)}upsert("color-scheme",dark?"only dark":"only light");upsert("supported-color-schemes",dark?"dark":"light")}catch(e){}})();`;
+/** Runs in <head> before paint so React hydration cannot flash the wrong scheme. */
+export const APP_COLOR_SCHEME_BOOT_SCRIPT = `(function(){try{var theme="light";try{var raw=localStorage.getItem(${JSON.stringify(PREFS_STORAGE_KEY)});if(raw){var s=JSON.parse(raw);if(s&&s.settings&&s.settings.theme==="dark")theme="dark"}}catch(e){}var dark=theme==="dark";var root=document.documentElement;root.classList.toggle("dark",dark);root.setAttribute("data-theme",dark?"dark":"light");root.style.colorScheme=dark?"dark":"light";function upsert(name,content){var metas=document.querySelectorAll('meta[name="'+name+'"]');var i;if(!metas.length){var m=document.createElement("meta");m.setAttribute("name",name);m.setAttribute("content",content);(document.head||root).appendChild(m);return}for(i=0;i<metas.length;i++)metas[i].setAttribute("content",content)}upsert("color-scheme","light dark");upsert("supported-color-schemes","light dark")}catch(e){}})();`;

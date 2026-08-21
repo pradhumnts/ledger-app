@@ -18,7 +18,12 @@ function waBold(text) {
   return `*${String(text || "").replace(/^\*|\*$/g, "")}*`;
 }
 
-function withPayLink(lines, { business, amount, language }) {
+function emphasize(text, plain) {
+  return plain ? String(text || "") : waBold(text);
+}
+
+function withPayLink(lines, { business, amount, language, plain }) {
+  if (plain) return lines;
   const href = buildUpiPaymentUrl({
     upiId: business?.upiId,
     name: business?.name,
@@ -46,8 +51,10 @@ export async function buildEntryMessage({
   business,
   language = "en",
   themeId,
+  format = "whatsapp",
 }) {
   const lang = normalizeLanguage(language);
+  const plain = format === "sms";
   const typeLabel = entryTypeLabel(entry.type, lang);
   const billUrl = await buildPublicBillUrl({
     entry,
@@ -85,16 +92,16 @@ export async function buildEntryMessage({
     [
       ...lines.filter(Boolean),
       "",
-      waBold(translate(lang, "share.viewOnline")),
+      emphasize(translate(lang, "share.viewOnline"), plain),
       billUrl,
     ],
-    { business, amount: payAmountForEntry(entry), language: lang }
+    { business, amount: payAmountForEntry(entry), language: lang, plain }
   );
 
   return [
     ...withLink,
     "",
-    waBold(translate(lang, "common.sentViaMoneyKit")),
+    emphasize(translate(lang, "common.sentViaMoneyKit"), plain),
   ].join("\n");
 }
 
@@ -106,8 +113,10 @@ export async function buildCustomerStatementMessage({
   business,
   language = "en",
   themeId,
+  format = "whatsapp",
 }) {
   const lang = normalizeLanguage(language);
+  const plain = format === "sms";
   const suffix =
     balance > 0
       ? translate(lang, "share.toCollectSuffix")
@@ -165,16 +174,21 @@ export async function buildCustomerStatementMessage({
     [
       ...lines.filter(Boolean),
       "",
-      waBold(translate(lang, "share.viewOnline")),
+      emphasize(translate(lang, "share.viewOnline"), plain),
       billUrl,
     ],
-    { business, amount: collectableRupees(balance), language: lang }
+    {
+      business,
+      amount: collectableRupees(balance),
+      language: lang,
+      plain,
+    }
   );
 
   return [
     ...withLink,
     "",
-    waBold(translate(lang, "common.sentViaMoneyKit")),
+    emphasize(translate(lang, "common.sentViaMoneyKit"), plain),
   ].join("\n");
 }
 

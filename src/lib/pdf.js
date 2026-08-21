@@ -14,7 +14,9 @@ import {
 } from "@/lib/format";
 import { collectableRupees } from "@/lib/ledger-math";
 import { paiseToRupees, rupeesToPaise } from "@/lib/supabase/money";
+import { normalizeLanguage, translate } from "@/lib/i18n";
 import { buildPublicBillUrl } from "@/lib/public-bill-url";
+import { STORAGE_KEY } from "@/lib/store";
 
 /** Bills / PDFs always use English — Helvetica can't render Hindi glyphs reliably. */
 const PDF_LANG = "en";
@@ -32,7 +34,16 @@ const PAGE = { w: 210, h: 297 };
 const MARGIN = 16;
 const BRAND_MARK = APP_NAME.toUpperCase();
 
+let logoPngPromise;
+let pdfLibPromise;
+const preparedPdfs = new Map();
+
 async function loadBrandLogoPng() {
+  if (!logoPngPromise) logoPngPromise = fetchBrandLogoPng();
+  return logoPngPromise;
+}
+
+async function fetchBrandLogoPng() {
   const sources = [APP_LOGO_WEBP, APP_ICON_192];
   for (const src of sources) {
     try {
@@ -58,6 +69,11 @@ async function loadBrandLogoPng() {
     }
   }
   return null;
+}
+
+export function prefetchPdfEngine() {
+  loadPdf();
+  loadBrandLogoPng();
 }
 
 function blobToDataUrl(blob) {
@@ -112,11 +128,16 @@ function todayLabel() {
 }
 
 async function loadPdf() {
-  const [{ jsPDF }, autoTableModule] = await Promise.all([
-    import("jspdf"),
-    import("jspdf-autotable"),
-  ]);
-  return { jsPDF, autoTable: autoTableModule.default };
+  if (!pdfLibPromise) {
+    pdfLibPromise = Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]).then(([{ jsPDF }, autoTableModule]) => ({
+      jsPDF,
+      autoTable: autoTableModule.default,
+    }));
+  }
+  return pdfLibPromise;
 }
 
 function drawMark(doc, x, y, size = 8, colors = resolveTheme(), logoDataUrl = null) {
@@ -311,10 +332,29 @@ function drawSummaryTiles(doc, y, tiles) {
 }
 
 function toPdfFile(doc, filename, type = "application/pdf") {
-  return new File([doc.output("blob")], filename, {
+  return new File([doc.output("arraybuffer")], filename, {
     type,
     lastModified: Date.now(),
   });
+}
+
+function shareCopy(key) {
+  let language = "en";
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    language = parsed?.settings?.language || "en";
+  } catch {
+    // Keep English.
+  }
+  return translate(normalizeLanguage(language), key);
+}
+
+function isMobileShareDevice() {
+  if (typeof navigator === "undefined") return false;
+  return (
+    navigator.maxTouchPoints > 0 ||
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  );
 }
 
 function isShareCancel(error) {
@@ -328,44 +368,143 @@ async function tryNativeShare(payload) {
     return "shared";
   } catch (error) {
     if (isShareCancel(error)) return "cancelled";
+    if (error?.name === "NotAllowedError") return "no-gesture";
     return "failed";
   }
 }
 
-async function saveOrShare(doc, filename, title, url) {
-  const blob = doc.output("blob");
-  const pdfFile = new File([blob], filename, {
-    type: "application/pdf",
-    lastModified: Date.now(),
-  });
-  const genericFile = new File([blob], filename, {
-    type: "application/octet-stream",
-    lastModified: Date.now(),
-  });
-
-  if (typeof navigator.share === "function") {
-    for (const file of [pdfFile, genericFile]) {
-      const result = await tryNativeShare({
-        files: [file],
-        title,
-        text: title,
-      });
-      if (result === "shared" || result === "cancelled") return;
-    }
-
-    const result = await tryNativeShare({
+function pdfSharePayloads(doc, filename, title, url) {
+  const buffer = doc.output("arraybuffer");
+  const files = [
+    new File([buffer], filename, {
+      type: "application/pdf",
+      lastModified: Date.now(),
+    }),
+    new File([buffer], filename, {
+      type: "application/octet-stream",
+      lastModified: Date.now(),
+    }),
+  ];
+  return [
+    ...files.map((file) => ({ files: [file], title, text: title })),
+    {
       title,
       text: url ? `${title}\n${url}` : title,
       ...(url ? { url } : {}),
+    },
+  ];
+}
+
+async function sharePdfPayloads(payloads) {
+  let sawNoGesture = false;
+  for (const payload of payloads) {
+    const result = await tryNativeShare(payload);
+    if (result === "shared" || result === "cancelled") return result;
+    if (result === "no-gesture") sawNoGesture = true;
+  }
+  return sawNoGesture ? "no-gesture" : "failed";
+}
+
+function promptPdfShare(payloads) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.style.cssText =
+      "position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;background:rgba(11,48,31,.45);padding:20px 20px calc(20px + env(safe-area-inset-bottom));";
+
+    const sheet = document.createElement("div");
+    sheet.style.cssText =
+      "width:min(28rem,100%);border-radius:1.5rem;background:var(--app-bg,#fff);padding:1.25rem;box-shadow:0 24px 50px rgba(11,48,31,.18);";
+
+    const hint = document.createElement("p");
+    hint.textContent = shareCopy("share.pdfReady");
+    hint.style.cssText =
+      "margin:0 0 1rem;font-size:.95rem;font-weight:600;color:#18181b;";
+
+    const shareBtn = document.createElement("button");
+    shareBtn.type = "button";
+    shareBtn.textContent = shareCopy("share.sharePdf");
+    shareBtn.style.cssText =
+      "width:100%;height:3rem;border:0;border-radius:999px;background:var(--forest,#0b301f);color:#fff;font-weight:600;font-size:.9rem;";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.textContent = shareCopy("common.cancel");
+    cancelBtn.style.cssText =
+      "width:100%;margin-top:.55rem;height:2.75rem;border:0;border-radius:999px;background:transparent;color:#71717a;font-weight:600;font-size:.875rem;";
+
+    const finish = (value) => {
+      overlay.remove();
+      resolve(value);
+    };
+
+    shareBtn.addEventListener("click", async () => {
+      shareBtn.disabled = true;
+      const result = await sharePdfPayloads(payloads);
+      if (result === "shared" || result === "cancelled") {
+        finish(result);
+        return;
+      }
+      shareBtn.disabled = false;
     });
+    cancelBtn.addEventListener("click", () => finish("cancelled"));
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) finish("cancelled");
+    });
+
+    sheet.append(hint, shareBtn, cancelBtn);
+    overlay.append(sheet);
+    document.body.append(overlay);
+  });
+}
+
+async function saveOrShare(doc, filename, title, url) {
+  const payloads = pdfSharePayloads(doc, filename, title, url);
+
+  if (typeof navigator.share === "function") {
+    const result = await sharePdfPayloads(payloads);
     if (result === "shared" || result === "cancelled") return;
+    if (isMobileShareDevice()) {
+      await promptPdfShare(payloads);
+      return;
+    }
   }
 
   doc.save(filename);
 }
 
+function rememberPrepared(key, promise) {
+  preparedPdfs.set(
+    key,
+    promise.catch((error) => {
+      preparedPdfs.delete(key);
+      throw error;
+    })
+  );
+  return preparedPdfs.get(key);
+}
+
+export function prefetchEntryPdf(args) {
+  prefetchPdfEngine();
+  const key = `entry:${args.entry?.id}:${args.entry?.amount}:${args.entry?.due}:${args.billThemeId}`;
+  if (!preparedPdfs.has(key)) {
+    rememberPrepared(key, buildEntryPdf(args));
+  }
+  return preparedPdfs.get(key);
+}
+
+export function prefetchCustomerStatementPdf(args) {
+  prefetchPdfEngine();
+  const key = `statement:${args.customer?.id}:${args.entries?.length}:${args.balance}:${args.billThemeId}`;
+  if (!preparedPdfs.has(key)) {
+    rememberPrepared(key, buildCustomerStatementPdf(args));
+  }
+  return preparedPdfs.get(key);
+}
+
 export async function exportCustomerStatementPdf(args) {
-  const { doc, filename, title, url } = await buildCustomerStatementPdf(args);
+  const { doc, filename, title, url } = await prefetchCustomerStatementPdf(args);
   await saveOrShare(doc, filename, title, url);
 }
 
@@ -519,7 +658,7 @@ export async function buildCustomerStatementPdf({
 }
 
 export async function exportEntryPdf(args) {
-  const { doc, filename, title, url } = await buildEntryPdf(args);
+  const { doc, filename, title, url } = await prefetchEntryPdf(args);
   await saveOrShare(doc, filename, title, url);
 }
 

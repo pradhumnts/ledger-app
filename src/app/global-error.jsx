@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import {
   StatusPrimaryButton,
@@ -18,7 +18,7 @@ export default function GlobalError({ error, retry, reset }) {
   const language = normalizeLanguage(prefs.language);
   const t = (key) => translate(language, key);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     console.error(error);
     applyAppColorScheme(prefs.theme);
     document.documentElement.lang = getHtmlLang(language);
@@ -27,9 +27,9 @@ export default function GlobalError({ error, retry, reset }) {
   return (
     <html
       lang={getHtmlLang(language)}
-      className={prefs.theme === "dark" ? "dark h-full" : "h-full"}
+      className={prefs.theme === "dark" ? "dark" : undefined}
+      data-theme={prefs.theme === "dark" ? "dark" : "light"}
       suppressHydrationWarning
-      style={{ colorScheme: prefs.theme === "dark" ? "only dark" : "only light" }}
     >
       <body className="min-h-full bg-[var(--app-bg)] font-sans antialiased text-foreground">
         <div className="mx-auto min-h-dvh w-full max-w-md px-5">

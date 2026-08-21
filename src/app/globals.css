@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark *, [data-theme="dark"] *));
 
 @theme inline {
   --color-background: var(--background);
@@ -87,7 +87,6 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  color-scheme: only light;
 }
 
 .dark {
@@ -128,7 +127,6 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-  color-scheme: only dark;
 }
 
 @layer base {
@@ -140,11 +138,13 @@
   }
   html {
     @apply font-sans;
-    color-scheme: only light;
+    height: 100%;
+    color-scheme: light;
     background-color: var(--background);
   }
-  html.dark {
-    color-scheme: only dark;
+  html.dark,
+  html[data-theme="dark"] {
+    color-scheme: dark;
   }
   .dark .text-zinc-500 {
     color: #a4b0a8;
@@ -166,10 +166,10 @@
     }
   }
   input[type="date"] {
-    color-scheme: only light;
+    color-scheme: light;
   }
   .dark input[type="date"] {
-    color-scheme: only dark;
+    color-scheme: dark;
   }
   button,
   a {

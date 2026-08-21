@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { BackLink } from "@/components/back-link";
 import { EntryBillPreview } from "@/components/entry-bill-preview";
 import { PageSpinner } from "@/components/page-spinner";
@@ -10,7 +10,7 @@ import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { exportEntryPdf } from "@/lib/pdf";
+import { exportEntryPdf, prefetchEntryPdf } from "@/lib/pdf";
 import { shareBillImage } from "@/lib/share-bill-image";
 import { buildEntryMessage, openSMS } from "@/lib/share";
 
@@ -29,6 +29,16 @@ function EntryDetailPage() {
   const entry = entries.find((item) => item.id === entryId);
   const customerHref = customer ? `/customers/${customer.id}` : "/customers";
   const backHref = fromHome ? "/" : customerHref;
+
+  useEffect(() => {
+    if (!customer || !entry || entry.customerId !== customer.id) return;
+    prefetchEntryPdf({
+      entry,
+      customer,
+      business,
+      billThemeId: settings.billTheme,
+    });
+  }, [customer, entry, business, settings.billTheme]);
 
   if (!ready) {
     return <PageSpinner />;
@@ -55,6 +65,7 @@ function EntryDetailPage() {
       business,
       language,
       themeId: settings.billTheme,
+      format: channel === "sms" ? "sms" : "whatsapp",
     });
     if (channel === "sms") {
       openSMS({ phone: customer.phone, text });

@@ -9,19 +9,20 @@ import {
   formatINR,
   resolveEntryWhen,
 } from "@/lib/format";
-import { translate } from "@/lib/i18n";
+import { normalizeLanguage, translate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-/** On-screen bill previews stay English so labels match PDF share. */
-const BILL_LANG = "en";
-const te = (key) => translate(BILL_LANG, key);
+/** In-app previews stay English so labels match PDF share. */
+const DEFAULT_BILL_LANG = "en";
 
-function billCopy({ entry, customer, business }) {
-  const typeLabel = entryTypeLabel(entry.type, BILL_LANG);
+function billCopy({ entry, customer, business, language }) {
+  const lang = normalizeLanguage(language || DEFAULT_BILL_LANG);
+  const te = (key) => translate(lang, key);
+  const typeLabel = entryTypeLabel(entry.type, lang);
   const billNo = formatBillNumber(entry);
   const when = resolveEntryWhen(entry);
-  const dateLabel = formatEntryDateTime(when, BILL_LANG);
-  const shortDate = formatEntryDate(when, BILL_LANG);
+  const dateLabel = formatEntryDateTime(when, lang);
+  const shortDate = formatEntryDate(when, lang);
   const amount = formatINR(entry.amount);
   const signedAmount = amount;
   const itemName =
@@ -68,7 +69,9 @@ function billCopy({ entry, customer, business }) {
   };
 }
 
-function statementCopy({ customer, business, statement }) {
+function statementCopy({ customer, business, statement, language }) {
+  const lang = normalizeLanguage(language || DEFAULT_BILL_LANG);
+  const te = (key) => translate(lang, key);
   const balance = Number(statement?.balance) || 0;
   const billed = Number(statement?.billed) || 0;
   const due = Number(statement?.due) || 0;
@@ -87,8 +90,8 @@ function statementCopy({ customer, business, statement }) {
   return {
     typeLabel: te("publicBill.allBills"),
     billNo: "",
-    dateLabel: latest ? formatEntryDateTime(resolveEntryWhen(latest), BILL_LANG) : "",
-    shortDate: latest ? formatEntryDate(resolveEntryWhen(latest), BILL_LANG) : "",
+    dateLabel: latest ? formatEntryDateTime(resolveEntryWhen(latest), lang) : "",
+    shortDate: latest ? formatEntryDate(resolveEntryWhen(latest), lang) : "",
     amount: formatINR(billed),
     signedAmount: formatINR(Math.abs(balance)),
     itemName: te("entry.billed"),
@@ -481,17 +484,21 @@ export function EntryBillPreview({
   business,
   themeId,
   statement,
+  language = DEFAULT_BILL_LANG,
 }) {
+  const lang = normalizeLanguage(language);
+  const t = (key) => translate(lang, key);
   const copy = statement
-    ? statementCopy({ customer, business, statement })
+    ? statementCopy({ customer, business, statement, language: lang })
     : billCopy({
         entry,
         customer,
         business,
+        language: lang,
       });
   const theme = getBillTheme(themeId);
 
-  const props = { copy, t: te };
+  const props = { copy, t };
 
   switch (theme.style) {
     case "minimal":

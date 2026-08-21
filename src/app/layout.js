@@ -54,9 +54,9 @@ export const metadata = {
 };
 
 export const viewport = {
-  // `only light` opts out of Android Chrome auto-dark. The in-app toggle
-  // switches this to `only dark` before paint via APP_COLOR_SCHEME_BOOT_SCRIPT.
-  colorScheme: "only light",
+  // Advertise both so Android Chrome will not auto-invert a light shop UI.
+  // JS sets the used scheme (light vs dark) from the in-app toggle.
+  colorScheme: "light dark",
   themeColor: BACKGROUND_COLOR,
   width: "device-width",
   initialScale: 1,
@@ -67,18 +67,15 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className="h-full"
-      style={{ colorScheme: "only light" }}
-    >
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-full font-sans antialiased`}
-      >
+    <html lang="en" suppressHydrationWarning>
+      <head>
         <script
           dangerouslySetInnerHTML={{ __html: APP_COLOR_SCHEME_BOOT_SCRIPT }}
         />
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} min-h-full font-sans antialiased`}
+      >
         <script
           dangerouslySetInnerHTML={{ __html: INSTALLED_APP_BOOT_SCRIPT }}
         />

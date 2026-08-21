@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
 import { formatEntryDateTime, formatINR, initials } from "@/lib/format";
+import { normalizeLanguage, translate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function ActivityRow({
@@ -15,8 +16,15 @@ export function ActivityRow({
   avatarUrl,
   nameForInitials,
   href,
+  language: languageProp,
 }) {
-  const { t, language } = useTranslation();
+  const { t: appT, language: appLanguage } = useTranslation();
+  const language = languageProp
+    ? normalizeLanguage(languageProp)
+    : appLanguage;
+  const t = languageProp
+    ? (key, vars) => translate(language, key, vars)
+    : appT;
   const isPayment = type === "got";
 
   const content = (

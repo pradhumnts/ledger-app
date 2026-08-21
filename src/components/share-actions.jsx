@@ -3,7 +3,9 @@
 import { FileText, Loader2, MessageSquare } from "lucide-react";
 import { useBusyAction } from "@/hooks/use-busy-action";
 import { useTranslation } from "@/hooks/use-translation";
+import { prefetchPdfEngine } from "@/lib/pdf";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 function WhatsAppIcon({ className }) {
   return (
@@ -59,6 +61,10 @@ export function ShareActions({
   const { busy, busyKey, run } = useBusyAction();
   const isCompact = size === "compact";
   const hasPdf = typeof onPDF === "function";
+
+  useEffect(() => {
+    if (hasPdf) prefetchPdfEngine();
+  }, [hasPdf]);
   const tight = isCompact || hasPdf;
   const iconSize = tight ? "size-3.5" : "size-4";
   const sizeClass = tight ? "h-11 px-2 text-xs" : "h-12 px-4 text-sm";

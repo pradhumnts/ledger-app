@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -61,7 +62,7 @@ export function AppProvider({ children }) {
     applyAppColorScheme(theme);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const loaded = loadState();
     setState(loaded);
     const theme = loaded.settings?.theme === "dark" ? "dark" : "light";
