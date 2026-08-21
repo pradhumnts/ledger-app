@@ -19,6 +19,7 @@ import {
   formatINR,
   greetingForNow,
   initials,
+  resolveEntryWhen,
 } from "@/lib/format";
 import {
   recentActivity,
@@ -152,7 +153,7 @@ export default function HomePage() {
             <div key={item.id}>
               {index > 0 ? <Divider /> : null}
               <ActivityRow
-                href={`/customers/${item.customerId}`}
+                href={`/customers/${item.customerId}/entry/${item.id}?from=home`}
                 title={
                   item.customer?.name ||
                   (item.type === "invoice"
@@ -165,7 +166,7 @@ export default function HomePage() {
                 }
                 amount={item.amount}
                 type={item.type}
-                date={item.date}
+                date={resolveEntryWhen(item)}
                 nameForInitials={item.customer?.name}
               />
             </div>

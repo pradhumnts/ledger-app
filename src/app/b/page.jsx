@@ -8,23 +8,14 @@ export async function generateMetadata({ searchParams }) {
   const token = typeof query.d === "string" ? query.d : "";
   const snapshot = decodePublicShare(token);
   const meta = publicBillMetadata(snapshot, {
-    url: token ? `${APP_SITE_URL}/b?d=${encodeURIComponent(token)}` : `${APP_SITE_URL}/b`,
+    url: token
+      ? `${APP_SITE_URL}/b?d=${encodeURIComponent(token)}`
+      : `${APP_SITE_URL}/b`,
+    image: token
+      ? `${APP_SITE_URL}/api/og/bill?d=${encodeURIComponent(token)}`
+      : undefined,
   });
-  if (!token || !snapshot) return meta;
-  return {
-    ...meta,
-    openGraph: {
-      ...meta.openGraph,
-      images: [
-        {
-          url: `/api/og/bill?d=${encodeURIComponent(token)}`,
-          width: 1200,
-          height: 630,
-          alt: meta.openGraph.title,
-        },
-      ],
-    },
-  };
+  return meta;
 }
 
 export default function PublicBillPage() {

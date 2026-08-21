@@ -7,7 +7,7 @@ import { ActivityRow } from "@/components/activity-row";
 import { SoftCard, Divider } from "@/components/ui-kit";
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
-import { formatDateHeader } from "@/lib/format";
+import { formatDateHeader, resolveEntryWhen } from "@/lib/format";
 import { groupEntriesByDate, recentActivity } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -114,7 +114,7 @@ export default function HistoryPage() {
                       title={item.customer?.name || t("common.customer")}
                       amount={item.amount}
                       type={item.type}
-                      date={item.date}
+                      date={resolveEntryWhen(item)}
                       nameForInitials={item.customer?.name}
                     />
                   </div>

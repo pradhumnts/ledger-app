@@ -26,10 +26,11 @@ import {
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
 import {
-  entryTypeLabel,
+  entryListTitle,
   formatDateHeader,
   formatINR,
   initials,
+  resolveEntryWhen,
 } from "@/lib/format";
 import {
   buildCustomerStatementMessage,
@@ -283,10 +284,10 @@ export default function CustomerDetailPage() {
                     {index > 0 ? <Divider /> : null}
                     <ActivityRow
                       href={`/customers/${customer.id}/entry/${entry.id}`}
-                      title={entryTypeLabel(entry.type, language)}
+                      title={entryListTitle(entry, language)}
                       amount={entry.amount}
                       type={entry.type}
-                      date={entry.date}
+                      date={resolveEntryWhen(entry)}
                       nameForInitials={customer.name}
                     />
                   </div>

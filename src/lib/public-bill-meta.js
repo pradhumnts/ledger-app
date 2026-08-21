@@ -59,9 +59,12 @@ export function clipPublicBillName(name, max = 22) {
   return `${value.slice(0, Math.max(1, max - 1))}…`;
 }
 
-export function publicBillMetadata(snapshot, { url } = {}) {
+export function publicBillMetadata(snapshot, { url, image } = {}) {
   const title = publicBillShareTitle(snapshot);
   const description = publicBillShareDescription(snapshot);
+  const images = image
+    ? [{ url: image, width: 1200, height: 900, alt: title }]
+    : undefined;
   return {
     title: { absolute: title },
     description,
@@ -73,11 +76,13 @@ export function publicBillMetadata(snapshot, { url } = {}) {
       siteName: APP_NAME,
       locale: "en_IN",
       type: "website",
+      ...(images ? { images } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      ...(image ? { images: [image] } : {}),
     },
   };
 }

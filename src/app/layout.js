@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { AppProvider } from "@/context/app-provider";
 import { LandingGateProvider } from "@/context/landing-gate";
 import { AppShell } from "@/components/app-shell";
+import { APP_COLOR_SCHEME_BOOT_SCRIPT } from "@/lib/app-color-scheme";
 import { INSTALLED_APP_BOOT_SCRIPT } from "@/lib/installed-app";
 import {
   APP_APPLE_TOUCH_ICON,
@@ -53,10 +54,10 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: BACKGROUND_COLOR },
-    { media: "(prefers-color-scheme: dark)", color: "#090b0a" },
-  ],
+  // `only light` opts out of Android Chrome auto-dark. The in-app toggle
+  // switches this to `only dark` before paint via APP_COLOR_SCHEME_BOOT_SCRIPT.
+  colorScheme: "only light",
+  themeColor: BACKGROUND_COLOR,
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -66,10 +67,18 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning className="h-full">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className="h-full"
+      style={{ colorScheme: "only light" }}
+    >
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-full font-sans antialiased`}
       >
+        <script
+          dangerouslySetInnerHTML={{ __html: APP_COLOR_SCHEME_BOOT_SCRIPT }}
+        />
         <script
           dangerouslySetInnerHTML={{ __html: INSTALLED_APP_BOOT_SCRIPT }}
         />

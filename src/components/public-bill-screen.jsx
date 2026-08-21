@@ -9,7 +9,7 @@ import { PageSpinner } from "@/components/page-spinner";
 import { Divider, SoftCard } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/use-translation";
 import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
-import { entryTypeLabel } from "@/lib/format";
+import { entryTypeLabel, resolveEntryWhen } from "@/lib/format";
 import { collectableRupees } from "@/lib/ledger-math";
 import { isPublicStatement, payAmountForPublicBill } from "@/lib/public-bill";
 import { buildUpiPaymentUrl, isValidUpiId } from "@/lib/upi";
@@ -116,7 +116,7 @@ function PublicStatementBody({ snapshot }) {
                 title={entryTypeLabel(entry.type, language)}
                 amount={entry.amount}
                 type={entry.type}
-                date={entry.date}
+                date={resolveEntryWhen(entry)}
                 nameForInitials={customer?.name}
               />
             </div>

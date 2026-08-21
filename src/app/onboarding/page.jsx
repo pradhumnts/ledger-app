@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
+  Check,
   FileText,
   IndianRupee,
   Loader2,
@@ -21,6 +22,7 @@ import { useFieldErrors } from "@/hooks/use-field-errors";
 import { useSubmitting } from "@/hooks/use-submitting";
 import { useTranslation } from "@/hooks/use-translation";
 import { BUSINESS_TYPES, isValidBusinessType } from "@/lib/business-types";
+import { LANGUAGES } from "@/lib/i18n";
 import {
   ONBOARDING_COVER_COLUMNS,
   ONBOARDING_COVER_IMAGES,
@@ -35,17 +37,19 @@ import {
   validateRequiredPhone,
 } from "@/lib/validation";
 
-const STEPS = 5;
+const STEPS = 6;
 
 function ProgressBar({ step }) {
+  const total = STEPS - 1;
+  const current = Math.max(0, step - 1);
   return (
     <div className="flex gap-1.5">
-      {Array.from({ length: STEPS }).map((_, index) => (
+      {Array.from({ length: total }).map((_, index) => (
         <div
           key={index}
           className={cn(
             "h-[3px] flex-1 rounded-full transition-all duration-500 ease-out",
-            index <= step
+            index <= current
               ? "bg-[var(--forest)] dark:bg-[var(--lime)]"
               : "bg-[var(--forest)]/12 dark:bg-white/12"
           )}
@@ -55,28 +59,17 @@ function ProgressBar({ step }) {
   );
 }
 
-function StepDots({ step }) {
-  return (
-    <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-2 dark:bg-zinc-800/80">
-      {Array.from({ length: STEPS }).map((_, index) => (
-        <span
-          key={index}
-          className={cn(
-            "rounded-full transition-all duration-400 ease-out",
-            index === step
-              ? "h-2 w-5 bg-[var(--forest)] dark:bg-[var(--lime)]"
-              : "size-2 bg-zinc-300 dark:bg-zinc-600"
-          )}
-        />
-      ))}
-    </div>
-  );
-}
-
-function PrimaryButton({ children, disabled, loading, onClick, className }) {
+function PrimaryButton({
+  children,
+  disabled,
+  loading,
+  onClick,
+  className,
+  type = "button",
+}) {
   return (
     <button
-      type="button"
+      type={type}
       onClick={onClick}
       disabled={disabled || loading}
       aria-busy={loading}
@@ -221,10 +214,6 @@ function WelcomeStep({ onContinue, t }) {
           <p className="onboard-fade-up onboard-delay-3 mx-auto mt-3 max-w-[19rem] text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
             {t("onboarding.welcomeBody")}
           </p>
-
-          <div className="onboard-fade-up onboard-delay-4 mt-7">
-            <StepDots step={0} />
-          </div>
         </div>
 
         <PrimaryButton
@@ -271,16 +260,25 @@ function StepShell({
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col">{children}</div>
-
-      <PrimaryButton
-        onClick={onCta}
-        loading={loading}
-        className="onboard-fade-up onboard-delay-4 mt-10"
+      <form
+        className="flex flex-1 flex-col"
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!loading) onCta?.();
+        }}
       >
-        {cta}
-        {loading ? null : <ArrowRight className="size-5" />}
-      </PrimaryButton>
+        <div className="flex flex-1 flex-col">{children}</div>
+
+        <PrimaryButton
+          type="submit"
+          loading={loading}
+          className="onboard-fade-up onboard-delay-4 mt-10"
+        >
+          {cta}
+          {loading ? null : <ArrowRight className="size-5" />}
+        </PrimaryButton>
+      </form>
     </div>
   );
 }
@@ -318,13 +316,14 @@ function BusinessTypePicker({ value, onChange, error, t }) {
   return (
     <div className="space-y-3">
       <div
-        className="flex flex-wrap justify-center gap-2.5"
+        className="flex flex-wrap justify-center gap-3"
         role="radiogroup"
         aria-label={t("onboarding.typeTitle")}
         aria-describedby={error ? "onboard-type-error" : undefined}
       >
         {BUSINESS_TYPES.map((type) => {
           const selected = value === type.id;
+          const Icon = type.Icon;
           return (
             <button
               key={type.id}
@@ -333,12 +332,13 @@ function BusinessTypePicker({ value, onChange, error, t }) {
               aria-checked={selected}
               onClick={() => onChange(type.id)}
               className={cn(
-                "inline-flex items-center rounded-full border px-4 py-2.5 text-sm font-medium transition-[background-color,border-color,color,transform] duration-200 active:scale-[0.97]",
+                "inline-flex items-center gap-2 rounded-full border px-5 py-3 text-[15px] font-medium transition-[background-color,border-color,color,transform] duration-200 active:scale-[0.97]",
                 selected
                   ? "border-[var(--forest)] bg-[var(--forest)] text-white shadow-sm dark:border-[var(--lime)] dark:bg-[var(--lime)] dark:text-[var(--forest)]"
                   : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600"
               )}
             >
+              <Icon className="size-[1.05rem]" strokeWidth={2} />
               {t(type.labelKey)}
             </button>
           );
@@ -351,9 +351,52 @@ function BusinessTypePicker({ value, onChange, error, t }) {
   );
 }
 
+function LanguagePicker({ value, onChange, t }) {
+  return (
+    <div
+      className="space-y-3 text-left"
+      role="radiogroup"
+      aria-label={t("onboarding.languageTitle")}
+    >
+      {LANGUAGES.map((lang) => {
+        const selected = value === lang.id;
+        return (
+          <button
+            key={lang.id}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => onChange(lang.id)}
+            className={cn(
+              "flex w-full items-center gap-4 rounded-[1.75rem] border px-5 py-4 text-left transition-[transform,box-shadow,border-color] duration-200 active:scale-[0.99]",
+              selected
+                ? "border-[var(--forest)]/25 bg-white shadow-[0_10px_40px_rgba(11,48,31,0.08)] dark:border-[var(--lime)]/25 dark:bg-zinc-900"
+                : "border-black/[0.04] bg-white shadow-[0_10px_40px_rgba(0,0,0,0.04)] dark:border-white/10 dark:bg-zinc-900"
+            )}
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-[15px] font-semibold text-zinc-950 dark:text-white">
+                {t(lang.labelKey)}
+              </p>
+              <p className="mt-0.5 text-sm text-zinc-500">{t(lang.descKey)}</p>
+            </div>
+            {selected ? (
+              <span className="flex size-8 items-center justify-center rounded-full bg-[var(--forest)] text-white dark:bg-[var(--lime)] dark:text-[var(--forest)]">
+                <Check className="size-4" />
+              </span>
+            ) : (
+              <span className="size-8 rounded-full border border-zinc-200 dark:border-zinc-700" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
-  const { completeOnboarding, sendPhoneOtp, confirmPhoneOtp } = useApp();
+  const { completeOnboarding, sendPhoneOtp, confirmPhoneOtp, setLanguage, settings } = useApp();
   const { t } = useTranslation();
   const { errors, clearField, clearAll, showErrors } = useFieldErrors();
   const { submitting, start, stop } = useSubmitting();
@@ -386,14 +429,14 @@ export default function OnboardingPage() {
         "onboard-phone": validateRequiredPhone(phone),
       });
     }
-    if (currentStep === 2) {
+    if (currentStep === 3) {
       return collectErrors({
         "onboard-type": isValidBusinessType(businessType)
           ? ""
           : "validation.businessTypeRequired",
       });
     }
-    if (currentStep === 3) {
+    if (currentStep === 4) {
       const trimmed = name.trim();
       let nameError = "";
       if (!trimmed) nameError = "validation.businessNameRequired";
@@ -534,6 +577,7 @@ export default function OnboardingPage() {
                 id="onboard-otp"
                 type="tel"
                 inputMode="numeric"
+                enterKeyHint="done"
                 autoComplete="one-time-code"
                 autoFocus
                 maxLength={6}
@@ -582,6 +626,8 @@ export default function OnboardingPage() {
                   id="onboard-phone"
                   type="tel"
                   inputMode="numeric"
+                  enterKeyHint="send"
+                  autoComplete="tel"
                   autoFocus
                   maxLength={10}
                   value={phone}
@@ -616,6 +662,32 @@ export default function OnboardingPage() {
   }
 
   if (step === 2) {
+    const currentLanguage = settings.language || "en";
+    return (
+      <StepShell
+        step={step}
+        direction={direction}
+        onBack={goBack}
+        t={t}
+        cta={t("onboarding.next")}
+        onCta={goNext}
+        loading={submitting}
+      >
+        <FormBlock
+          title={t("onboarding.languageTitle")}
+          body={t("onboarding.languageBody")}
+        >
+          <LanguagePicker
+            value={currentLanguage}
+            onChange={setLanguage}
+            t={t}
+          />
+        </FormBlock>
+      </StepShell>
+    );
+  }
+
+  if (step === 3) {
     return (
       <StepShell
         step={step}
@@ -645,7 +717,7 @@ export default function OnboardingPage() {
     );
   }
 
-  if (step === 3) {
+  if (step === 4) {
     return (
       <StepShell
         step={step}
@@ -668,10 +740,17 @@ export default function OnboardingPage() {
               <Input
                 id="onboard-name"
                 autoFocus
+                enterKeyHint="next"
+                autoComplete="organization"
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
                   clearField("onboard-name");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  e.preventDefault();
+                  document.getElementById("onboard-address")?.focus();
                 }}
                 placeholder={t("business.namePlaceholder")}
                 className={cn(
@@ -693,6 +772,8 @@ export default function OnboardingPage() {
               </Label>
               <Input
                 id="onboard-address"
+                enterKeyHint="done"
+                autoComplete="street-address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder={t("business.addressPlaceholder")}

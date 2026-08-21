@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense, useRef, useState } from "react";
 import { BackLink } from "@/components/back-link";
 import { EntryBillPreview } from "@/components/entry-bill-preview";
 import { PageSpinner } from "@/components/page-spinner";
@@ -7,20 +8,27 @@ import { ShareActions } from "@/components/share-actions";
 import { SoftCard } from "@/components/ui-kit";
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { exportEntryPdf } from "@/lib/pdf";
-import { buildEntryMessage, openSMS, shareOnWhatsApp } from "@/lib/share";
+import { shareBillImage } from "@/lib/share-bill-image";
+import { buildEntryMessage, openSMS } from "@/lib/share";
 
-export default function EntryDetailPage() {
+function EntryDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const customerId = params?.id;
   const entryId = params?.entryId;
+  const fromHome = searchParams.get("from") === "home";
   const { ready, getCustomer, entries, business, settings } = useApp();
   const { t, language } = useTranslation();
+  const billRef = useRef(null);
+  const [sharing, setSharing] = useState(false);
 
   const customer = getCustomer(customerId);
   const entry = entries.find((item) => item.id === entryId);
+  const customerHref = customer ? `/customers/${customer.id}` : "/customers";
+  const backHref = fromHome ? "/" : customerHref;
 
   if (!ready) {
     return <PageSpinner />;
@@ -31,10 +39,10 @@ export default function EntryDetailPage() {
       <>
         <p className="mb-4 text-sm text-zinc-500">{t("entry.notFound")}</p>
         <Link
-          href={customer ? `/customers/${customer.id}` : "/customers"}
+          href={backHref}
           className="text-sm font-medium text-[var(--forest)]"
         >
-          {t("entry.backToCustomer")}
+          {fromHome ? t("nav.home") : t("entry.backToCustomer")}
         </Link>
       </>
     );
@@ -53,10 +61,19 @@ export default function EntryDetailPage() {
       return;
     }
 
-    await shareOnWhatsApp({
-      phone: customer.phone,
-      text,
-    });
+    if (sharing) return;
+    setSharing(true);
+    try {
+      await shareBillImage({
+        element: billRef.current,
+        text,
+        entry,
+        customer,
+        language,
+      });
+    } finally {
+      setSharing(false);
+    }
   }
 
   async function exportPdf() {
@@ -71,12 +88,12 @@ export default function EntryDetailPage() {
   return (
     <>
       <div className="mb-5">
-        <BackLink to={`/customers/${customer.id}`}>
-          {customer.name}
+        <BackLink to={backHref}>
+          {fromHome ? t("nav.home") : customer.name}
         </BackLink>
       </div>
 
-      <div className="mb-5">
+      <div ref={billRef} className="mb-5 p-1">
         <EntryBillPreview
           entry={entry}
           customer={customer}
@@ -99,5 +116,13 @@ export default function EntryDetailPage() {
         />
       </SoftCard>
     </>
+  );
+}
+
+export default function EntryDetailRoute() {
+  return (
+    <Suspense fallback={<PageSpinner />}>
+      <EntryDetailPage />
+    </Suspense>
   );
 }

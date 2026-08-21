@@ -76,10 +76,27 @@ export function encodePublicBill({ entry, customer, business, themeId }) {
   return toBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
 }
 
+function clipLogo(logo) {
+  const value = String(logo || "").trim();
+  if (!value) return "";
+  if (
+    (value.startsWith("data:image/jpeg") ||
+      value.startsWith("data:image/jpg") ||
+      value.startsWith("data:image/png")) &&
+    value.length <= 160000
+  ) {
+    return value;
+  }
+  return "";
+}
+
 /** Normalized snapshot stored in the cloud (and accepted by decode round-trip). */
 export function snapshotPublicBill(input) {
   if (!input || typeof input !== "object") return null;
-  return decodePublicBill(encodePublicBill(input));
+  const snapshot = decodePublicBill(encodePublicBill(input));
+  if (!snapshot) return null;
+  snapshot.business.logo = clipLogo(input.business?.logo);
+  return snapshot;
 }
 
 export function decodePublicBill(token) {
@@ -183,6 +200,7 @@ export function snapshotPublicStatement(input) {
       phone: clip(input.business?.phone, MAX_TEXT.phone),
       address: clip(input.business?.address, MAX_TEXT.address),
       upiId: clip(input.business?.upiId, MAX_TEXT.upi),
+      logo: clipLogo(input.business?.logo),
     },
     balance: Number.isFinite(balance) ? balance : 0,
     billed: Number.isFinite(billed) ? billed : 0,

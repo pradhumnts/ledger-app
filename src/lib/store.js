@@ -6,7 +6,7 @@ import {
   isQrThemeUnlocked,
   QR_THEMES,
 } from "@/lib/qr-themes";
-import { uniqueUid } from "@/lib/format";
+import { toEntryTimestamp, uniqueUid } from "@/lib/format";
 import { mergeAdminThemeUnlocks } from "@/lib/admin-themes";
 import { phoneKey } from "@/lib/validation";
 import {
@@ -234,9 +234,7 @@ export function createEntry(state, payload) {
     amount: prepared.amount,
     due: prepared.due,
     description: (payload.description || "").trim(),
-    date: payload.date
-      ? new Date(payload.date).toISOString()
-      : new Date().toISOString(),
+    date: toEntryTimestamp(payload.date),
     createdAt: new Date().toISOString(),
   };
   return {

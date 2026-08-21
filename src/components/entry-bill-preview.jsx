@@ -7,6 +7,7 @@ import {
   formatEntryDate,
   formatEntryDateTime,
   formatINR,
+  resolveEntryWhen,
 } from "@/lib/format";
 import { translate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -18,8 +19,9 @@ const te = (key) => translate(BILL_LANG, key);
 function billCopy({ entry, customer, business }) {
   const typeLabel = entryTypeLabel(entry.type, BILL_LANG);
   const billNo = formatBillNumber(entry);
-  const dateLabel = formatEntryDateTime(entry.date, BILL_LANG);
-  const shortDate = formatEntryDate(entry.date, BILL_LANG);
+  const when = resolveEntryWhen(entry);
+  const dateLabel = formatEntryDateTime(when, BILL_LANG);
+  const shortDate = formatEntryDate(when, BILL_LANG);
   const amount = formatINR(entry.amount);
   const signedAmount = amount;
   const itemName =
@@ -85,8 +87,8 @@ function statementCopy({ customer, business, statement }) {
   return {
     typeLabel: te("publicBill.allBills"),
     billNo: "",
-    dateLabel: latest ? formatEntryDateTime(latest.date, BILL_LANG) : "",
-    shortDate: latest ? formatEntryDate(latest.date, BILL_LANG) : "",
+    dateLabel: latest ? formatEntryDateTime(resolveEntryWhen(latest), BILL_LANG) : "",
+    shortDate: latest ? formatEntryDate(resolveEntryWhen(latest), BILL_LANG) : "",
     amount: formatINR(billed),
     signedAmount: formatINR(Math.abs(balance)),
     itemName: te("entry.billed"),

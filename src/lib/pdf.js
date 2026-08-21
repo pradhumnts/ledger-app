@@ -10,6 +10,7 @@ import {
   formatBillNumber,
   formatEntryDate,
   formatEntryDateTime,
+  resolveEntryWhen,
 } from "@/lib/format";
 import { collectableRupees } from "@/lib/ledger-math";
 import { paiseToRupees, rupeesToPaise } from "@/lib/supabase/money";
@@ -309,28 +310,63 @@ function drawSummaryTiles(doc, y, tiles) {
   return y + height;
 }
 
-function toPdfFile(doc, filename) {
-  return new File([doc.output("blob")], filename, { type: "application/pdf" });
+function toPdfFile(doc, filename, type = "application/pdf") {
+  return new File([doc.output("blob")], filename, {
+    type,
+    lastModified: Date.now(),
+  });
 }
 
-async function saveOrShare(doc, filename, title) {
-  const file = toPdfFile(doc, filename);
+function isShareCancel(error) {
+  return error?.name === "AbortError";
+}
 
+async function tryNativeShare(payload) {
+  if (typeof navigator.share !== "function") return "unsupported";
   try {
-    if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title, text: title });
-      return;
-    }
+    await navigator.share(payload);
+    return "shared";
   } catch (error) {
-    if (error?.name === "AbortError") return;
+    if (isShareCancel(error)) return "cancelled";
+    return "failed";
+  }
+}
+
+async function saveOrShare(doc, filename, title, url) {
+  const blob = doc.output("blob");
+  const pdfFile = new File([blob], filename, {
+    type: "application/pdf",
+    lastModified: Date.now(),
+  });
+  const genericFile = new File([blob], filename, {
+    type: "application/octet-stream",
+    lastModified: Date.now(),
+  });
+
+  if (typeof navigator.share === "function") {
+    for (const file of [pdfFile, genericFile]) {
+      const result = await tryNativeShare({
+        files: [file],
+        title,
+        text: title,
+      });
+      if (result === "shared" || result === "cancelled") return;
+    }
+
+    const result = await tryNativeShare({
+      title,
+      text: url ? `${title}\n${url}` : title,
+      ...(url ? { url } : {}),
+    });
+    if (result === "shared" || result === "cancelled") return;
   }
 
   doc.save(filename);
 }
 
 export async function exportCustomerStatementPdf(args) {
-  const { doc, filename, title } = await buildCustomerStatementPdf(args);
-  await saveOrShare(doc, filename, title);
+  const { doc, filename, title, url } = await buildCustomerStatementPdf(args);
+  await saveOrShare(doc, filename, title, url);
 }
 
 export async function buildCustomerStatementPdf({
@@ -414,7 +450,7 @@ export async function buildCustomerStatementPdf({
   const body = list.map((entry) => {
     const note = entry.description ? `\n${entry.description}` : "";
     return [
-      formatEntryDate(entry.date, PDF_LANG),
+      formatEntryDate(resolveEntryWhen(entry), PDF_LANG),
       `${typeLabel(entry.type)}${note}`,
       rupees(entry.amount),
     ];
@@ -477,13 +513,14 @@ export async function buildCustomerStatementPdf({
     doc,
     filename,
     title,
+    url,
     file: toPdfFile(doc, filename),
   };
 }
 
 export async function exportEntryPdf(args) {
-  const { doc, filename, title } = await buildEntryPdf(args);
-  await saveOrShare(doc, filename, title);
+  const { doc, filename, title, url } = await buildEntryPdf(args);
+  await saveOrShare(doc, filename, title, url);
 }
 
 export async function buildEntryPdf({ entry, customer, business, billThemeId }) {
@@ -556,7 +593,7 @@ export async function buildEntryPdf({ entry, customer, business, billThemeId }) 
   const amountLabel = entry?.type === "got" ? "Paid" : "Amount";
   const rows = [
     ["Bill no.", billNo],
-    ["Date", formatEntryDateTime(entry?.date, PDF_LANG)],
+    ["Date", formatEntryDateTime(resolveEntryWhen(entry), PDF_LANG)],
     ["Type", label],
     [amountLabel, rupees(entry?.amount)],
   ];
@@ -591,6 +628,7 @@ export async function buildEntryPdf({ entry, customer, business, billThemeId }) 
     doc,
     filename,
     title,
+    url,
     file: toPdfFile(doc, filename),
   };
 }

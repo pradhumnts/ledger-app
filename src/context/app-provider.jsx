@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -18,6 +19,7 @@ import {
   STORAGE_KEY,
   updateCustomer as patchCustomer,
 } from "@/lib/store";
+import { applyAppColorScheme } from "@/lib/app-color-scheme";
 import { DEFAULT_LANGUAGE, getHtmlLang, normalizeLanguage } from "@/lib/i18n";
 import { persistOnboardingGate } from "@/lib/onboarding-gate";
 import { mergeAdminThemeUnlocks } from "@/lib/admin-themes";
@@ -30,6 +32,8 @@ const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [state, setState] = useState(defaultState);
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const [ready, setReady] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -54,14 +58,14 @@ export function AppProvider({ children }) {
       };
     });
     const theme = shop.settings?.theme === "dark" ? "dark" : "light";
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    applyAppColorScheme(theme);
   }, []);
 
   useEffect(() => {
     const loaded = loadState();
     setState(loaded);
     const theme = loaded.settings?.theme === "dark" ? "dark" : "light";
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    applyAppColorScheme(theme);
     document.documentElement.lang = getHtmlLang(
       normalizeLanguage(loaded.settings?.language || DEFAULT_LANGUAGE)
     );
@@ -131,7 +135,7 @@ export function AppProvider({ children }) {
   }, [state.settings?.language, ready]);
 
   const setTheme = useCallback((theme) => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    applyAppColorScheme(theme);
     setState((prev) => ({
       ...prev,
       settings: { ...prev.settings, theme },
@@ -259,7 +263,7 @@ export function AppProvider({ children }) {
     } catch {
       // Private mode can block storage.
     }
-    document.documentElement.classList.remove("dark");
+    applyAppColorScheme("light");
     setState(defaultState);
   }, []);
 
@@ -289,37 +293,29 @@ export function AppProvider({ children }) {
   }, [applyShop]);
 
   const addCustomer = useCallback(({ name, phone }) => {
-    let customer = null;
-    setState((prev) => {
-      const result = createCustomer(prev, { name, phone });
-      customer = result.customer;
-      saveState(result.state);
-      return result.state;
-    });
-    return customer;
+    const result = createCustomer(stateRef.current, { name, phone });
+    stateRef.current = result.state;
+    saveState(result.state);
+    setState(result.state);
+    return result.customer;
   }, []);
 
   const updateCustomer = useCallback((id, { name, phone }) => {
-    let customer = null;
-    setState((prev) => {
-      const result = patchCustomer(prev, id, { name, phone });
-      customer = result.customer;
-      if (result.customer) saveState(result.state);
-      return result.customer ? result.state : prev;
-    });
-    return customer;
+    const result = patchCustomer(stateRef.current, id, { name, phone });
+    if (!result.customer) return null;
+    stateRef.current = result.state;
+    saveState(result.state);
+    setState(result.state);
+    return result.customer;
   }, []);
 
   const addEntry = useCallback((payload) => {
-    let entry = null;
-    setState((prev) => {
-      const result = createEntry(prev, payload);
-      entry = result.entry;
-      if (!result.entry) return prev;
-      saveState(result.state);
-      return result.state;
-    });
-    return entry;
+    const result = createEntry(stateRef.current, payload);
+    if (!result.entry) return null;
+    stateRef.current = result.state;
+    saveState(result.state);
+    setState(result.state);
+    return result.entry;
   }, []);
 
   const getCustomer = useCallback(

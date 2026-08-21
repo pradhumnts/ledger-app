@@ -11,7 +11,10 @@ const loadPublicBill = cache(loadPublicBillFromDb);
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const snapshot = await loadPublicBill(id);
-  return publicBillMetadata(snapshot, { url: `${APP_SITE_URL}/b/${id}` });
+  return publicBillMetadata(snapshot, {
+    url: `${APP_SITE_URL}/b/${id}`,
+    image: `${APP_SITE_URL}/api/og/bill?id=${encodeURIComponent(id)}`,
+  });
 }
 
 export default function ShortPublicBillPage({ params }) {

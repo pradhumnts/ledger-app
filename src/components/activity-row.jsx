@@ -29,7 +29,7 @@ export function ActivityRow({
       </Avatar>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[15px] font-semibold text-zinc-950 dark:text-white">
+        <p className="max-w-[85%] truncate text-[15px] font-semibold text-zinc-950 dark:text-white">
           {title}
         </p>
         <p className="truncate text-sm text-zinc-500">
@@ -37,7 +37,7 @@ export function ActivityRow({
         </p>
       </div>
 
-      <div className="text-right">
+      <div className="shrink-0 pl-2 text-right">
         <p
           className={cn(
             "text-[15px] font-semibold tabular-nums",

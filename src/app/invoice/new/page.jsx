@@ -111,9 +111,6 @@ function InvoiceForm() {
   const needsNewCustomer =
     !presetCustomer && Boolean(name.trim()) && !resolvedCustomer;
 
-  const phoneAlreadyValid =
-    Boolean(phone.trim()) && !validateOptionalPhone(phone);
-
   const previewCustomerId = resolvedCustomer?.id;
   const currentDue = previewCustomerId
     ? customerBalance(entries, previewCustomerId)
@@ -232,15 +229,22 @@ function InvoiceForm() {
         stop();
         return;
       }
-      addEntry({
+      const entry = addEntry({
         customerId,
         type: "got",
         amount: Number(amount),
         due: previousDue - Number(amount),
-        description: description || t("entry.paid"),
+        description: description.trim(),
         date,
       });
-      router.replace("/");
+
+      if (!entry?.id) {
+        stop();
+        return;
+      }
+
+      const fromHome = presetCustomer ? "" : "?from=home";
+      router.replace(`/customers/${customerId}/entry/${entry.id}${fromHome}`);
       return;
     }
 
@@ -256,16 +260,22 @@ function InvoiceForm() {
       stop();
       return;
     }
-    addEntry({
+    const entry = addEntry({
       customerId,
       type: "invoice",
       amount: billed,
       due: outstanding,
-      description: description || t("common.bill"),
+      description: description.trim(),
       date,
     });
 
-    router.replace("/");
+    if (!entry?.id) {
+      stop();
+      return;
+    }
+
+    const fromHome = presetCustomer ? "" : "?from=home";
+    router.replace(`/customers/${customerId}/entry/${entry.id}${fromHome}`);
   }
 
   const backHref = presetCustomer ? `/customers/${presetCustomer.id}` : "/";
@@ -444,7 +454,7 @@ function InvoiceForm() {
             />
           ) : null}
 
-          {needsNewCustomer && kind === "bill" && !phoneAlreadyValid ? (
+          {needsNewCustomer && kind === "bill" ? (
             <div className="space-y-2">
               <Label htmlFor="phone" className="w-full justify-between">
                 {t("customerNew.phone")}

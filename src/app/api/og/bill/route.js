@@ -4,7 +4,10 @@ import {
   isPublicBillId,
   snapshotPublicStatement,
 } from "@/lib/public-bill";
-import { renderPublicBillOgImage } from "@/lib/public-bill-og";
+import {
+  renderPublicBillOgImage,
+  sampleOgBillSnapshot,
+} from "@/lib/public-bill-og";
 import { loadPublicBill } from "@/lib/public-bills-db";
 
 export const runtime = "nodejs";
@@ -14,9 +17,14 @@ export async function GET(request) {
   const { searchParams } = request.nextUrl;
   const id = searchParams.get("id") || "";
   const token = searchParams.get("d") || "";
+  const sampleTheme = searchParams.get("sample") || "";
 
   let snapshot = null;
-  if (isPublicBillId(id)) {
+  if (sampleTheme) {
+    snapshot = sampleOgBillSnapshot(
+      sampleTheme === "1" ? "classic" : sampleTheme
+    );
+  } else if (isPublicBillId(id)) {
     snapshot = await loadPublicBill(id);
   } else if (token) {
     snapshot = decodePublicShare(token);

@@ -54,11 +54,69 @@ export function formatEntryDateTime(iso, language = "en") {
   return `${formatEntryDate(iso, language)} · ${formatEntryTime(iso, language)}`;
 }
 
+function isUtcMidnight(date) {
+  return (
+    date.getUTCHours() === 0 &&
+    date.getUTCMinutes() === 0 &&
+    date.getUTCSeconds() === 0 &&
+    date.getUTCMilliseconds() === 0
+  );
+}
+
+/** Date-only values were stored as UTC midnight (5:30 AM IST). Restore local time. */
+export function resolveEntryWhen(entry) {
+  const dateRaw = entry?.date;
+  const createdRaw = entry?.createdAt;
+  if (!dateRaw) return createdRaw || new Date().toISOString();
+  const date = new Date(dateRaw);
+  if (Number.isNaN(date.getTime())) return createdRaw || dateRaw;
+  const created = createdRaw ? new Date(createdRaw) : null;
+  if (created && !Number.isNaN(created.getTime()) && isUtcMidnight(date)) {
+    return new Date(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      created.getHours(),
+      created.getMinutes(),
+      created.getSeconds(),
+      created.getMilliseconds()
+    ).toISOString();
+  }
+  return date.toISOString();
+}
+
 export function entryTypeLabel(type, language = "en") {
   if (type === "invoice") return translate(language, "entry.bill");
   if (type === "due" || type === "gave") return translate(language, "entry.due");
   if (type === "got") return translate(language, "entry.payment");
   return translate(language, "common.entry");
+}
+
+const PLACEHOLDER_NOTE_KEYS = [
+  "common.bill",
+  "entry.bill",
+  "entry.paid",
+  "entry.payment",
+  "entry.due",
+];
+
+function isPlaceholderNote(note) {
+  const value = note.trim().toLowerCase();
+  if (!value) return true;
+  return ["en", "hi", "hinglish"].some((lang) =>
+    PLACEHOLDER_NOTE_KEYS.some(
+      (key) => translate(lang, key).trim().toLowerCase() === value
+    )
+  );
+}
+
+/** One-line list title: the note when there is one, otherwise Bill / Payment / Due. */
+export function entryListTitle(entry, language = "en") {
+  const note = String(entry?.description || "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (note && !isPlaceholderNote(note)) return note;
+  return entryTypeLabel(entry?.type, language);
 }
 
 export function formatBillNumber(entry) {
@@ -94,6 +152,29 @@ export function toDateInputValue(iso = new Date().toISOString()) {
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+/** Date inputs are YYYY-MM-DD (UTC midnight). Keep the shop's local clock time. */
+export function toEntryTimestamp(value = "", now = new Date()) {
+  const raw = String(value || "").trim();
+  const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnly) {
+    const local = new Date(
+      Number(dateOnly[1]),
+      Number(dateOnly[2]) - 1,
+      Number(dateOnly[3]),
+      now.getHours(),
+      now.getMinutes(),
+      now.getSeconds(),
+      now.getMilliseconds()
+    );
+    return local.toISOString();
+  }
+  if (raw) {
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+  }
+  return now.toISOString();
 }
 
 export function startOfDay(date = new Date()) {
