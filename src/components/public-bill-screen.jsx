@@ -104,7 +104,6 @@ function PublicStatementBody({ snapshot }) {
   const { customer, business, entries = [], balance, billed, themeId } =
     snapshot;
   const due = collectableRupees(balance);
-  const upiUrl = upiPayUrl(business, due > 0 ? due : undefined);
 
   return (
     <>
@@ -123,7 +122,6 @@ function PublicStatementBody({ snapshot }) {
       <PayWithUpi
         business={business}
         amount={due > 0 ? due : undefined}
-        logos={false}
       />
 
       {entries.length > 0 ? (
@@ -142,8 +140,6 @@ function PublicStatementBody({ snapshot }) {
           ))}
         </SoftCard>
       ) : null}
-
-      {upiUrl ? <UpiAppLogos /> : null}
       <div className="mt-6 flex justify-center">
         <CreatedWithMoneyKit />
       </div>
