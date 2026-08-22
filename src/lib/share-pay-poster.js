@@ -106,6 +106,77 @@ async function drawThemeArtwork(ctx, element, width, height) {
   bitmap.close?.();
 }
 
+function mapPosterRect(posterRect, rect, canvasWidth, canvasHeight) {
+  const sx = canvasWidth / posterRect.width;
+  const sy = canvasHeight / posterRect.height;
+  return {
+    x: (rect.left - posterRect.left) * sx,
+    y: (rect.top - posterRect.top) * sy,
+    w: rect.width * sx,
+    h: rect.height * sy,
+  };
+}
+
+/**
+ * html-to-image cannot embed WebP in its SVG snapshot, so the QR centre logo
+ * (moneykit-logo.webp) comes out as an empty white square. Draw it from a
+ * decoded bitmap after the overlay pass.
+ */
+async function drawQrCenterLogo(ctx, element, canvasWidth, canvasHeight) {
+  const wrap = element.querySelector("[data-poster-qr-logo]");
+  const img = wrap?.querySelector?.("img");
+  if (!wrap || !img) return;
+
+  const posterRect = element.getBoundingClientRect();
+  if (!posterRect.width || !posterRect.height) return;
+
+  const src = img.currentSrc || img.getAttribute("src");
+  if (!src) return;
+
+  let bitmap;
+  try {
+    bitmap = await bitmapFromUrl(src);
+  } catch {
+    return;
+  }
+
+  const box = mapPosterRect(
+    posterRect,
+    wrap.getBoundingClientRect(),
+    canvasWidth,
+    canvasHeight
+  );
+  const logo = mapPosterRect(
+    posterRect,
+    img.getBoundingClientRect(),
+    canvasWidth,
+    canvasHeight
+  );
+  const radius = Math.min(box.w, box.h) * 0.22;
+
+  ctx.save();
+  ctx.beginPath();
+  if (typeof ctx.roundRect === "function") {
+    ctx.roundRect(box.x, box.y, box.w, box.h, radius);
+  } else {
+    ctx.rect(box.x, box.y, box.w, box.h);
+  }
+  ctx.clip();
+
+  const cover = Math.max(logo.w / bitmap.width, logo.h / bitmap.height);
+  const dw = bitmap.width * cover;
+  const dh = bitmap.height * cover;
+  ctx.drawImage(
+    bitmap,
+    logo.x + (logo.w - dw) / 2,
+    logo.y + (logo.h - dh) / 2,
+    dw,
+    dh
+  );
+  ctx.restore();
+  bitmap.close?.();
+}
+
 /**
  * Safari drops WebP when html-to-image embeds it in an SVG snapshot, which
  * is why shares were coming out black. Draw the artwork via canvas, then
@@ -144,6 +215,7 @@ async function capturePosterBlob(element) {
     },
   });
   ctx.drawImage(overlay, 0, 0, width, height);
+  await drawQrCenterLogo(ctx, element, width, height);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(

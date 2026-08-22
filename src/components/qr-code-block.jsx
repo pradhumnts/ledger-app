@@ -70,7 +70,10 @@ export function QrCodeBlock({
       <div ref={ref} className="[&_svg]:h-auto [&_svg]:w-full" />
       {value ? (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="size-[24%] overflow-hidden rounded-[22%] bg-white p-[1%]">
+          <div
+            data-poster-qr-logo="true"
+            className="size-[24%] overflow-hidden rounded-[22%] bg-white p-[1%]"
+          >
             <img
               src={APP_LOGO_WEBP}
               alt=""
