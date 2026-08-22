@@ -53,12 +53,20 @@ function downloadBlob(blob, filename) {
 
 const MAX_CANVAS_EDGE = 4096;
 
-function capturePixelRatio() {
+/** CSS pixels per design pixel for shared posters — not tied to the phone screen. */
+const EXPORT_SCALE = 4;
+
+function exportSize() {
   const cap = Math.min(
     MAX_CANVAS_EDGE / POSTER_WIDTH,
     MAX_CANVAS_EDGE / POSTER_HEIGHT
   );
-  return Math.max(1, Math.min(2.5, window.devicePixelRatio || 2, cap));
+  const scale = Math.min(EXPORT_SCALE, cap);
+  return {
+    scale,
+    width: Math.round(POSTER_WIDTH * scale),
+    height: Math.round(POSTER_HEIGHT * scale),
+  };
 }
 
 function posterBgImage(element) {
@@ -181,39 +189,46 @@ async function drawQrCenterLogo(ctx, element, canvasWidth, canvasHeight) {
  * Safari drops WebP when html-to-image embeds it in an SVG snapshot, which
  * is why shares were coming out black. Draw the artwork via canvas, then
  * overlay text/QR from a transparent html-to-image pass.
+ *
+ * html-to-image rasterizes HTML at the SVG viewport size, so we clone the
+ * 390×843 board scaled up (not pixelRatio-stretched) or the QR comes out soft.
  */
 async function capturePosterBlob(element) {
-  const pixelRatio = capturePixelRatio();
-  const width = Math.round(POSTER_WIDTH * pixelRatio);
-  const height = Math.round(POSTER_HEIGHT * pixelRatio);
+  const { scale, width, height } = exportSize();
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, width, height);
   await drawThemeArtwork(ctx, element, width, height);
 
   const { toCanvas } = await import("html-to-image");
   const overlay = await toCanvas(element, {
-    pixelRatio,
+    pixelRatio: 1,
     skipAutoScale: true,
     cacheBust: false,
     backgroundColor: "transparent",
-    width: POSTER_WIDTH,
-    height: POSTER_HEIGHT,
+    width,
+    height,
     canvasWidth: width,
     canvasHeight: height,
     filter: (node) => node?.getAttribute?.("data-poster-bg") !== "true",
     style: {
-      transform: "none",
+      transform: `scale(${scale})`,
+      transformOrigin: "top left",
       left: "0px",
       top: "0px",
       margin: "0px",
+      width: `${POSTER_WIDTH}px`,
+      height: `${POSTER_HEIGHT}px`,
       background: "transparent",
       backgroundColor: "transparent",
     },
   });
+  ctx.imageSmoothingEnabled = overlay.width !== width || overlay.height !== height;
   ctx.drawImage(overlay, 0, 0, width, height);
   await drawQrCenterLogo(ctx, element, width, height);
 

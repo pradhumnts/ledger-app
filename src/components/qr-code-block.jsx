@@ -39,8 +39,8 @@ export function QrCodeBlock({
 
     if (!qrRef.current) {
       qrRef.current = new QRCodeStyling({
-        width: 280,
-        height: 280,
+        width: 720,
+        height: 720,
         type: "svg",
         data: value,
         margin: 0,
