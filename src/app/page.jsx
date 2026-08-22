@@ -10,7 +10,6 @@ import {
   UserPlus,
 } from "lucide-react";
 import { ActivityRow } from "@/components/activity-row";
-import { PushReminderPrompt } from "@/components/push-reminders";
 import { PageSpinner } from "@/components/page-spinner";
 import { SoftCard, Divider } from "@/components/ui-kit";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -54,8 +53,6 @@ export default function HomePage() {
           <QrCode className="size-8 text-[var(--forest)] dark:text-[var(--lime)]" />
         </Link>
       </div>
-
-      <PushReminderPrompt />
 
       <SoftCard className="mb-8 p-5">
         <div className="mb-4 flex items-center gap-2.5">

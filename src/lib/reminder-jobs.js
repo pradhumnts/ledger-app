@@ -4,6 +4,7 @@ import {
   testNotification,
   unsharedNotification,
 } from "@/lib/reminder-copy";
+import { REMINDERS_ENABLED } from "@/lib/reminders-enabled";
 import {
   pickOldDueCustomers,
   pickUnsharedBills,
@@ -54,6 +55,7 @@ function outstandingFromEntries(entries) {
 }
 
 export async function sendUnsharedBillReminders(admin) {
+  if (!REMINDERS_ENABLED) return { sent: 0, shops: 0, skipped: true };
   const todayYmd = istYmd();
   const { start, end } = istDayUtcRange(todayYmd);
   const { userIds, byUser } = await subscribedUsers(admin);
@@ -152,6 +154,7 @@ export async function sendUnsharedBillReminders(admin) {
 }
 
 export async function sendOldDueReminders(admin) {
+  if (!REMINDERS_ENABLED) return { sent: 0, shops: 0, skipped: true };
   const todayYmd = istYmd();
   const nowMs = Date.now();
   const weekAgoIso = new Date(nowMs - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -250,6 +253,9 @@ export async function sendOldDueReminders(admin) {
 }
 
 export async function sendShopReminderTest(admin, userId, kind) {
+  if (!REMINDERS_ENABLED) {
+    return { ok: false, sent: 0, reason: "disabled" };
+  }
   const { data: subscriptions, error: subError } = await admin
     .from("push_subscriptions")
     .select("user_id, endpoint, p256dh, auth")

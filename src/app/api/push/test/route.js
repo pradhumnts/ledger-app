@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getUserFromRequest } from "@/lib/supabase/user-from-request";
 import { sendShopReminderTest } from "@/lib/reminder-jobs";
+import { REMINDERS_ENABLED } from "@/lib/reminders-enabled";
 import { vapidConfig } from "@/lib/web-push";
 
 export const runtime = "nodejs";
@@ -10,6 +11,9 @@ export const dynamic = "force-dynamic";
 const KINDS = new Set(["ping", "unshared", "old_due"]);
 
 export async function POST(request) {
+  if (!REMINDERS_ENABLED) {
+    return NextResponse.json({ error: "disabled" }, { status: 404 });
+  }
   const admin = getSupabaseAdmin();
   if (!admin || !vapidConfig().configured) {
     return NextResponse.json({ error: "not configured" }, { status: 503 });

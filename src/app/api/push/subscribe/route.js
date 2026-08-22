@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getUserFromRequest } from "@/lib/supabase/user-from-request";
+import { REMINDERS_ENABLED } from "@/lib/reminders-enabled";
 import { vapidConfig } from "@/lib/web-push";
 
 export const runtime = "nodejs";
@@ -17,6 +18,9 @@ function subscriptionFromBody(body) {
 }
 
 export async function POST(request) {
+  if (!REMINDERS_ENABLED) {
+    return NextResponse.json({ error: "disabled" }, { status: 404 });
+  }
   const admin = getSupabaseAdmin();
   const { configured } = vapidConfig();
   if (!admin || !configured) {

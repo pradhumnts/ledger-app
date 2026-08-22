@@ -1,3 +1,4 @@
+import { REMINDERS_ENABLED } from "@/lib/reminders-enabled";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const ENABLED_KEY = "mk_push_enabled";
@@ -109,6 +110,7 @@ async function authHeaders() {
 }
 
 export async function enableReminders() {
+  if (!REMINDERS_ENABLED) return { ok: false, reason: "disabled" };
   if (!pushSupported()) return { ok: false, reason: "unsupported" };
   if (!vapidPublicKey()) return { ok: false, reason: "unsupported" };
 
@@ -165,6 +167,7 @@ export async function disableReminders() {
 
 /** Re-save the subscription if the shop already allowed notifications. */
 export async function syncRemindersSubscription() {
+  if (!REMINDERS_ENABLED) return;
   if (!pushSupported() || !remindersOptedIn()) return;
   if (Notification.permission !== "granted") return;
   if (!vapidPublicKey()) return;

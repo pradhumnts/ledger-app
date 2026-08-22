@@ -6,6 +6,7 @@ import { Bell } from "lucide-react";
 import { SoftCard } from "@/components/ui-kit";
 import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
+import { REMINDERS_ENABLED } from "@/lib/reminders-enabled";
 import {
   dismissRemindersPrompt,
   enableReminders,
@@ -20,6 +21,7 @@ export function PushReminderListener() {
   const { ready, userId, settings } = useApp();
 
   useEffect(() => {
+    if (!REMINDERS_ENABLED) return;
     if (!("serviceWorker" in navigator)) return;
     const onMessage = (event) => {
       const url = event.data?.url;
@@ -36,6 +38,7 @@ export function PushReminderListener() {
   }, [router]);
 
   useEffect(() => {
+    if (!REMINDERS_ENABLED) return;
     if (!ready || !userId || !settings?.onboardingComplete) return;
     syncRemindersSubscription().catch(() => {});
   }, [ready, userId, settings?.onboardingComplete]);
@@ -51,6 +54,7 @@ export function PushReminderPrompt() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    if (!REMINDERS_ENABLED) return;
     if (!ready || !userId || !settings?.onboardingComplete) return;
     if (pathname !== "/") return;
     if (!pushSupported() || remindersPromptDismissed()) return;

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendOldDueReminders } from "@/lib/reminder-jobs";
+import { REMINDERS_ENABLED } from "@/lib/reminders-enabled";
 import { cronAuthorized, vapidConfig } from "@/lib/web-push";
 
 export const runtime = "nodejs";
@@ -8,6 +9,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 async function run(request) {
+  if (!REMINDERS_ENABLED) {
+    return NextResponse.json({ ok: true, skipped: true });
+  }
   if (!cronAuthorized(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
