@@ -1,3 +1,11 @@
+function oneLine(value, fallback = "") {
+  const text = String(value || "")
+    .replace(/[\r\n]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text || fallback;
+}
+
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -6,10 +14,9 @@ self.addEventListener("push", (event) => {
     data = {};
   }
 
-  const title = data.title || "MoneyKit";
+  const title = oneLine(data.title, "MoneyKit");
   const options = {
-    body: data.body || "",
-    icon: "/icon-splash-192.png",
+    body: oneLine(data.body),
     badge: "/icon-splash-192.png",
     data: { url: data.url || "/" },
     tag: data.tag || "moneykit",
