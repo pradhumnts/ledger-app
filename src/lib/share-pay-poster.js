@@ -1,4 +1,5 @@
 import { formatINR } from "@/lib/format";
+import { capture } from "@/lib/analytics";
 import { normalizeLanguage, translate } from "@/lib/i18n";
 import { POSTER_HEIGHT, POSTER_WIDTH } from "@/lib/qr-theme-styles";
 import { openWhatsApp } from "@/lib/share";
@@ -250,6 +251,7 @@ export async function sharePayPoster({
   upiId,
   amount,
   language = "en",
+  themeId = "",
 }) {
   const lang = normalizeLanguage(language);
   const text = buildPayShareText({
@@ -268,26 +270,36 @@ export async function sharePayPoster({
         const file = new File([blob], filename, { type: "image/png" });
         if (navigator.canShare?.({ files: [file] })) {
           await navigator.share({ files: [file], title, text });
+          capture("qr_shared", { result: "shared", theme_id: themeId });
           return "shared";
         }
         downloadBlob(blob, filename);
+        capture("qr_shared", { result: "downloaded", theme_id: themeId });
         return "downloaded";
       }
     } catch (error) {
-      if (error?.name === "AbortError") return "cancelled";
-      // Fall through to text share.
+    if (error?.name === "AbortError") {
+      capture("qr_shared", { result: "cancelled", theme_id: themeId });
+      return "cancelled";
+    }
+    // Fall through to text share.
     }
   }
 
   try {
     if (navigator.share) {
       await navigator.share({ title, text });
+      capture("qr_shared", { result: "shared_text", theme_id: themeId });
       return "shared";
     }
   } catch (error) {
-    if (error?.name === "AbortError") return "cancelled";
+    if (error?.name === "AbortError") {
+      capture("qr_shared", { result: "cancelled", theme_id: themeId });
+      return "cancelled";
+    }
   }
 
   openWhatsApp({ text });
+  capture("qr_shared", { result: "whatsapp", theme_id: themeId });
   return "whatsapp";
 }

@@ -25,6 +25,13 @@ import { DEFAULT_LANGUAGE, getHtmlLang, normalizeLanguage } from "@/lib/i18n";
 import { persistOnboardingGate } from "@/lib/onboarding-gate";
 import { mergeAdminThemeUnlocks } from "@/lib/admin-themes";
 import { restorePlayPurchases } from "@/lib/buy-theme";
+import {
+  amountBucket,
+  capture,
+  identifyShop,
+  registerShopContext,
+  resetAnalytics,
+} from "@/lib/analytics";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { requestPhoneOtp, verifyPhoneOtp } from "@/lib/supabase/sign-in";
 import { pushShop, pullShop } from "@/lib/supabase/sync";
@@ -110,6 +117,38 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     if (!ready || !userId) return;
+    const shopName = state.business?.name?.trim() || "";
+    const shopPhone = String(state.business?.phone || "").replace(/\D/g, "").slice(-10);
+    identifyShop(userId, {
+      name: shopName || shopPhone || undefined,
+      shop_name: shopName,
+      shop_phone: shopPhone,
+      business_type: state.business?.type || "",
+      language: state.settings?.language || "en",
+      bill_theme: state.settings?.billTheme || "classic",
+      qr_theme: state.settings?.qrTheme || "",
+    });
+    registerShopContext({
+      shop_name: shopName,
+      shop_phone: shopPhone,
+      business_type: state.business?.type || "",
+      language: state.settings?.language || "en",
+      bill_theme: state.settings?.billTheme || "classic",
+      qr_theme: state.settings?.qrTheme || "",
+    });
+  }, [
+    ready,
+    userId,
+    state.business?.name,
+    state.business?.phone,
+    state.business?.type,
+    state.settings?.language,
+    state.settings?.billTheme,
+    state.settings?.qrTheme,
+  ]);
+
+  useEffect(() => {
+    if (!ready || !userId) return;
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
     const timer = window.setTimeout(() => {
@@ -155,6 +194,7 @@ export function AppProvider({ children }) {
       ...prev,
       settings: { ...prev.settings, billTheme },
     }));
+    capture("theme_selected", { kind: "bill", theme_id: billTheme });
   }, []);
 
   const unlockBillTheme = useCallback((billThemeId) => {
@@ -182,6 +222,7 @@ export function AppProvider({ children }) {
       ...prev,
       settings: { ...prev.settings, qrTheme },
     }));
+    capture("theme_selected", { kind: "qr", theme_id: qrTheme });
   }, []);
 
   const unlockQrTheme = useCallback((qrThemeId) => {
@@ -250,6 +291,9 @@ export function AppProvider({ children }) {
       business: { ...prev.business, ...business },
       settings: { ...prev.settings, onboardingComplete: true },
     }));
+    capture("onboarding_completed", {
+      business_type: business?.type || "",
+    });
   }, []);
 
   const signOut = useCallback(async () => {
@@ -264,15 +308,18 @@ export function AppProvider({ children }) {
     } catch {
       // Private mode can block storage.
     }
+    resetAnalytics();
     applyAppColorScheme("light");
     setState(defaultState);
   }, []);
 
   const sendPhoneOtp = useCallback(async (phone) => {
+    capture("auth_otp_requested");
     const result = await requestPhoneOtp(phone);
     if (result.userId) setUserId(result.userId);
     if (result.shop) {
       applyShop(result.shop);
+      capture("auth_signed_in", { restored: true });
       return { restored: true, skipped: false, alreadyVerified: true };
     }
     return {
@@ -286,18 +333,22 @@ export function AppProvider({ children }) {
   const confirmPhoneOtp = useCallback(async (phone, token, reqId) => {
     const result = await verifyPhoneOtp(phone, token, reqId);
     if (result.userId) setUserId(result.userId);
-    if (result.shop) {
-      applyShop(result.shop);
-      return { restored: true };
-    }
-    return { restored: false };
+    const restored = Boolean(result.shop);
+    if (result.shop) applyShop(result.shop);
+    capture("auth_signed_in", { restored });
+    return { restored };
   }, [applyShop]);
 
   const addCustomer = useCallback(({ name, phone }) => {
+    const isFirst = stateRef.current.customers.length === 0;
     const result = createCustomer(stateRef.current, { name, phone });
     stateRef.current = result.state;
     saveState(result.state);
     setState(result.state);
+    capture("customer_created", {
+      is_first: isFirst,
+      has_phone: Boolean(String(phone || "").trim()),
+    });
     return result.customer;
   }, []);
 
@@ -311,11 +362,18 @@ export function AppProvider({ children }) {
   }, []);
 
   const addEntry = useCallback((payload) => {
+    const isFirst = stateRef.current.entries.length === 0;
     const result = createEntry(stateRef.current, payload);
     if (!result.entry) return null;
     stateRef.current = result.state;
     saveState(result.state);
     setState(result.state);
+    capture("entry_created", {
+      type: payload.type,
+      is_first: isFirst,
+      has_due: Number(payload.due) > 0,
+      amount_bucket: amountBucket(payload.amount),
+    });
     return result.entry;
   }, []);
 

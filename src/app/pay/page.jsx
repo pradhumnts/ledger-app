@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useApp } from "@/context/app-provider";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useTranslation } from "@/hooks/use-translation";
+import { capture } from "@/lib/analytics";
 import { initials } from "@/lib/format";
 import { getQrTheme, isQrThemeUnlocked, QR_THEMES } from "@/lib/qr-themes";
 import { PAY_CHROME, resolveQrThemeStyle } from "@/lib/qr-theme-styles";
@@ -117,6 +118,16 @@ export default function PayPage() {
   }, [theme]);
   useThemeColor(posterTint);
 
+  useEffect(() => {
+    if (!upiId) return;
+    capture("qr_shown", {
+      theme_id: theme?.id || "plain",
+      has_amount: Number(amount) > 0,
+    });
+    // One view per visit; theme/amount changes are not extra "shown" events.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [upiId]);
+
   // The poster keeps its QR and UPI id clear of whatever this strip covers.
   const controlsRef = useRef(null);
   const [controlsHeight, setControlsHeight] = useState(0);
@@ -172,6 +183,7 @@ export default function PayPage() {
         upiId,
         amount,
         language,
+        themeId: theme?.id || "plain",
       });
     } catch {
       // ignore — share helpers already fall back

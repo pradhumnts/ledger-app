@@ -7,6 +7,7 @@ import { MoneyKitLogo } from "@/components/moneykit-logo";
 import { PageSpinner } from "@/components/page-spinner";
 import { SoftCard } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/use-translation";
+import { capture, amountBucket } from "@/lib/analytics";
 import { APP_NAME } from "@/lib/branding";
 import { formatINR } from "@/lib/format";
 import { buildUpiPaymentUrl, isValidUpiId } from "@/lib/upi";
@@ -40,11 +41,12 @@ function PayLinkForm() {
   useEffect(() => {
     if (!upiUrl || openedRef.current) return;
     openedRef.current = true;
+    capture("pay_link_opened", { amount_bucket: amountBucket(amount) });
     const timer = window.setTimeout(() => {
       window.location.href = upiUrl;
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [upiUrl]);
+  }, [upiUrl, amount]);
 
   async function copyUpi() {
     try {

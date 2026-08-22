@@ -64,7 +64,7 @@ export function QrCodeBlock({
 
   return (
     <div
-      className={cn("relative", className)}
+      className={cn("ph-no-capture relative", className)}
       aria-hidden={!value}
     >
       <div ref={ref} className="[&_svg]:h-auto [&_svg]:w-full" />

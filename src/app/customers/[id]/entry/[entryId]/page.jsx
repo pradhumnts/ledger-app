@@ -10,6 +10,7 @@ import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { capture } from "@/lib/analytics";
 import { exportEntryPdf, prefetchEntryPdf } from "@/lib/pdf";
 import { shareBillImage } from "@/lib/share-bill-image";
 import { buildEntryMessage, openSMS } from "@/lib/share";
@@ -69,18 +70,24 @@ function EntryDetailPage() {
     });
     if (channel === "sms") {
       openSMS({ phone: customer.phone, text });
+      capture("bill_shared", { kind: "entry", channel: "sms" });
       return;
     }
 
     if (sharing) return;
     setSharing(true);
     try {
-      await shareBillImage({
+      const result = await shareBillImage({
         element: billRef.current,
         text,
         entry,
         customer,
         language,
+      });
+      capture("bill_shared", {
+        kind: "entry",
+        channel: "whatsapp",
+        result: result || "whatsapp",
       });
     } finally {
       setSharing(false);
@@ -94,6 +101,7 @@ function EntryDetailPage() {
       business,
       billThemeId: settings.billTheme,
     });
+    capture("bill_shared", { kind: "entry", channel: "pdf" });
   }
 
   return (

@@ -1,3 +1,4 @@
+import { capture } from "@/lib/analytics";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   isPlayBillingAvailable,
@@ -63,10 +64,28 @@ function authHeaders(token) {
 
 export async function buyTheme({ kind, themeId, name, contact, onUnlocked }) {
   const accessToken = await getAccessToken();
-  if (await isPlayBillingAvailable()) {
-    return buyWithPlay({ kind, themeId, accessToken, onUnlocked });
+  const provider = (await isPlayBillingAvailable()) ? "play" : "razorpay";
+  capture("theme_purchase_started", { kind, theme_id: themeId, provider });
+  try {
+    const result = await (provider === "play"
+      ? buyWithPlay({ kind, themeId, accessToken, onUnlocked })
+      : buyWithRazorpay({ kind, themeId, name, contact, accessToken, onUnlocked }));
+    capture("theme_purchased", {
+      kind,
+      theme_id: themeId,
+      provider,
+      already_owned: Boolean(result?.alreadyOwned),
+    });
+    return result;
+  } catch (error) {
+    capture("theme_purchase_failed", {
+      kind,
+      theme_id: themeId,
+      provider,
+      reason: String(error?.message) === "cancelled" ? "cancelled" : "error",
+    });
+    throw error;
   }
-  return buyWithRazorpay({ kind, themeId, name, contact, accessToken, onUnlocked });
 }
 
 async function verifyPlayPurchase({ sku, purchaseToken, accessToken }) {

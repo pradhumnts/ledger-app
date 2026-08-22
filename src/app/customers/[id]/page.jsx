@@ -32,6 +32,7 @@ import {
   initials,
   resolveEntryWhen,
 } from "@/lib/format";
+import { capture } from "@/lib/analytics";
 import {
   buildCustomerStatementMessage,
   openSMS,
@@ -127,6 +128,7 @@ export default function CustomerDetailPage() {
     });
     if (channel === "sms") {
       openSMS({ phone: customer.phone, text });
+      capture("bill_shared", { kind: "statement", channel: "sms" });
       return;
     }
 
@@ -134,6 +136,7 @@ export default function CustomerDetailPage() {
       phone: customer.phone,
       text,
     });
+    capture("bill_shared", { kind: "statement", channel: "whatsapp" });
   }
 
   async function exportAllPdf() {
@@ -145,6 +148,7 @@ export default function CustomerDetailPage() {
       business,
       billThemeId: settings.billTheme,
     });
+    capture("bill_shared", { kind: "statement", channel: "pdf" });
   }
 
   const balanceLabel =

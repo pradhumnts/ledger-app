@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { PostHogProvider } from "@/components/posthog-provider";
 import { AppProvider } from "@/context/app-provider";
 import { LandingGateProvider } from "@/context/landing-gate";
 import { AppShell } from "@/components/app-shell";
@@ -87,11 +88,13 @@ export default function RootLayout({ children }) {
             }}
           />
         ) : null}
-        <AppProvider>
-          <LandingGateProvider>
-            <AppShell>{children}</AppShell>
-          </LandingGateProvider>
-        </AppProvider>
+        <PostHogProvider>
+          <AppProvider>
+            <LandingGateProvider>
+              <AppShell>{children}</AppShell>
+            </LandingGateProvider>
+          </AppProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

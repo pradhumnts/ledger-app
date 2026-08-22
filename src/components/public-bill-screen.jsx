@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { IndianRupee } from "lucide-react";
 import { ActivityRow } from "@/components/activity-row";
 import { CreatedWithMoneyKit } from "@/components/created-with-moneykit";
@@ -9,6 +10,7 @@ import { PageSpinner } from "@/components/page-spinner";
 import { UpiAppLogos } from "@/components/upi-app-logos";
 import { Divider, SoftCard } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/use-translation";
+import { capture, amountBucket } from "@/lib/analytics";
 import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
 import { entryTypeLabel, resolveEntryWhen } from "@/lib/format";
 import { collectableRupees } from "@/lib/ledger-math";
@@ -17,6 +19,14 @@ import { buildUpiPaymentUrl, isValidUpiId } from "@/lib/upi";
 
 export function PublicBillScreen({ snapshot, loading = false }) {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (loading || !snapshot) return;
+    capture("public_bill_viewed", {
+      kind: isPublicStatement(snapshot) ? "statement" : "bill",
+      has_upi: isValidUpiId(snapshot.business?.upiId),
+    });
+  }, [loading, snapshot]);
 
   return (
     <div className="flex min-h-dvh flex-col px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
@@ -60,7 +70,7 @@ function upiPayUrl(business, amount) {
     : "";
 }
 
-function PayWithUpi({ business, amount, logos = true }) {
+function PayWithUpi({ business, amount, logos = true, kind = "bill" }) {
   const { t } = useTranslation();
   const upiUrl = upiPayUrl(business, amount);
   if (!upiUrl) return null;
@@ -68,6 +78,12 @@ function PayWithUpi({ business, amount, logos = true }) {
     <div className="mt-5">
       <a
         href={upiUrl}
+        onClick={() =>
+          capture("upi_pay_tapped", {
+            kind,
+            amount_bucket: amountBucket(amount),
+          })
+        }
         className="flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--forest)] text-sm font-semibold text-white dark:bg-[var(--lime)] dark:text-[var(--forest)]"
       >
         <IndianRupee className="size-4" />
@@ -91,6 +107,7 @@ function PublicBillBody({ snapshot }) {
       <PayWithUpi
         business={business}
         amount={payAmountForPublicBill(entry)}
+        kind="bill"
       />
       <div className="mt-6 flex justify-center">
         <CreatedWithMoneyKit />
@@ -122,6 +139,7 @@ function PublicStatementBody({ snapshot }) {
       <PayWithUpi
         business={business}
         amount={due > 0 ? due : undefined}
+        kind="statement"
       />
 
       {entries.length > 0 ? (

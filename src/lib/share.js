@@ -1,5 +1,6 @@
 import { formatINR, formatEntryDate, entryTypeLabel } from "@/lib/format";
 import { APP_NAME, APP_SITE_URL, SUPPORT_WHATSAPP } from "@/lib/branding";
+import { capture } from "@/lib/analytics";
 import { normalizeLanguage, translate } from "@/lib/i18n";
 import { collectableRupees } from "@/lib/ledger-math";
 import { buildPublicBillUrl } from "@/lib/public-bill-url";
@@ -310,6 +311,7 @@ export function requestCustomTheme({ kind, businessName = "", language = "en" })
     kind: label,
   });
   openWhatsApp({ phone: SUPPORT_WHATSAPP, text });
+  capture("theme_requested", { kind });
 }
 
 export function requestWebsitePlan({

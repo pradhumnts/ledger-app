@@ -10,6 +10,7 @@ import { RouteProgress } from "@/components/route-progress";
 import { SaveErrorToast } from "@/components/save-error-toast";
 import { SplashScreen } from "@/components/splash-screen";
 import { useLandingGate } from "@/context/landing-gate";
+import { capture } from "@/lib/analytics";
 import { isPublicLegalPath, isPublicSharePath } from "@/lib/onboarding-gate";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,11 @@ export function AppShell({ children }) {
     if (isPublicShare) return;
     rememberPath(pathname);
   }, [pathname, isPublicShare]);
+
+  useEffect(() => {
+    if (!showLanding) return;
+    capture("landing_viewed");
+  }, [showLanding]);
 
   useEffect(() => {
     const blockZoom = (event) => event.preventDefault();
