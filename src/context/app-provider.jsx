@@ -15,6 +15,7 @@ import {
   createEntry,
   defaultState,
   loadState,
+  markEntriesShared as stampEntriesShared,
   saveState,
   sanitizeSettings,
   STORAGE_KEY,
@@ -32,9 +33,10 @@ import {
   registerShopContext,
   resetAnalytics,
 } from "@/lib/analytics";
+import { disableReminders } from "@/lib/push-client";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { requestPhoneOtp, verifyPhoneOtp } from "@/lib/supabase/sign-in";
-import { pushShop, pullShop } from "@/lib/supabase/sync";
+import { pushEntryShares, pushShop, pullShop } from "@/lib/supabase/sync";
 
 const AppContext = createContext(null);
 
@@ -87,9 +89,8 @@ export function AppProvider({ children }) {
     if (!supabase) return;
     let cancelled = false;
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      const session = data.session;
-      if (!session || cancelled) return;
+    const applySession = (session) => {
+      if (cancelled || !session?.user?.id) return;
       setUserId(session.user.id);
       setState((prev) => ({
         ...prev,
@@ -99,14 +100,28 @@ export function AppProvider({ children }) {
           session.user.phone
         ),
       }));
+    };
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      const session = data.session;
+      applySession(session);
+      if (!session || cancelled) return;
       const loaded = loadState();
       if (loaded.settings?.onboardingComplete) return;
       const shop = await pullShop(supabase, session.user.id);
       if (shop && !cancelled) applyShop(shop, session.user.phone);
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id || null);
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user?.id) {
+        applySession(session);
+        return;
+      }
+      // INITIAL_SESSION can fire with a null session while storage is still
+      // hydrating. Only clear after an explicit sign-out.
+      if (event === "SIGNED_OUT" && !cancelled) {
+        setUserId(null);
+      }
     });
 
     return () => {
@@ -299,6 +314,7 @@ export function AppProvider({ children }) {
   const signOut = useCallback(async () => {
     setUserId(null);
     persistOnboardingGate(false);
+    await disableReminders().catch(() => {});
     const supabase = getSupabaseBrowserClient();
     if (supabase) {
       await supabase.auth.signOut();
@@ -377,6 +393,24 @@ export function AppProvider({ children }) {
     return result.entry;
   }, []);
 
+  const markEntriesShared = useCallback((ids) => {
+    const next = stampEntriesShared(stateRef.current, ids);
+    if (next === stateRef.current) return;
+    stateRef.current = next;
+    saveState(next);
+    setState(next);
+    const supabase = getSupabaseBrowserClient();
+    const signedInId = userId;
+    if (supabase && signedInId) {
+      const sharedAt = new Date().toISOString();
+      pushEntryShares(
+        supabase,
+        signedInId,
+        (ids || []).filter(Boolean).map((id) => ({ id, sharedAt }))
+      );
+    }
+  }, [userId]);
+
   const getCustomer = useCallback(
     (id) => state.customers.find((c) => c.id === id) || null,
     [state.customers]
@@ -403,6 +437,7 @@ export function AppProvider({ children }) {
       addCustomer,
       updateCustomer,
       addEntry,
+      markEntriesShared,
       getCustomer,
     }),
     [
@@ -425,6 +460,7 @@ export function AppProvider({ children }) {
       addCustomer,
       updateCustomer,
       addEntry,
+      markEntriesShared,
       getCustomer,
     ]
   );

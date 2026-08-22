@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/old-dues",
+      "schedule": "30 9 * * *"
+    },
+    {
+      "path": "/api/cron/unshared-bills",
+      "schedule": "30 14 * * *"
+    }
+  ]
+}

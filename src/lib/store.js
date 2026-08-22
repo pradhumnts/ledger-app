@@ -246,6 +246,19 @@ export function createEntry(state, payload) {
   };
 }
 
+export function markEntriesShared(state, ids) {
+  const wanted = new Set((ids || []).filter(Boolean));
+  if (!wanted.size) return state;
+  const sharedAt = new Date().toISOString();
+  let changed = false;
+  const entries = state.entries.map((entry) => {
+    if (!wanted.has(entry.id) || entry.sharedAt) return entry;
+    changed = true;
+    return { ...entry, sharedAt };
+  });
+  return changed ? { ...state, entries } : state;
+}
+
 export function findCustomersByName(customers, query) {
   const q = query.trim().toLowerCase();
   if (!q) return [];

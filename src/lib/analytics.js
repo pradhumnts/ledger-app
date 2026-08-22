@@ -33,6 +33,8 @@ export function initAnalytics() {
   if (!key || typeof window === "undefined" || started) return;
   started = true;
 
+  const local = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
   posthog.init(key, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
     person_profiles: "identified_only",
@@ -40,20 +42,23 @@ export function initAnalytics() {
     capture_pageview: false,
     capture_pageleave: false,
     persistence: "localStorage+cookie",
-    session_recording: {
-      maskAllInputs: true,
-      collectFonts: true,
-      maskCapturedNetworkRequestFn: (request) => {
-        if (!request) return request;
-        const url = String(request.name || "");
-        if (/otp|auth|token|razorpay|payments/i.test(url)) return null;
-        return {
-          ...request,
-          requestBody: undefined,
-          responseBody: undefined,
-        };
-      },
-    },
+    disable_session_recording: local,
+    session_recording: local
+      ? undefined
+      : {
+          maskAllInputs: true,
+          collectFonts: true,
+          maskCapturedNetworkRequestFn: (request) => {
+            if (!request) return request;
+            const url = String(request.name || "");
+            if (/otp|auth|token|razorpay|payments/i.test(url)) return null;
+            return {
+              ...request,
+              requestBody: undefined,
+              responseBody: undefined,
+            };
+          },
+        },
   });
 }
 

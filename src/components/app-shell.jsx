@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { MarketingLanding } from "@/components/marketing-landing";
 import { OnboardingGuard } from "@/components/onboarding-guard";
 import { RouteProgress } from "@/components/route-progress";
+import { PushReminderListener } from "@/components/push-reminders";
 import { SaveErrorToast } from "@/components/save-error-toast";
 import { SplashScreen } from "@/components/splash-screen";
 import { useLandingGate } from "@/context/landing-gate";
@@ -74,6 +75,7 @@ export function AppShell({ children }) {
                 <BottomNav />
               ) : null}
             </div>
+            <PushReminderListener />
             <SaveErrorToast />
           </RouteProgress>
         </OnboardingGuard>

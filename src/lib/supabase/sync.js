@@ -57,7 +57,37 @@ export async function pushShop(supabase, userId, state) {
     if (entryError) return { ok: false, error: entryError };
   }
 
+  const sharePayload = (state.entries || [])
+    .filter((entry) => entry.sharedAt)
+    .map((entry) => ({
+      user_id: userId,
+      entry_external_id: entry.id,
+      shared_at: entry.sharedAt,
+    }));
+  if (sharePayload.length) {
+    const { error: shareError } = await supabase
+      .from("entry_shares")
+      .upsert(sharePayload, { onConflict: "user_id,entry_external_id" });
+    if (shareError) return { ok: false, error: shareError };
+  }
+
   return { ok: true };
+}
+
+export async function pushEntryShares(supabase, userId, items) {
+  if (!supabase || !userId || !items?.length) return { ok: false };
+  const payload = items
+    .filter((item) => item?.id)
+    .map((item) => ({
+      user_id: userId,
+      entry_external_id: item.id,
+      shared_at: item.sharedAt || new Date().toISOString(),
+    }));
+  if (!payload.length) return { ok: true };
+  const { error } = await supabase
+    .from("entry_shares")
+    .upsert(payload, { onConflict: "user_id,entry_external_id" });
+  return error ? { ok: false, error } : { ok: true };
 }
 
 export async function pullShop(supabase, userId) {
@@ -68,6 +98,7 @@ export async function pullShop(supabase, userId) {
     { data: settings },
     { data: customers },
     { data: entries },
+    { data: shares },
   ] = await Promise.all([
     supabase.from("businesses").select("*").eq("user_id", userId).maybeSingle(),
     supabase.from("settings").select("*").eq("user_id", userId).maybeSingle(),
@@ -81,12 +112,16 @@ export async function pullShop(supabase, userId) {
       .select("*")
       .eq("user_id", userId)
       .is("voided_at", null),
+    supabase.from("entry_shares").select("entry_external_id, shared_at").eq("user_id", userId),
   ]);
 
   if (!settings?.onboarding_complete) return null;
 
   const customerByUuid = Object.fromEntries(
     (customers || []).map((row) => [row.id, row.external_id])
+  );
+  const sharedAtById = Object.fromEntries(
+    (shares || []).map((row) => [row.entry_external_id, row.shared_at])
   );
 
   return {
@@ -110,7 +145,12 @@ export async function pullShop(supabase, userId) {
     },
     customers: (customers || []).map(rowsToCustomer),
     entries: (entries || [])
-      .map((row) => rowsToEntry(row, customerByUuid[row.customer_id]))
+      .map((row) => {
+        const entry = rowsToEntry(row, customerByUuid[row.customer_id]);
+        if (!entry?.customerId) return entry;
+        const sharedAt = sharedAtById[row.external_id];
+        return sharedAt ? { ...entry, sharedAt } : entry;
+      })
       .filter((row) => row.customerId),
   };
 }

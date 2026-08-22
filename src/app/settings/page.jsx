@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  Bell,
   Building2,
   History,
   Languages,
@@ -33,14 +34,26 @@ import { LANGUAGES } from "@/lib/i18n";
 import { isQrThemeUnlocked, QR_THEMES } from "@/lib/qr-themes";
 import { requestWebsitePlan, shareApp } from "@/lib/share";
 import { WEBSITE_PLANS } from "@/lib/website-plans";
+import {
+  disableReminders,
+  enableReminders,
+  notificationPermission,
+  pushSupported,
+  remindersOptedIn,
+  requestReminderTest,
+} from "@/lib/push-client";
 
 export default function SettingsPage() {
-  const { settings, setTheme, business, signOut } = useApp();
+  const { settings, setTheme, business, signOut, userId } = useApp();
   const { t, language, themeLabel, websitePlanLabel } = useTranslation();
   const router = useRouter();
   const dark = settings.theme === "dark";
   const [logOutOpen, setLogOutOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [remindersOn, setRemindersOn] = useState(false);
+  const [reminderBusy, setReminderBusy] = useState(false);
+  const [testKind, setTestKind] = useState("");
+  const [testStatus, setTestStatus] = useState("");
   const { busy: sharingApp, run: runShareApp } = useBusyAction();
 
   const billThemeSubtitle = themeLabel("bill", settings.billTheme || "classic", "name");
@@ -58,6 +71,66 @@ export default function SettingsPage() {
 
   const currentLang = LANGUAGES.find((lang) => lang.id === language);
   const languageSubtitle = currentLang ? t(currentLang.labelKey) : t("language.english");
+  const remindersDenied = notificationPermission() === "denied";
+  const remindersAvailable = Boolean(userId) && pushSupported();
+  const reminderSubtitle = !userId
+    ? t("settings.remindersNeedSignIn")
+    : !pushSupported()
+      ? t("settings.remindersUnsupported")
+      : remindersDenied
+        ? t("settings.remindersDenied")
+        : remindersOn
+          ? t("settings.remindersOn")
+          : t("settings.remindersOff");
+
+  useEffect(() => {
+    setRemindersOn(
+      remindersOptedIn() && notificationPermission() === "granted"
+    );
+  }, []);
+
+  async function toggleReminders(checked) {
+    if (reminderBusy || !userId) return;
+    setReminderBusy(true);
+    try {
+      if (checked) {
+        const result = await enableReminders();
+        setRemindersOn(Boolean(result.ok));
+      } else {
+        await disableReminders();
+        setRemindersOn(false);
+      }
+    } finally {
+      setReminderBusy(false);
+    }
+  }
+
+  async function runReminderTest(kind) {
+    if (testKind || reminderBusy || !userId) return;
+    setTestKind(kind);
+    setTestStatus("");
+    try {
+      const result = await requestReminderTest(kind);
+      const reason = result.reason || "";
+      if (reason === "sent") {
+        setTestStatus(t("settings.remindersTestSent"));
+      } else if (reason === "none_unshared") {
+        setTestStatus(t("settings.remindersTestNoneUnshared"));
+      } else if (reason === "none_due") {
+        setTestStatus(t("settings.remindersTestNoneDue"));
+      } else if (reason === "no_subscription") {
+        setTestStatus(t("settings.remindersTestNeedSub"));
+      } else if (reason === "migration_missing") {
+        setTestStatus(t("settings.remindersTestMigration"));
+      } else {
+        setTestStatus(t("settings.remindersTestFailed"));
+      }
+    } catch {
+      setTestStatus(t("settings.remindersTestFailed"));
+    } finally {
+      setTestKind("");
+    }
+  }
 
   async function confirmLogOut() {
     if (loggingOut) return;
@@ -157,6 +230,66 @@ export default function SettingsPage() {
             checked={dark}
             onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
           />
+        </div>
+        <Divider />
+        <div className="px-4 py-3.5">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-200">
+              <Bell className="size-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[15px] font-semibold text-zinc-950 dark:text-white">
+                {t("settings.reminders")}
+              </p>
+              <p className="text-sm text-zinc-500">{reminderSubtitle}</p>
+            </div>
+            <Switch
+              checked={remindersOn}
+              disabled={reminderBusy || !remindersAvailable || remindersDenied}
+              onCheckedChange={toggleReminders}
+            />
+          </div>
+          {remindersOn ? (
+            <div className="mt-3 pl-[52px]">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={Boolean(testKind)}
+                  onClick={() => runReminderTest("ping")}
+                  className="h-8 rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200"
+                >
+                  {testKind === "ping"
+                    ? t("common.loading")
+                    : t("settings.remindersTest")}
+                </button>
+                <button
+                  type="button"
+                  disabled={Boolean(testKind)}
+                  onClick={() => runReminderTest("unshared")}
+                  className="h-8 rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200"
+                >
+                  {testKind === "unshared"
+                    ? t("common.loading")
+                    : t("settings.remindersTestUnshared")}
+                </button>
+                <button
+                  type="button"
+                  disabled={Boolean(testKind)}
+                  onClick={() => runReminderTest("old_due")}
+                  className="h-8 rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200"
+                >
+                  {testKind === "old_due"
+                    ? t("common.loading")
+                    : t("settings.remindersTestDue")}
+                </button>
+              </div>
+              {testStatus ? (
+                <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+                  {testStatus}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         <Divider />
         <ListRow

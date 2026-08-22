@@ -21,7 +21,7 @@ function EntryDetailPage() {
   const customerId = params?.id;
   const entryId = params?.entryId;
   const fromHome = searchParams.get("from") === "home";
-  const { ready, getCustomer, entries, business, settings } = useApp();
+  const { ready, getCustomer, entries, business, settings, markEntriesShared } = useApp();
   const { t, language } = useTranslation();
   const billRef = useRef(null);
   const [sharing, setSharing] = useState(false);
@@ -70,6 +70,7 @@ function EntryDetailPage() {
     });
     if (channel === "sms") {
       openSMS({ phone: customer.phone, text });
+      markEntriesShared([entry.id]);
       capture("bill_shared", { kind: "entry", channel: "sms" });
       return;
     }
@@ -84,6 +85,9 @@ function EntryDetailPage() {
         customer,
         language,
       });
+      if (result !== "cancelled") {
+        markEntriesShared([entry.id]);
+      }
       capture("bill_shared", {
         kind: "entry",
         channel: "whatsapp",
@@ -101,6 +105,7 @@ function EntryDetailPage() {
       business,
       billThemeId: settings.billTheme,
     });
+    markEntriesShared([entry.id]);
     capture("bill_shared", { kind: "entry", channel: "pdf" });
   }
 

@@ -53,7 +53,7 @@ import { rememberCustomerOrigin } from "@/lib/nav-memory";
 export default function CustomerDetailPage() {
   const params = useParams();
   const id = params?.id;
-  const { ready, getCustomer, entries, business, settings } = useApp();
+  const { ready, getCustomer, entries, business, settings, markEntriesShared } = useApp();
   const { t, language } = useTranslation();
   const customer = getCustomer(id);
   const [shareOpen, setShareOpen] = useState(false);
@@ -61,6 +61,12 @@ export default function CustomerDetailPage() {
   useEffect(() => {
     if (id) rememberCustomerOrigin(id, `/customers/${id}`);
   }, [id]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("share") === "1") setShareOpen(true);
+  }, []);
 
   const history = useMemo(
     () => entriesForCustomer(entries, id),
@@ -126,8 +132,12 @@ export default function CustomerDetailPage() {
       themeId: settings.billTheme,
       format: channel === "sms" ? "sms" : "whatsapp",
     });
+    const invoiceIds = history
+      .filter((entry) => entry.type === "invoice")
+      .map((entry) => entry.id);
     if (channel === "sms") {
       openSMS({ phone: customer.phone, text });
+      markEntriesShared(invoiceIds);
       capture("bill_shared", { kind: "statement", channel: "sms" });
       return;
     }
@@ -136,6 +146,7 @@ export default function CustomerDetailPage() {
       phone: customer.phone,
       text,
     });
+    markEntriesShared(invoiceIds);
     capture("bill_shared", { kind: "statement", channel: "whatsapp" });
   }
 
@@ -148,6 +159,9 @@ export default function CustomerDetailPage() {
       business,
       billThemeId: settings.billTheme,
     });
+    markEntriesShared(
+      history.filter((entry) => entry.type === "invoice").map((entry) => entry.id)
+    );
     capture("bill_shared", { kind: "statement", channel: "pdf" });
   }
 

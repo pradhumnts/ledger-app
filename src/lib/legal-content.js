@@ -4,7 +4,7 @@ import { APP_NAME, APP_SITE_URL, SUPPORT_EMAIL } from "@/lib/branding";
 
 /** @type {{ effectiveDate: string, intro: string[], sections: LegalSection[] }} */
 export const PRIVACY_POLICY = {
-  effectiveDate: "17 August 2026",
+  effectiveDate: "22 August 2026",
   intro: [
     `${APP_NAME} ("we", "us", "our") operates the ${APP_NAME} mobile web app and related services at ${APP_SITE_URL}. This Privacy Policy explains what information we collect, how we use it, and the choices you have.`,
     "By using the app, you agree to the collection and use of information as described here.",
@@ -19,6 +19,7 @@ export const PRIVACY_POLICY = {
         "Ledger data: bills, payment entries, amounts, dates, and notes you create in the app.",
         "App preferences: language, appearance (light/dark), and theme selections.",
         "Purchase records: when you buy paid bill or QR themes, we record the purchase through Razorpay or Google Play so your unlocks can be restored.",
+        "Push reminders: if you allow notifications, we store a device push token so we can remind you about unshared bills and old dues. Notification text uses your shop's app language and may include a customer first name.",
         "Device and usage: basic technical data such as browser type and app errors may be collected by our hosting and analytics providers to keep the service running. Product analytics (PostHog) records feature usage such as creating a bill or sharing a QR, plus page views. Event data does not include customer names, customer phone numbers, UPI IDs, or exact amounts. The shop's own name and login phone are attached to the analytics profile so we can tell which business a session belongs to. Session replay may record the app screen as you use it (taps, navigation, layout) so we can fix confusing steps. Typed OTP codes and form fields are masked. Payment QR codes are not recorded. On-screen shop details that are already visible in the app, such as a customer name on a bill, may appear in a recording.",
       ],
     },
@@ -29,6 +30,7 @@ export const PRIVACY_POLICY = {
         "Sign you in and restore your shop data when you log in on a new device.",
         "Sync and back up your data to our cloud database when cloud login is enabled.",
         "Process in-app theme purchases and prevent duplicate charges.",
+        "Send optional reminders you turn on: around 8pm IST if today's bills were not shared, and around 3pm IST when a customer still owes and has been quiet for a week.",
         "Improve reliability, security, and support for the app.",
         "Understand which features help shops get paid, so we can improve MoneyKit.",
       ],
@@ -45,7 +47,7 @@ export const PRIVACY_POLICY = {
       title: "Sharing with others",
       body: [
         "You choose to share: when you send a bill or statement via WhatsApp, SMS, PDF, or UPI link, that content goes through the apps and services on your phone — not through our servers.",
-        "Service providers: we use trusted processors to operate the app, including Supabase (database and auth), MSG91 (SMS OTP), Razorpay (web payments), Google Play Billing (Android app purchases), and PostHog (product analytics and session replay). They handle data only to provide their service to us.",
+        "Service providers: we use trusted processors to operate the app, including Supabase (database and auth), MSG91 (SMS OTP), Razorpay (web payments), Google Play Billing (Android app purchases), PostHog (product analytics and session replay), and browser push services (such as Google FCM) to deliver reminders you enable. They handle data only to provide their service to us.",
         "Legal requirements: we may disclose information if required by law or to protect the rights and safety of users and the public.",
       ],
     },
@@ -63,6 +65,7 @@ export const PRIVACY_POLICY = {
         "You can use the app without cloud login; in that case data stays on your device only.",
         "You can update or delete business and customer information inside the app.",
         "You can log out to remove local data from the current device.",
+        "You can turn reminders off in Settings. That removes this device's push subscription.",
         `To delete your entire ${APP_NAME} account and cloud data, follow the steps at ${APP_SITE_URL}/account-deletion or email ${SUPPORT_EMAIL}.`,
       ],
     },
@@ -118,6 +121,7 @@ export const ACCOUNT_DELETION = {
         "Shop profile: name, address, logo, UPI ID, and settings.",
         "Customers you added, including names and phone numbers.",
         "Bills, leftover due, and related ledger entries.",
+        "Push reminder subscriptions for your devices.",
         `Theme purchase records stored in ${APP_NAME}.`,
       ],
     },
