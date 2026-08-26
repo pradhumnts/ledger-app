@@ -26,6 +26,7 @@ import { DEFAULT_LANGUAGE, getHtmlLang, normalizeLanguage } from "@/lib/i18n";
 import { persistOnboardingGate } from "@/lib/onboarding-gate";
 import { mergeAdminThemeUnlocks } from "@/lib/admin-themes";
 import { restorePlayPurchases } from "@/lib/buy-theme";
+import { notifyOnboardingComplete } from "@/lib/ops-onboard-client";
 import {
   amountBucket,
   capture,
@@ -309,6 +310,7 @@ export function AppProvider({ children }) {
     capture("onboarding_completed", {
       business_type: business?.type || "",
     });
+    notifyOnboardingComplete(business);
   }, []);
 
   const signOut = useCallback(async () => {

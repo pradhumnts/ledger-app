@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { corsJson, corsPreflight } from "@/lib/api-cors";
 import { ensureShopUser } from "@/lib/supabase/ensure-shop-user";
 import { toE164India } from "@/lib/supabase/phone";
 import { validateOtp, validateRequiredPhone } from "@/lib/validation";
@@ -7,14 +8,18 @@ import {
   PLAY_REVIEW_REQ_ID,
   isPlayReviewLogin,
 } from "@/lib/play-review-auth";
-import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+
+export async function OPTIONS(request) {
+  return corsPreflight(request);
+}
 
 export async function POST(request) {
   const admin = getSupabaseAdmin();
   if (!admin) {
-    return NextResponse.json(
+    return corsJson(
+      request,
       { error: "Supabase service role is not configured on the server." },
       { status: 503 }
     );
@@ -30,7 +35,8 @@ export async function POST(request) {
   const phoneError = validateRequiredPhone(body.phone);
   const otpError = validateOtp(body.otp);
   if (phoneError || otpError || !body.reqId) {
-    return NextResponse.json(
+    return corsJson(
+      request,
       { error: phoneError || otpError || "Missing verification request." },
       { status: 400 }
     );
@@ -39,16 +45,14 @@ export async function POST(request) {
   try {
     if (isPlayReviewLogin(body.phone, body.otp)) {
       if (body.reqId !== PLAY_REVIEW_REQ_ID) {
-        return NextResponse.json(
-          { error: "That code didn't work." },
-          { status: 400 }
-        );
+        return corsJson(request, { error: "That code didn't work." }, { status: 400 });
       }
     } else {
       await msg91VerifyOtp(body.reqId, body.otp);
     }
   } catch (error) {
-    return NextResponse.json(
+    return corsJson(
+      request,
       { error: error.message || "That code didn't work." },
       { status: 400 }
     );
@@ -59,7 +63,8 @@ export async function POST(request) {
   try {
     shopUser = await ensureShopUser(admin, body.phone);
   } catch (error) {
-    return NextResponse.json(
+    return corsJson(
+      request,
       { error: error.message || "Could not create shop user." },
       { status: 400 }
     );
@@ -70,13 +75,14 @@ export async function POST(request) {
     email: shopUser.email,
   });
   if (link.error || !link.data?.properties?.hashed_token) {
-    return NextResponse.json(
+    return corsJson(
+      request,
       { error: link.error?.message || "Could not start a session." },
       { status: 400 }
     );
   }
 
-  return NextResponse.json({
+  return corsJson(request, {
     hashed_token: link.data.properties.hashed_token,
     user: {
       id: shopUser.userId || link.data.user?.id || null,

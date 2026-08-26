@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getUserFromRequest } from "@/lib/supabase/user-from-request";
 import { markThemePaid } from "@/lib/supabase/unlock-theme";
+import { notifyThemePurchase } from "@/lib/ops-email";
 import { isValidPaymentSignature } from "@/lib/razorpay";
 
 export const runtime = "nodejs";
@@ -60,6 +61,16 @@ export async function POST(request) {
       orderId,
       paymentId,
     });
+    if (unlocked.newlyPaid) {
+      await notifyThemePurchase({
+        admin,
+        userId: purchase.user_id,
+        kind: purchase.kind,
+        themeId: purchase.theme_id,
+        provider: "razorpay",
+        orderId,
+      }).catch(() => {});
+    }
     return NextResponse.json({ ok: true, ...unlocked });
   } catch (unlockError) {
     return NextResponse.json(

@@ -1,10 +1,14 @@
-import { NextResponse } from "next/server";
 import { msg91SendOtp } from "@/lib/msg91";
+import { corsJson, corsPreflight } from "@/lib/api-cors";
 import { PLAY_REVIEW_REQ_ID, isPlayReviewLogin } from "@/lib/play-review-auth";
 import { indianMobileDigits, toE164India } from "@/lib/supabase/phone";
 import { validateRequiredPhone } from "@/lib/validation";
 
 export const runtime = "nodejs";
+
+export async function OPTIONS(request) {
+  return corsPreflight(request);
+}
 
 export async function POST(request) {
   let body = {};
@@ -16,11 +20,11 @@ export async function POST(request) {
 
   const phoneError = validateRequiredPhone(body.phone);
   if (phoneError) {
-    return NextResponse.json({ error: phoneError }, { status: 400 });
+    return corsJson(request, { error: phoneError }, { status: 400 });
   }
 
   if (isPlayReviewLogin(body.phone)) {
-    return NextResponse.json({
+    return corsJson(request, {
       reqId: PLAY_REVIEW_REQ_ID,
       phone: toE164India(body.phone),
     });
@@ -28,12 +32,13 @@ export async function POST(request) {
 
   try {
     const result = await msg91SendOtp(indianMobileDigits(body.phone));
-    return NextResponse.json({
+    return corsJson(request, {
       reqId: result.reqId,
       phone: toE164India(body.phone),
     });
   } catch (error) {
-    return NextResponse.json(
+    return corsJson(
+      request,
       { error: error.message || "Could not send the SMS code." },
       { status: 400 }
     );

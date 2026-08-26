@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getUserFromRequest } from "@/lib/supabase/user-from-request";
 import { markPlayThemePaid } from "@/lib/supabase/unlock-theme";
+import { notifyThemePurchase } from "@/lib/ops-email";
 import {
   acknowledgePlayPurchase,
   getPlayProductPurchase,
@@ -66,6 +67,17 @@ export async function POST(request) {
       orderId: purchase.orderId || "",
       amountPaise: theme.amountPaise,
     });
+    if (unlocked.newlyPaid) {
+      await notifyThemePurchase({
+        admin,
+        userId: user.id,
+        kind: theme.kind,
+        themeId: theme.themeId,
+        provider: "play",
+        amountPaise: theme.amountPaise,
+        orderId: purchase.orderId || "",
+      }).catch(() => {});
+    }
     return NextResponse.json({ ok: true, provider: "play", ...unlocked });
   } catch (error) {
     return NextResponse.json(

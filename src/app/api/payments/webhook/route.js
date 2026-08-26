@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { markThemePaid } from "@/lib/supabase/unlock-theme";
+import { notifyThemePurchase } from "@/lib/ops-email";
 import { isValidWebhookSignature } from "@/lib/razorpay";
 
 export const runtime = "nodejs";
@@ -65,13 +66,23 @@ export async function POST(request) {
   }
 
   try {
-    await markThemePaid(admin, {
+    const unlocked = await markThemePaid(admin, {
       userId,
       kind,
       themeId,
       orderId,
       paymentId,
     });
+    if (unlocked.newlyPaid) {
+      await notifyThemePurchase({
+        admin,
+        userId,
+        kind,
+        themeId,
+        provider: "razorpay",
+        orderId,
+      }).catch(() => {});
+    }
   } catch {
     return NextResponse.json({ error: "unlock failed" }, { status: 500 });
   }

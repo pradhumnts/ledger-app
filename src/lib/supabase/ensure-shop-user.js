@@ -173,7 +173,7 @@ export async function ensureShopUser(admin, phone) {
   if (!winnerId) {
     const created = await createShopUser(admin, e164, email);
     if (created?.id) {
-      return { userId: created.id, email };
+      return { userId: created.id, email, created: true };
     }
     candidateIds = await findCandidateIds(admin, e164, email);
     candidates = await loadCandidates(admin, candidateIds);
@@ -196,5 +196,5 @@ export async function ensureShopUser(admin, phone) {
   );
 
   const loginEmail = await attachLoginIdentity(admin, winner, e164, email);
-  return { userId: winnerId, email: loginEmail };
+  return { userId: winnerId, email: loginEmail, created: false };
 }

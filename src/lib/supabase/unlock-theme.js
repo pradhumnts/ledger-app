@@ -44,6 +44,13 @@ async function unlockThemeOnSettings(admin, { userId, kind, themeId }) {
 
 export async function markThemePaid(admin, { userId, kind, themeId, orderId, paymentId }) {
   const now = new Date().toISOString();
+  const { data: existing } = await admin
+    .from("theme_purchases")
+    .select("status")
+    .eq("razorpay_order_id", orderId)
+    .maybeSingle();
+  const newlyPaid = existing?.status !== "paid";
+
   const { error: purchaseError } = await admin
     .from("theme_purchases")
     .update({
@@ -57,7 +64,8 @@ export async function markThemePaid(admin, { userId, kind, themeId, orderId, pay
     throw new Error(purchaseError.message || "Could not save that payment.");
   }
 
-  return unlockThemeOnSettings(admin, { userId, kind, themeId });
+  const unlocked = await unlockThemeOnSettings(admin, { userId, kind, themeId });
+  return { ...unlocked, newlyPaid };
 }
 
 export async function markPlayThemePaid(admin, {
@@ -75,6 +83,7 @@ export async function markPlayThemePaid(admin, {
     .select("id, status")
     .eq("play_purchase_token", purchaseToken)
     .maybeSingle();
+  const newlyPaid = existing?.status !== "paid";
 
   if (existing?.status !== "paid") {
     if (existing) {
@@ -111,5 +120,6 @@ export async function markPlayThemePaid(admin, {
     }
   }
 
-  return unlockThemeOnSettings(admin, { userId, kind, themeId });
+  const unlocked = await unlockThemeOnSettings(admin, { userId, kind, themeId });
+  return { ...unlocked, newlyPaid };
 }
