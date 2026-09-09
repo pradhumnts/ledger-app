@@ -1,12 +1,32 @@
 import { NextResponse } from "next/server";
 import {
+  ADMIN_SESSION_COOKIE,
+  parseAdminSessionToken,
+} from "@/lib/admin-session";
+import {
   ONBOARDING_COOKIE,
+  isAdminPath,
   isUnauthedAllowedPath,
 } from "@/lib/onboarding-gate";
 
-export function proxy(request) {
+export async function proxy(request) {
   const { pathname } = request.nextUrl;
   if (pathname.startsWith("/api/") || pathname.startsWith("/.well-known/")) {
+    return NextResponse.next();
+  }
+
+  if (isAdminPath(pathname)) {
+    const onLogin =
+      pathname === "/admin/login" || pathname === "/admin/login/";
+    const session = await parseAdminSessionToken(
+      request.cookies.get(ADMIN_SESSION_COOKIE)?.value
+    );
+    if (!onLogin && !session) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
+    if (onLogin && session) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
     return NextResponse.next();
   }
 

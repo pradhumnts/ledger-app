@@ -8,6 +8,16 @@ export function isPublicLegalPath(pathname) {
   );
 }
 
+/** MoneyKit platform admin (desktop) — separate from shop onboarding. */
+export function isAdminPath(pathname) {
+  return pathname === "/admin" || Boolean(pathname?.startsWith("/admin/"));
+}
+
+/** Browser marketing site — landing, legal pages (not the signed-in shop app). */
+export function isMarketingPath(pathname) {
+  return pathname === "/" || isPublicLegalPath(pathname);
+}
+
 /** Public UPI pay page and shared bill links — no login. */
 export function isPublicSharePath(pathname) {
   return (
@@ -23,7 +33,8 @@ export function isUnauthedAllowedPath(pathname) {
     pathname === "/" ||
     pathname === "/onboarding" ||
     isPublicSharePath(pathname) ||
-    isPublicLegalPath(pathname)
+    isPublicLegalPath(pathname) ||
+    isAdminPath(pathname)
   );
 }
 

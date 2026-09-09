@@ -11,12 +11,17 @@ import { SaveErrorToast } from "@/components/save-error-toast";
 import { SplashScreen } from "@/components/splash-screen";
 import { useLandingGate } from "@/context/landing-gate";
 import { capture } from "@/lib/analytics";
-import { isPublicLegalPath, isPublicSharePath } from "@/lib/onboarding-gate";
+import {
+  isAdminPath,
+  isPublicLegalPath,
+  isPublicSharePath,
+} from "@/lib/onboarding-gate";
 import { cn } from "@/lib/utils";
 
 export function AppShell({ children }) {
   const pathname = usePathname();
   const { showLanding } = useLandingGate();
+  const isAdmin = isAdminPath(pathname);
   const isPay = pathname === "/pay";
   const isPublicShare = isPublicSharePath(pathname);
   const isOnboarding = pathname === "/onboarding";
@@ -26,9 +31,9 @@ export function AppShell({ children }) {
   const fullBleed = isPay || isPublicShare || isOnboarding || isThemePage;
 
   useEffect(() => {
-    if (isPublicShare) return;
+    if (isPublicShare || isAdmin) return;
     rememberPath(pathname);
-  }, [pathname, isPublicShare]);
+  }, [pathname, isPublicShare, isAdmin]);
 
   useEffect(() => {
     if (!showLanding) return;
@@ -36,6 +41,7 @@ export function AppShell({ children }) {
   }, [showLanding]);
 
   useEffect(() => {
+    if (isAdmin) return;
     const blockZoom = (event) => event.preventDefault();
     document.addEventListener("gesturestart", blockZoom);
     document.addEventListener("gesturechange", blockZoom);
@@ -45,7 +51,15 @@ export function AppShell({ children }) {
       document.removeEventListener("gesturechange", blockZoom);
       document.removeEventListener("gestureend", blockZoom);
     };
-  }, []);
+  }, [isAdmin]);
+
+  if (isAdmin) {
+    return (
+      <div className="min-h-dvh w-full bg-[var(--app-bg)] text-foreground">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <>
