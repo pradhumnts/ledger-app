@@ -1,5 +1,5 @@
 import { formatINR, formatEntryDate, entryTypeLabel } from "@/lib/format";
-import { APP_NAME, APP_SITE_URL, SUPPORT_WHATSAPP } from "@/lib/branding";
+import { APP_NAME, PLAY_STORE_URL, SUPPORT_WHATSAPP } from "@/lib/branding";
 import { capture } from "@/lib/analytics";
 import { normalizeLanguage, translate } from "@/lib/i18n";
 import { collectableRupees } from "@/lib/ledger-math";
@@ -259,7 +259,7 @@ export function openSMS({ phone, text }) {
 }
 
 export function getAppUrl() {
-  return APP_SITE_URL;
+  return PLAY_STORE_URL;
 }
 
 export function getAppShareContent(language = "en") {

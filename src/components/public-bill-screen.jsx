@@ -11,7 +11,7 @@ import { UpiAppLogos } from "@/components/upi-app-logos";
 import { Divider, SoftCard } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/use-translation";
 import { capture, amountBucket } from "@/lib/analytics";
-import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
+import { APP_NAME, PLAY_STORE_URL } from "@/lib/branding";
 import { entryTypeLabel, resolveEntryWhen } from "@/lib/format";
 import { collectableRupees } from "@/lib/ledger-math";
 import { isPublicStatement, payAmountForPublicBill } from "@/lib/public-bill";
@@ -31,7 +31,7 @@ export function PublicBillScreen({ snapshot, loading = false }) {
   return (
     <div className="flex min-h-dvh flex-col px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <a
-        href={APP_SITE_URL}
+        href={PLAY_STORE_URL}
         target="_blank"
         rel="noopener noreferrer"
         className="mb-6 flex items-center justify-center gap-2.5"

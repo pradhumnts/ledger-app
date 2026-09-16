@@ -1,7 +1,7 @@
-import { APP_NAME, APP_SITE_URL } from "@/lib/branding";
+import { APP_NAME, PLAY_STORE_URL } from "@/lib/branding";
 import { cn } from "@/lib/utils";
 
-export function CreatedWithMoneyKit({ className, href = APP_SITE_URL }) {
+export function CreatedWithMoneyKit({ className, href = PLAY_STORE_URL }) {
   return (
     <a
       href={href}

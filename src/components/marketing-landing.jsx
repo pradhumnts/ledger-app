@@ -17,7 +17,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { MoneyKitLogo } from "@/components/moneykit-logo";
-import { APP_NAME, APP_TAGLINE, SUPPORT_WHATSAPP } from "@/lib/branding";
+import { APP_NAME, APP_TAGLINE, PLAY_STORE_URL, SUPPORT_WHATSAPP } from "@/lib/branding";
 import { openWhatsApp } from "@/lib/share";
 import { cn } from "@/lib/utils";
 
@@ -272,13 +272,18 @@ export function MarketingLanding() {
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-5 pb-10 pt-[max(1.25rem,env(safe-area-inset-top))]">
         <header className="flex justify-center">
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-black/[0.05] bg-white/90 py-1.5 pl-1.5 pr-4 shadow-[0_8px_24px_rgba(11,48,31,0.06)] backdrop-blur-sm">
+          <a
+            href={PLAY_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2.5 rounded-full border border-black/[0.05] bg-white/90 py-1.5 pl-1.5 pr-4 shadow-[0_8px_24px_rgba(11,48,31,0.06)] backdrop-blur-sm"
+          >
             <MoneyKitLogo size={32} priority className="rounded-[0.9rem]" />
             <div className="leading-tight">
               <p className="text-[15px] font-semibold tracking-tight">{APP_NAME}</p>
               <p className="text-[11px] font-medium text-zinc-500">{APP_TAGLINE}</p>
             </div>
-          </div>
+          </a>
         </header>
 
         <h1 className="mx-auto mt-7 max-w-[22rem] text-center text-[1.85rem] leading-[1.15] font-semibold tracking-tight sm:max-w-[28rem] sm:text-[2.35rem]">
@@ -325,23 +330,25 @@ export function MarketingLanding() {
             WhatsApp — using the apps already on your phone.
           </p>
           <div className="mx-auto mt-5 max-w-xs">
-            <button
-              type="button"
+            <a
+              href={PLAY_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex h-12 w-full items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-semibold text-white"
             >
-              Get it on Android
-            </button>
+              Get it on Google Play
+            </a>
             <button
               type="button"
               onClick={() =>
                 openWhatsApp({
                   phone: SUPPORT_WHATSAPP,
-                  text: "Hi MoneyKit team,\n\nPlease notify me when the Android app is on the Play Store.",
+                  text: "Hi MoneyKit team,\n\nI have a question about the app.",
                 })
               }
               className="mt-2 text-xs font-medium text-zinc-500 underline-offset-2 hover:text-zinc-800 hover:underline"
             >
-              Coming soon — notify me on WhatsApp
+              Questions? Message us on WhatsApp
             </button>
           </div>
           <footer className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-zinc-400">

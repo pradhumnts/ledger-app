@@ -5,6 +5,7 @@ import {
   APP_NAME,
   APP_SITE_URL,
   APP_TAGLINE,
+  PLAY_STORE_URL,
 } from "@/lib/branding";
 import {
   formatBillNumber,
@@ -180,7 +181,7 @@ function drawFooter(doc, url, colors = resolveTheme(), logoDataUrl = null) {
   doc.setFontSize(9);
   doc.setTextColor(...(colors.forest || FOREST));
   const brand = `Created with ${APP_NAME}`;
-  const brandUrl = APP_SITE_URL;
+  const brandUrl = PLAY_STORE_URL;
   if (brandUrl) {
     doc.textWithLink(brand, MARGIN + 9, y + 7.6, { url: brandUrl });
     const brandWidth = doc.getTextWidth(brand);
