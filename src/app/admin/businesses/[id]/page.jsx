@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   Activity,
-  ArrowLeft,
   BadgeCheck,
   CalendarDays,
   CircleAlert,
@@ -25,10 +23,13 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { SoftCard } from "@/components/ui-kit";
 import { AdminBusinessAvatar } from "@/components/admin/admin-business-avatar";
 import {
+  AdminBackLink,
+  AdminCard,
+  AdminDate,
   AdminSectionTitle,
+  adminCardPad,
   formatCount,
   formatRupeesFromPaise,
   formatShortDate,
@@ -37,16 +38,16 @@ import { cn } from "@/lib/utils";
 
 function DetailRow({ icon: Icon, label, value }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-3.5">
-      <dt className="inline-flex min-w-0 shrink-0 items-center gap-2.5 text-sm text-zinc-500">
+    <div className="flex items-start justify-between gap-3 py-2.5 sm:gap-4 sm:py-3.5">
+      <dt className="inline-flex min-w-0 shrink-0 items-center gap-2 text-sm text-zinc-500 sm:gap-2.5">
         {Icon ? (
-          <span className="inline-flex size-7 items-center justify-center rounded-xl bg-[var(--well)] text-zinc-500">
+          <span className="inline-flex size-6 items-center justify-center rounded-lg bg-[var(--well)] text-zinc-500 sm:size-7 sm:rounded-xl">
             <Icon className="size-3.5" strokeWidth={2.25} />
           </span>
         ) : null}
         {label}
       </dt>
-      <dd className="pt-1 text-right text-sm font-semibold text-zinc-950">
+      <dd className="max-w-[58%] break-words pt-0.5 text-right text-sm font-semibold text-zinc-950 sm:pt-1">
         {value || "—"}
       </dd>
     </div>
@@ -55,27 +56,27 @@ function DetailRow({ icon: Icon, label, value }) {
 
 function StatTile({ icon: Icon, label, value, tone = "default" }) {
   return (
-    <SoftCard className="p-5">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-zinc-500">{label}</p>
+    <AdminCard className="p-3 sm:p-5">
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <p className="text-xs font-medium text-zinc-500 sm:text-sm">{label}</p>
         {Icon ? (
           <span
             className={cn(
-              "inline-flex size-9 shrink-0 items-center justify-center rounded-2xl",
+              "inline-flex size-7 shrink-0 items-center justify-center rounded-xl sm:size-9 sm:rounded-2xl",
               tone === "warn" && "bg-amber-50 text-amber-700",
               tone === "success" && "bg-emerald-50 text-emerald-700",
               tone === "default" &&
                 "bg-[var(--forest)]/8 text-[var(--forest)]"
             )}
           >
-            <Icon className="size-4" strokeWidth={2.25} />
+            <Icon className="size-3.5 sm:size-4" strokeWidth={2.25} />
           </span>
         ) : null}
       </div>
-      <p className="mt-4 text-[1.65rem] font-semibold tracking-tight tabular-nums text-zinc-950">
+      <p className="mt-2 text-lg font-semibold tracking-tight tabular-nums text-zinc-950 sm:mt-4 sm:text-[1.65rem]">
         {value}
       </p>
-    </SoftCard>
+    </AdminCard>
   );
 }
 
@@ -134,50 +135,45 @@ export default function AdminBusinessProfilePage() {
 
   return (
     <div>
-      <Link
-        href="/admin"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-zinc-500 transition-colors hover:text-zinc-950"
-      >
-        <ArrowLeft className="size-4" />
-        Overview
-      </Link>
+      <AdminBackLink href="/admin/businesses" label="Shops" />
 
       {error ? (
-        <p className="mb-6 text-sm font-medium text-red-600" role="alert">
+        <p className="mb-3 text-sm font-medium text-red-600 sm:mb-6" role="alert">
           {error}
         </p>
       ) : null}
 
-      <SoftCard className="mb-5 overflow-hidden">
+      <AdminCard className="mb-2.5 overflow-hidden sm:mb-5">
         {loading ? (
-          <div className="flex items-center gap-4 p-6">
-            <div className="size-16 animate-pulse rounded-full bg-[var(--well)]" />
+          <div className="flex items-center gap-3 p-3.5 sm:gap-4 sm:p-6">
+            <div className="size-12 animate-pulse rounded-full bg-[var(--well)] sm:size-16" />
             <div className="space-y-2">
-              <div className="h-7 w-48 animate-pulse rounded-lg bg-[var(--well)]" />
-              <div className="h-4 w-32 animate-pulse rounded-lg bg-[var(--well)]" />
+              <div className="h-6 w-40 animate-pulse rounded-lg bg-[var(--well)] sm:h-7 sm:w-48" />
+              <div className="h-4 w-28 animate-pulse rounded-lg bg-[var(--well)] sm:w-32" />
             </div>
           </div>
         ) : business ? (
-          <div className="flex flex-wrap items-start justify-between gap-5 p-6">
-            <div className="flex min-w-0 items-center gap-4">
+          <div className="flex flex-col gap-3 p-3.5 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-5 sm:p-6">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <AdminBusinessAvatar
                 name={business.name}
                 logoUrl={business.logoUrl}
                 size="lg"
+                className="size-12 text-base sm:size-16 sm:text-lg"
               />
               <div className="min-w-0">
-                <h1 className="truncate text-[1.85rem] font-semibold tracking-tight text-zinc-950">
+                <h1 className="truncate text-[1.35rem] font-semibold tracking-tight text-zinc-950 sm:text-[1.85rem]">
                   {business.name}
                 </h1>
-                <p className="mt-1.5 inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-500">
+                <p className="mt-1 inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500 sm:mt-1.5 sm:gap-x-3">
                   {business.businessTypeLabel ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--well)] px-2.5 py-1 text-xs font-semibold text-zinc-600">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--well)] px-2 py-0.5 text-xs font-semibold text-zinc-600 sm:px-2.5 sm:py-1">
                       <Store className="size-3.5" />
                       {business.businessTypeLabel}
                     </span>
                   ) : null}
                   {business.phone ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--well)] px-2.5 py-1 text-xs font-semibold text-zinc-600">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--well)] px-2 py-0.5 text-xs font-semibold text-zinc-600 sm:px-2.5 sm:py-1">
                       <Phone className="size-3.5" />
                       {business.phone}
                     </span>
@@ -188,7 +184,7 @@ export default function AdminBusinessProfilePage() {
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               <span
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold",
@@ -218,9 +214,9 @@ export default function AdminBusinessProfilePage() {
             </div>
           </div>
         ) : null}
-      </SoftCard>
+      </AdminCard>
 
-      <div className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="mb-2.5 grid grid-cols-2 gap-2.5 sm:mb-5 sm:gap-4 md:grid-cols-4">
         <StatTile
           icon={Users}
           label="Customers"
@@ -267,8 +263,8 @@ export default function AdminBusinessProfilePage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-        <SoftCard className="p-6 xl:col-span-1">
+      <div className="grid grid-cols-1 gap-2.5 sm:gap-5 xl:grid-cols-3">
+        <AdminCard className={cn(adminCardPad, "xl:col-span-1")}>
           <AdminSectionTitle icon={Store} title="Shop details" />
           {loading ? (
             <div className="space-y-3">
@@ -310,9 +306,9 @@ export default function AdminBusinessProfilePage() {
               />
             </dl>
           )}
-        </SoftCard>
+        </AdminCard>
 
-        <SoftCard className="p-6 xl:col-span-1">
+        <AdminCard className={cn(adminCardPad, "xl:col-span-1")}>
           <AdminSectionTitle icon={Settings2} title="Settings" />
           {loading ? (
             <div className="space-y-3">
@@ -369,9 +365,9 @@ export default function AdminBusinessProfilePage() {
               />
             </dl>
           )}
-        </SoftCard>
+        </AdminCard>
 
-        <SoftCard className="p-6 xl:col-span-1">
+        <AdminCard className={cn(adminCardPad, "xl:col-span-1")}>
           <AdminSectionTitle icon={ShoppingBag} title="Theme purchases" />
           {loading ? (
             <div className="space-y-3">
@@ -420,17 +416,17 @@ export default function AdminBusinessProfilePage() {
               No paid themes yet.
             </p>
           )}
-        </SoftCard>
+        </AdminCard>
       </div>
 
-      <SoftCard className="mt-5 p-6">
+      <AdminCard className={cn("mt-2.5 sm:mt-5", adminCardPad)}>
         <AdminSectionTitle
           icon={FileText}
           title="Recent bills"
           subtitle="Latest invoices created by this shop"
         />
         {loading ? (
-          <div className="space-y-3">
+          <div className="space-y-2.5 sm:space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
@@ -439,69 +435,112 @@ export default function AdminBusinessProfilePage() {
             ))}
           </div>
         ) : data?.recentBills?.length ? (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-zinc-100 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                  <th className="pb-3 pr-4 font-semibold">Date</th>
-                  <th className="pb-3 pr-4 font-semibold">Customer</th>
-                  <th className="pb-3 pr-4 font-semibold">Mobile</th>
-                  <th className="pb-3 pr-4 font-semibold">Description</th>
-                  <th className="pb-3 pr-4 text-right font-semibold">Amount</th>
-                  <th className="pb-3 pr-4 text-right font-semibold">Due</th>
-                  <th className="pb-3 text-right font-semibold">Preview</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.recentBills.map((bill) => (
-                  <tr key={bill.id} className="border-b border-zinc-50">
-                    <td className="py-3.5 pr-4 text-zinc-500">
-                      {formatDay(bill.occurredOn || bill.createdAt)}
-                    </td>
-                    <td className="py-3.5 pr-4 font-semibold text-zinc-950">
-                      {bill.customerName || "—"}
-                    </td>
-                    <td className="py-3.5 pr-4 tabular-nums text-zinc-500">
-                      {bill.customerPhone || "—"}
-                    </td>
-                    <td className="py-3.5 pr-4 text-zinc-600">
-                      {bill.description || "Bill"}
-                    </td>
-                    <td className="py-3.5 pr-4 text-right tabular-nums font-semibold text-zinc-950">
-                      {formatRupeesFromPaise(bill.amountPaise)}
-                    </td>
-                    <td className="py-3.5 pr-4 text-right tabular-nums text-zinc-500">
-                      {formatRupeesFromPaise(bill.duePaise)}
-                    </td>
-                    <td className="py-3.5 text-right">
+          <>
+            <ul className="divide-y divide-zinc-100 sm:hidden">
+              {data.recentBills.map((bill) => (
+                <li key={bill.id} className="py-3 first:pt-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-zinc-950">
+                        {bill.customerName || "—"}
+                      </p>
+                      <p className="mt-0.5 text-xs text-zinc-400">
+                        {formatDay(bill.occurredOn || bill.createdAt)}
+                        {bill.customerPhone ? ` · ${bill.customerPhone}` : ""}
+                      </p>
+                      <p className="mt-0.5 truncate text-xs text-zinc-500">
+                        {bill.description || "Bill"}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-semibold tabular-nums text-zinc-950">
+                        {formatRupeesFromPaise(bill.amountPaise)}
+                      </p>
+                      <p className="text-xs tabular-nums text-zinc-400">
+                        due {formatRupeesFromPaise(bill.duePaise)}
+                      </p>
                       {bill.publicUrl ? (
                         <a
                           href={bill.publicUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 font-semibold text-[var(--forest)] hover:underline"
+                          className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[var(--forest)]"
                         >
                           Open
-                          <ExternalLink className="size-3.5" />
+                          <ExternalLink className="size-3" />
                         </a>
                       ) : (
-                        <span className="text-zinc-400">Not shared</span>
+                        <p className="mt-1 text-xs text-zinc-400">Not shared</p>
                       )}
-                    </td>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-100 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                    <th className="pb-3 pr-4 font-semibold">Date</th>
+                    <th className="pb-3 pr-4 font-semibold">Customer</th>
+                    <th className="pb-3 pr-4 font-semibold">Mobile</th>
+                    <th className="pb-3 pr-4 font-semibold">Description</th>
+                    <th className="pb-3 pr-4 text-right font-semibold">Amount</th>
+                    <th className="pb-3 pr-4 text-right font-semibold">Due</th>
+                    <th className="pb-3 text-right font-semibold">Preview</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {data.recentBills.map((bill) => (
+                    <tr key={bill.id} className="border-b border-zinc-50">
+                      <td className="py-3.5 pr-4 text-zinc-500">
+                        {formatDay(bill.occurredOn || bill.createdAt)}
+                      </td>
+                      <td className="py-3.5 pr-4 font-semibold text-zinc-950">
+                        {bill.customerName || "—"}
+                      </td>
+                      <td className="py-3.5 pr-4 tabular-nums text-zinc-500">
+                        {bill.customerPhone || "—"}
+                      </td>
+                      <td className="py-3.5 pr-4 text-zinc-600">
+                        {bill.description || "Bill"}
+                      </td>
+                      <td className="py-3.5 pr-4 text-right tabular-nums font-semibold text-zinc-950">
+                        {formatRupeesFromPaise(bill.amountPaise)}
+                      </td>
+                      <td className="py-3.5 pr-4 text-right tabular-nums text-zinc-500">
+                        {formatRupeesFromPaise(bill.duePaise)}
+                      </td>
+                      <td className="py-3.5 text-right">
+                        {bill.publicUrl ? (
+                          <a
+                            href={bill.publicUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 font-semibold text-[var(--forest)] hover:underline"
+                          >
+                            Open
+                            <ExternalLink className="size-3.5" />
+                          </a>
+                        ) : (
+                          <span className="text-zinc-400">Not shared</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
-          <p className="flex flex-col items-center justify-center gap-2 py-10 text-center text-sm text-zinc-500">
+          <p className="flex flex-col items-center justify-center gap-2 py-8 text-center text-sm text-zinc-500 sm:py-10">
             <span className="inline-flex size-10 items-center justify-center rounded-2xl bg-[var(--well)] text-zinc-400">
               <FileText className="size-4" />
             </span>
             No bills yet.
           </p>
         )}
-      </SoftCard>
+      </AdminCard>
     </div>
   );
 }

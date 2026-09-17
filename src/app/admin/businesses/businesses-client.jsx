@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
   BadgeCheck,
   Building2,
   ChevronLeft,
@@ -12,12 +11,13 @@ import {
   CircleAlert,
   Search,
 } from "lucide-react";
-import { SoftCard } from "@/components/ui-kit";
 import { AdminBusinessAvatar } from "@/components/admin/admin-business-avatar";
 import {
-  AdminIconChip,
+  AdminBackLink,
+  AdminCard,
+  AdminDate,
+  AdminPageHeader,
   formatCount,
-  formatShortDate,
 } from "@/components/admin/admin-dashboard";
 import { cn } from "@/lib/utils";
 
@@ -86,30 +86,18 @@ export default function AdminBusinessesPage() {
 
   return (
     <div>
-      <Link
-        href="/admin"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-zinc-500 transition-colors hover:text-zinc-950"
+      <AdminBackLink />
+
+      <AdminPageHeader
+        icon={Building2}
+        title="All businesses"
+        subtitle={
+          loading
+            ? "Loading shops…"
+            : `${formatCount(data?.total || 0)} shops on MoneyKit`
+        }
       >
-        <ArrowLeft className="size-4" />
-        Overview
-      </Link>
-
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <AdminIconChip icon={Building2} className="mt-1 size-10" />
-          <div>
-            <h1 className="text-[1.85rem] font-semibold tracking-tight text-zinc-950">
-              All businesses
-            </h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              {loading
-                ? "Loading shops…"
-                : `${formatCount(data?.total || 0)} shops on MoneyKit`}
-            </p>
-          </div>
-        </div>
-
-        <form onSubmit={onSearch} className="relative w-full max-w-sm">
+        <form onSubmit={onSearch} className="relative w-full sm:max-w-sm">
           <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-400" />
           <input
             value={query}
@@ -118,21 +106,21 @@ export default function AdminBusinessesPage() {
             className="h-11 w-full rounded-full border border-[var(--border)] bg-white pr-4 pl-10 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-[var(--forest)] focus:ring-2 focus:ring-[var(--forest)]/15"
           />
         </form>
-      </div>
+      </AdminPageHeader>
 
       {error ? (
-        <p className="mb-6 text-sm font-medium text-red-600" role="alert">
+        <p className="mb-3 text-sm font-medium text-red-600 sm:mb-6" role="alert">
           {error}
         </p>
       ) : null}
 
-      <SoftCard className="overflow-hidden">
+      <AdminCard className="overflow-hidden">
         {loading ? (
-          <div className="space-y-3 p-6">
+          <div className="space-y-2.5 p-3.5 sm:space-y-3 sm:p-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                className="h-14 animate-pulse rounded-xl bg-[var(--well)]"
+                className="h-12 animate-pulse rounded-xl bg-[var(--well)] sm:h-14"
               />
             ))}
           </div>
@@ -142,7 +130,7 @@ export default function AdminBusinessesPage() {
               <li key={item.id}>
                 <Link
                   href={`/admin/businesses/${item.id}`}
-                  className="flex items-center justify-between gap-4 px-6 py-4 transition-colors hover:bg-zinc-50/80"
+                  className="flex items-center justify-between gap-3 px-3.5 py-3 transition-colors hover:bg-zinc-50/80 sm:gap-4 sm:px-6 sm:py-4"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <AdminBusinessAvatar
@@ -151,7 +139,7 @@ export default function AdminBusinessesPage() {
                       size="md"
                     />
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <p className="truncate text-[15px] font-semibold text-zinc-950">
                           {item.name}
                         </p>
@@ -175,24 +163,29 @@ export default function AdminBusinessesPage() {
                         {[item.businessTypeLabel || item.businessType, item.phone]
                           .filter(Boolean)
                           .join(" · ") || "No details yet"}
+                        <span className="sm:hidden">
+                          {` · `}
+                          <AdminDate value={item.createdAt} />
+                        </span>
                       </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2 text-xs font-medium text-zinc-400">
-                    <span>{formatShortDate(item.createdAt)}</span>
+                  <div className="hidden shrink-0 items-center gap-2 text-xs font-medium text-zinc-400 sm:flex">
+                    <AdminDate value={item.createdAt} />
                     <ChevronRight className="size-4" />
                   </div>
+                  <ChevronRight className="size-4 shrink-0 text-zinc-300 sm:hidden" />
                 </Link>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="p-8 text-sm text-zinc-500">No businesses found.</p>
+          <p className="p-6 text-sm text-zinc-500 sm:p-8">No businesses found.</p>
         )}
-      </SoftCard>
+      </AdminCard>
 
       {!loading && data && totalPages > 1 ? (
-        <div className="mt-5 flex items-center justify-between gap-3">
+        <div className="mt-3 flex items-center justify-between gap-3 sm:mt-5">
           <p className="text-sm text-zinc-500">
             Page {page} of {totalPages}
           </p>
@@ -201,7 +194,7 @@ export default function AdminBusinessesPage() {
               type="button"
               disabled={page <= 1}
               onClick={() => pushParams({ nextPage: page - 1 })}
-              className="inline-flex h-10 items-center gap-1 rounded-full border border-[var(--border)] bg-white px-4 text-sm font-semibold text-zinc-700 disabled:opacity-40"
+              className="inline-flex h-10 items-center gap-1 rounded-full border border-[var(--border)] bg-white px-3.5 text-sm font-semibold text-zinc-700 disabled:opacity-40 sm:px-4"
             >
               <ChevronLeft className="size-4" />
               Prev
@@ -210,7 +203,7 @@ export default function AdminBusinessesPage() {
               type="button"
               disabled={page >= totalPages}
               onClick={() => pushParams({ nextPage: page + 1 })}
-              className="inline-flex h-10 items-center gap-1 rounded-full border border-[var(--border)] bg-white px-4 text-sm font-semibold text-zinc-700 disabled:opacity-40"
+              className="inline-flex h-10 items-center gap-1 rounded-full border border-[var(--border)] bg-white px-3.5 text-sm font-semibold text-zinc-700 disabled:opacity-40 sm:px-4"
             >
               Next
               <ChevronRight className="size-4" />

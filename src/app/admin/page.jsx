@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import {
   AdminActivityChart,
-  AdminIconChip,
+  AdminPageHeader,
   AdminPeriodSummary,
   AdminRangeFilter,
   AdminRecentBusinesses,
@@ -63,28 +63,21 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <AdminIconChip icon={LayoutDashboard} className="mt-1 size-10" />
-          <div>
-            <h1 className="text-[1.85rem] font-semibold tracking-tight text-zinc-950">
-              Overview
-            </h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              Platform activity across all shops.
-            </p>
-          </div>
-        </div>
+      <AdminPageHeader
+        icon={LayoutDashboard}
+        title="Overview"
+        subtitle="Platform activity across all shops."
+      >
         <AdminRangeFilter value={range} onChange={setRange} />
-      </div>
+      </AdminPageHeader>
 
       {error ? (
-        <p className="mb-6 text-sm font-medium text-red-600" role="alert">
+        <p className="mb-3 text-sm font-medium text-red-600 sm:mb-6" role="alert">
           {error}
         </p>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-5 xl:grid-cols-4">
         <AdminStatCard
           icon={Building2}
           label="Businesses"
@@ -119,21 +112,21 @@ export default function AdminDashboardPage() {
         />
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
+      <div className="mt-2.5 grid grid-cols-1 gap-2.5 sm:mt-5 sm:gap-5 xl:grid-cols-3">
         <div className="xl:col-span-2">
           <AdminActivityChart series={metrics?.series} loading={loading} />
         </div>
         <AdminPeriodSummary period={period} loading={loading} />
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
+      <div className="mt-2.5 grid grid-cols-1 gap-2.5 sm:mt-5 sm:gap-5 xl:grid-cols-3">
         <div className="xl:col-span-2">
           <AdminRecentBusinesses
             items={metrics?.recentBusinesses}
             loading={loading}
           />
         </div>
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2.5 sm:gap-5">
           <AdminRecentPurchases
             items={metrics?.recentPurchases}
             loading={loading}

@@ -68,9 +68,9 @@ export function AdminLoginForm() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center px-6 py-16">
+    <div className="flex min-h-dvh items-center justify-center px-4 py-10 pt-[max(2.5rem,env(safe-area-inset-top))] pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-16">
       <div className="w-full max-w-[420px]">
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center sm:mb-8">
           <MoneyKitLogo
             variant="badge"
             badgeSize="lg"
@@ -85,7 +85,7 @@ export function AdminLoginForm() {
           </p>
         </div>
 
-        <SoftCard className="p-7">
+        <SoftCard className="p-5 sm:p-7">
           <form onSubmit={onSubmit} className="space-y-5">
             <div>
               <label
