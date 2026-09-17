@@ -1,4 +1,3 @@
-import { AdminShell } from "@/components/admin/admin-shell";
 import { APP_NAME, BACKGROUND_COLOR, THEME_COLOR } from "@/lib/branding";
 import { ADMIN_MANIFEST_PATH } from "@/lib/web-manifests";
 
@@ -30,5 +29,5 @@ export const viewport = {
 };
 
 export default function AdminLayout({ children }) {
-  return <AdminShell>{children}</AdminShell>;
+  return children;
 }

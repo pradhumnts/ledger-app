@@ -75,7 +75,7 @@ export function AdminShell({ children }) {
         {children}
       </main>
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.06] bg-white/95 px-2 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-black/[0.06] bg-white/95 px-2 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden"
         aria-label="Admin"
       >
         <div className="mx-auto grid max-w-md grid-cols-3 gap-0.5">

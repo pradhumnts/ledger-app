@@ -135,7 +135,7 @@ export default function AdminBusinessProfilePage() {
 
   return (
     <div>
-      <AdminBackLink href="/admin/businesses" label="Shops" />
+      <AdminBackLink href="/admin/businesses" label="Shops" showOnMobile />
 
       {error ? (
         <p className="mb-3 text-sm font-medium text-red-600 sm:mb-6" role="alert">

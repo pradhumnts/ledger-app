@@ -54,11 +54,18 @@ export function AdminPageHeader({ icon: Icon, title, subtitle, children }) {
   );
 }
 
-export function AdminBackLink({ href = "/admin", label = "Overview" }) {
+export function AdminBackLink({
+  href = "/admin",
+  label = "Overview",
+  showOnMobile = false,
+}) {
   return (
     <Link
       href={href}
-      className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-zinc-500 transition-colors hover:text-zinc-950 sm:mb-5"
+      className={cn(
+        "mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-zinc-500 transition-colors hover:text-zinc-950 sm:mb-5",
+        !showOnMobile && "hidden md:inline-flex"
+      )}
     >
       <ArrowLeft className="size-4" />
       {label}
