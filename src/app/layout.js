@@ -14,6 +14,7 @@ import {
   APP_TAGLINE,
   BACKGROUND_COLOR,
 } from "@/lib/branding";
+import { SHOP_MANIFEST_PATH } from "@/lib/web-manifests";
 import "./globals.css";
 import "./qr-fonts.css";
 
@@ -35,7 +36,9 @@ export const metadata = {
   },
   description: APP_DESCRIPTION,
   applicationName: APP_NAME,
-  manifest: "/manifest.webmanifest",
+  manifest: SHOP_MANIFEST_PATH,
+  // Shop users install the React Native Play Store app. The website stays a
+  // browser landing page; /admin has its own standalone PWA manifest.
   icons: {
     icon: [
       { url: APP_ICON_SVG, type: "image/svg+xml" },
@@ -46,7 +49,7 @@ export const metadata = {
     shortcut: APP_ICON_SVG,
   },
   appleWebApp: {
-    capable: true,
+    capable: false,
     statusBarStyle: "default",
     title: APP_NAME,
   },

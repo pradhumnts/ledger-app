@@ -4,7 +4,7 @@ export const INSTALLED_APP_ATTR = "data-installed-app";
 export const SPLASH_CHROME_ATTR = "data-splash";
 export const SKIP_WEB_SPLASH_ATTR = "data-skip-web-splash";
 
-/** Runs before React so the installed app never paints the marketing landing. */
+/** Marks standalone/TWA chrome before React paints splash styles. */
 export const INSTALLED_APP_BOOT_SCRIPT = `(function(){try{if(new URLSearchParams(location.search).get("landing")==="1")return;var app=window.matchMedia("(display-mode: standalone)").matches||window.matchMedia("(display-mode: fullscreen)").matches||window.matchMedia("(display-mode: minimal-ui)").matches||window.navigator.standalone===true||String(document.referrer||"").startsWith("android-app://");if(!app)return;var root=document.documentElement;root.setAttribute("${INSTALLED_APP_ATTR}","1");if(/Android/i.test(navigator.userAgent)){root.setAttribute("${SKIP_WEB_SPLASH_ATTR}","1");return}root.setAttribute("${SPLASH_CHROME_ATTR}","1");document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){if(!m.getAttribute("data-app-color"))m.setAttribute("data-app-color",m.getAttribute("content")||"");m.setAttribute("content","${THEME_COLOR}")})}catch(e){}})();`;
 
 export function isAndroidDevice() {

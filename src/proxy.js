@@ -11,7 +11,12 @@ import {
 
 export async function proxy(request) {
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/api/") || pathname.startsWith("/.well-known/")) {
+  if (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/.well-known/") ||
+    pathname.startsWith("/manifests/") ||
+    pathname.endsWith(".webmanifest")
+  ) {
     return NextResponse.next();
   }
 
@@ -46,6 +51,6 @@ export async function proxy(request) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|_next/data|favicon.ico|manifest.webmanifest|sw.js|workbox|icon|apple-touch-icon|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|map)$).*)",
+    "/((?!api|_next/static|_next/image|_next/data|favicon.ico|manifests|sw.js|workbox|icon|apple-touch-icon|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|map)$).*)",
   ],
 };
