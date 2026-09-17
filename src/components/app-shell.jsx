@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { rememberPath } from "@/lib/nav-memory";
+import { AdminShell } from "@/components/admin/admin-shell";
 import { BottomNav } from "@/components/bottom-nav";
 import { MarketingLanding } from "@/components/marketing-landing";
 import { OnboardingGuard } from "@/components/onboarding-guard";
@@ -56,7 +57,7 @@ export function AppShell({ children }) {
   if (isAdmin) {
     return (
       <div className="min-h-dvh w-full bg-[var(--app-bg)] text-foreground">
-        {children}
+        <AdminShell>{children}</AdminShell>
       </div>
     );
   }

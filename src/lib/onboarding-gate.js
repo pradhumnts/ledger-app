@@ -8,7 +8,7 @@ export function isPublicLegalPath(pathname) {
   );
 }
 
-/** MoneyKit platform admin (desktop) — separate from shop onboarding. */
+/** MoneyKit platform admin — separate from shop onboarding. */
 export function isAdminPath(pathname) {
   return pathname === "/admin" || Boolean(pathname?.startsWith("/admin/"));
 }
