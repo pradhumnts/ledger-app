@@ -46,6 +46,11 @@ function businessLine(business) {
   return bits.join(" · ");
 }
 
+function keepMessageLines(lines) {
+  // Keep intentional blank lines (""); drop null/false/undefined only.
+  return lines.filter((line) => typeof line === "string");
+}
+
 export async function buildEntryMessage({
   entry,
   customer,
@@ -64,8 +69,8 @@ export async function buildEntryMessage({
     themeId,
   });
 
-  const lines = [
-    businessLine(business, lang),
+  const lines = keepMessageLines([
+    businessLine(business) || null,
     "",
     `${
       entry.type === "got"
@@ -76,15 +81,15 @@ export async function buildEntryMessage({
     (entry.type === "got" ||
       (entry.type === "invoice" && Number(entry.due) !== Number(entry.amount)))
       ? `${translate(lang, "entry.due")}: ${formatINR(entry.due)}`
-      : "",
+      : null,
     translate(lang, "share.entryDate", {
       date: formatEntryDate(entry.date, lang),
     }),
-  ];
+  ]);
 
   const withLink = withPayLink(
     [
-      ...lines.filter(Boolean),
+      ...lines,
       "",
       emphasize(translate(lang, "share.viewOnline"), plain),
       billUrl,
@@ -128,15 +133,15 @@ export async function buildCustomerStatementMessage({
     themeId,
   });
 
-  const lines = [
-    businessLine(business, lang),
+  const lines = keepMessageLines([
+    businessLine(business) || null,
     "",
     translate(lang, "share.balance", {
       amount: formatINR(Math.abs(balance)),
       suffix,
     }),
     "",
-  ];
+  ]);
 
   const recent = [...entries]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -162,7 +167,7 @@ export async function buildCustomerStatementMessage({
 
   const withLink = withPayLink(
     [
-      ...lines.filter(Boolean),
+      ...lines,
       "",
       emphasize(translate(lang, "share.viewOnline"), plain),
       billUrl,

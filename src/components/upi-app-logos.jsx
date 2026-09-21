@@ -5,7 +5,7 @@ import gpaySrc from "../../public/google-pay.png";
 import phonePeSrc from "../../public/phone-pe.png";
 import paytmSrc from "../../public/paytm.png";
 import upiSrc from "../../public/UPI-Logo.webp";
-import { capture } from "@/lib/analytics";
+import { capture, amountBucket } from "@/lib/analytics";
 import { openUpiApp } from "@/lib/upi-apps";
 import { cn } from "@/lib/utils";
 
@@ -41,26 +41,47 @@ const LOGOS = [
 ];
 
 /**
- * @param {{ className?: string, openApps?: boolean, phone?: string, kind?: string, hint?: string }} props
+ * @param {{
+ *   className?: string,
+ *   openApps?: boolean,
+ *   phone?: string,
+ *   upiId?: string,
+ *   name?: string,
+ *   amount?: number,
+ *   kind?: string,
+ *   hint?: string,
+ * }} props
  */
 export function UpiAppLogos({
   className,
   openApps = false,
   phone = "",
+  upiId = "",
+  name = "",
+  amount,
   kind = "bill",
   hint,
 }) {
   async function onOpenApp(appId) {
-    const text = String(phone || "").trim();
-    if (text) {
+    const phoneText = String(phone || "").trim();
+    const vpa = String(upiId || "").trim();
+    // Prefer phone on clipboard for paste fallback; else UPI ID.
+    const clip = phoneText || vpa;
+    if (clip) {
       try {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(clip);
       } catch {
         // App open still helps even if clipboard is blocked.
       }
     }
-    capture("public_pay_app_opened", { app: appId, kind, has_phone: Boolean(text) });
-    openUpiApp(appId);
+    capture("public_pay_app_opened", {
+      app: appId,
+      kind,
+      has_phone: Boolean(phoneText),
+      has_upi: Boolean(vpa),
+      amount_bucket: amountBucket(amount),
+    });
+    openUpiApp(appId, { upiId: vpa, name, amount });
   }
 
   return (
@@ -81,7 +102,7 @@ export function UpiAppLogos({
                 key={logo.id}
                 type="button"
                 onClick={() => onOpenApp(logo.id)}
-                aria-label={`Open ${logo.alt}`}
+                aria-label={`Pay with ${logo.alt}`}
                 className="flex size-11 items-center justify-center rounded-2xl border border-black/[0.04] bg-white transition-[transform,opacity] active:scale-95 dark:border-white/10 dark:bg-zinc-950"
               >
                 <Image

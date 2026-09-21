@@ -325,6 +325,9 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
             className="mt-0 gap-4"
             openApps
             phone={phone}
+            upiId={business?.upiId}
+            name={name}
+            amount={hasAmount ? due : undefined}
             kind={kind}
             hint={t("publicBill.openUpiAppHint")}
           />

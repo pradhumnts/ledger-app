@@ -7,10 +7,10 @@ export function isValidUpiId(value) {
 }
 
 /**
- * UPI payload for QR encoding (scan & pay).
+ * Query string for UPI pay intents/QR.
  * Keep `pa` `@` literal — URLSearchParams %40 breaks some apps.
  */
-export function buildUpiPaymentUrl({ upiId, name, amount }) {
+export function buildUpiPayQuery({ upiId, name, amount }) {
   const pa = String(upiId || "").trim();
   if (!isValidUpiId(pa)) return "";
 
@@ -22,6 +22,13 @@ export function buildUpiPaymentUrl({ upiId, name, amount }) {
     parts.push(`am=${paiseToRupees(paise).toFixed(2)}`);
   }
   parts.push("cu=INR");
+  return parts.join("&");
+}
 
-  return `upi://pay?${parts.join("&")}`;
+/**
+ * UPI payload for QR encoding (scan & pay).
+ */
+export function buildUpiPaymentUrl({ upiId, name, amount }) {
+  const query = buildUpiPayQuery({ upiId, name, amount });
+  return query ? `upi://pay?${query}` : "";
 }

@@ -1,35 +1,51 @@
+import { buildUpiPayQuery } from "@/lib/upi";
+
 /**
  * Best-effort deep links to open a specific UPI app from mobile web.
- * Opens the app (when installed) so the customer can send to a phone number.
+ * With a valid VPA (+ optional amount), uses Amazon-style app pay intents.
+ * Without a VPA, opens the app only so the customer can pay to a phone number.
  * Not guaranteed on every device/OS — Android Chrome is the main target.
  */
 
-export const UPI_APP_LINKS = {
+const OPEN_ONLY = {
   gpay: {
-    id: "gpay",
-    label: "Google Pay",
-    // Opens GPay’s UPI surface when possible (no prefilled pay).
-    android: "intent://upi/#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end",
+    android:
+      "intent://upi/#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end",
     ios: "tez://upi/",
     fallback: "tez://upi/",
   },
   phonepe: {
-    id: "phonepe",
-    label: "PhonePe",
-    android:
-      "intent://home#Intent;scheme=phonepe;package=com.phonepe.app;end",
+    android: "intent://home#Intent;scheme=phonepe;package=com.phonepe.app;end",
     ios: "phonepe://",
     fallback: "phonepe://",
   },
   paytm: {
-    id: "paytm",
-    label: "Paytm",
     android:
       "intent://cash_wallet#Intent;scheme=paytmmp;package=net.one97.paytm;end",
     ios: "paytmmp://",
     fallback: "paytmmp://",
   },
 };
+
+function payLinks(query) {
+  return {
+    gpay: {
+      android: `intent://upi/pay?${query}#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end`,
+      ios: `tez://upi/pay?${query}`,
+      fallback: `tez://upi/pay?${query}`,
+    },
+    phonepe: {
+      android: `intent://pay?${query}#Intent;scheme=phonepe;package=com.phonepe.app;end`,
+      ios: `phonepe://pay?${query}`,
+      fallback: `phonepe://pay?${query}`,
+    },
+    paytm: {
+      android: `intent://pay?${query}#Intent;scheme=paytmmp;package=net.one97.paytm;end`,
+      ios: `paytmmp://pay?${query}`,
+      fallback: `paytmmp://pay?${query}`,
+    },
+  };
+}
 
 function isAndroid() {
   if (typeof navigator === "undefined") return false;
@@ -43,15 +59,23 @@ function isIos() {
 
 /**
  * @param {'gpay'|'phonepe'|'paytm'} appId
+ * @param {{ upiId?: string, name?: string, amount?: number }} [payment]
  * @returns {boolean} whether a navigation was attempted
  */
-export function openUpiApp(appId) {
-  const app = UPI_APP_LINKS[appId];
-  if (!app || typeof window === "undefined") return false;
+export function openUpiApp(appId, payment = {}) {
+  if (typeof window === "undefined") return false;
 
-  let href = app.fallback;
-  if (isAndroid()) href = app.android;
-  else if (isIos()) href = app.ios;
+  const query = buildUpiPayQuery({
+    upiId: payment.upiId,
+    name: payment.name,
+    amount: payment.amount,
+  });
+  const links = query ? payLinks(query)[appId] : OPEN_ONLY[appId];
+  if (!links) return false;
+
+  let href = links.fallback;
+  if (isAndroid()) href = links.android;
+  else if (isIos()) href = links.ios;
 
   try {
     window.location.href = href;
