@@ -62,7 +62,7 @@ export function PublicBillScreen({ snapshot, loading = false }) {
   );
 }
 
-function PayWithUpi({ business, amount, logos = true, kind = "bill" }) {
+function PayWithUpi({ business, amount, kind = "bill" }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const hasUpi = isValidUpiId(business?.upiId);
@@ -88,7 +88,6 @@ function PayWithUpi({ business, amount, logos = true, kind = "bill" }) {
           ? t("publicBill.payBusiness", { name: businessName })
           : t("publicBill.pay")}
       </button>
-      {logos ? <UpiAppLogos /> : null}
       {open ? (
         <PublicPaySheet
           business={business}
@@ -336,11 +335,12 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
 
         <div className="pay-sheet-rise pay-sheet-d5 w-full max-w-sm">
           <UpiAppLogos
-            className="mt-0 gap-4"
+            className="mt-0"
             openApps
             phone={phone}
             kind={kind}
             hint={t("publicBill.openUpiAppHint")}
+            actionLabel={t("publicBill.openUpiAppAction")}
           />
         </div>
       </div>
