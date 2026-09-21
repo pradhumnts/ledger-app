@@ -146,7 +146,10 @@ export default function QrThemePage() {
       );
       return;
     }
-    if (isSelected) return;
+    if (isSelected) {
+      setQrTheme(null);
+      return;
+    }
     if (unlockedActive) {
       setQrTheme(active.id);
       return;
@@ -308,11 +311,13 @@ export default function QrThemePage() {
           <button
             type="button"
             onClick={onAction}
-            disabled={buying || requesting || (!isRequestCard && isSelected)}
+            disabled={buying || requesting}
             className={cn(
               "mx-auto flex h-12 w-[70%] items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-[opacity,transform] duration-200 active:scale-[0.98] disabled:pointer-events-none",
-              buying || requesting || (!isRequestCard && isSelected)
+              buying || requesting
                 ? "cursor-default bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                : isSelected
+                  ? "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
                 : unlockedActive || isRequestCard
                   ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950"
                   : "bg-[var(--forest)] text-white dark:bg-[var(--lime)] dark:text-[var(--forest)]"

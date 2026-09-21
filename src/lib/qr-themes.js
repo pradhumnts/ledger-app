@@ -106,7 +106,8 @@ export const QR_THEMES = [
 ];
 
 export function getQrTheme(id) {
-  return QR_THEMES.find((theme) => theme.id === id) || QR_THEMES[0];
+  if (!id) return null;
+  return QR_THEMES.find((theme) => theme.id === id) || null;
 }
 
 export function isQrThemeUnlocked(theme, unlockedIds = []) {

@@ -14,7 +14,7 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { useTranslation } from "@/hooks/use-translation";
 import { capture } from "@/lib/analytics";
 import { initials } from "@/lib/format";
-import { getQrTheme, isQrThemeUnlocked, QR_THEMES } from "@/lib/qr-themes";
+import { getQrTheme, isQrThemeUnlocked } from "@/lib/qr-themes";
 import { PAY_CHROME, resolveQrThemeStyle } from "@/lib/qr-theme-styles";
 import { sharePayPoster } from "@/lib/share-pay-poster";
 import { sampleImageTopColor } from "@/lib/theme-color";
@@ -87,9 +87,10 @@ export default function PayPage() {
   const unlocked = settings.unlockedQrThemes || [];
 
   const theme = useMemo(() => {
+    if (!settings.qrTheme) return null;
     const selected = getQrTheme(settings.qrTheme);
     if (isQrThemeUnlocked(selected, unlocked)) return selected;
-    return QR_THEMES.find((item) => unlocked.includes(item.id)) || null;
+    return null;
   }, [settings.qrTheme, unlocked]);
 
   const paymentUrl = useMemo(
@@ -174,7 +175,7 @@ export default function PayPage() {
   }
 
   async function onSharePoster() {
-    if (sharing) return;
+    if (sharing || !theme) return;
     setSharing(true);
     try {
       await sharePayPoster({
@@ -304,19 +305,6 @@ export default function PayPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onSharePoster}
-            disabled={sharing}
-            className="inline-flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-zinc-700 shadow-sm disabled:opacity-55 dark:border-white/12 dark:bg-[var(--card)]"
-            aria-label={t("pay.shareQr")}
-          >
-            {sharing ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Share2 className="size-4" />
-            )}
-          </button>
           <Link
             href="/settings/qr-theme"
             className="inline-flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-zinc-700 shadow-sm dark:border-white/12 dark:bg-[var(--card)]"

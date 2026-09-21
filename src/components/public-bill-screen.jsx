@@ -1,18 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
-import { IndianRupee } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Check, Copy, Download, X } from "lucide-react";
 import { ActivityRow } from "@/components/activity-row";
 import { CreatedWithMoneyKit } from "@/components/created-with-moneykit";
 import { EntryBillPreview } from "@/components/entry-bill-preview";
 import { MoneyKitLogo } from "@/components/moneykit-logo";
 import { PageSpinner } from "@/components/page-spinner";
+import { QrCodeBlock } from "@/components/qr-code-block";
 import { UpiAppLogos } from "@/components/upi-app-logos";
 import { Divider, SoftCard } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/use-translation";
 import { capture, amountBucket } from "@/lib/analytics";
 import { APP_NAME, PLAY_STORE_URL } from "@/lib/branding";
-import { entryTypeLabel, resolveEntryWhen } from "@/lib/format";
+import { downloadPaySheetCard } from "@/lib/capture-pay-sheet";
+import { entryTypeLabel, formatINR, resolveEntryWhen } from "@/lib/format";
 import { collectableRupees } from "@/lib/ledger-math";
 import { isPublicStatement, payAmountForPublicBill } from "@/lib/public-bill";
 import { buildUpiPaymentUrl, isValidUpiId } from "@/lib/upi";
@@ -60,36 +62,268 @@ export function PublicBillScreen({ snapshot, loading = false }) {
   );
 }
 
-function upiPayUrl(business, amount) {
-  return isValidUpiId(business?.upiId)
-    ? buildUpiPaymentUrl({
-        upiId: business.upiId,
-        name: business.name,
-        amount,
-      })
-    : "";
-}
-
 function PayWithUpi({ business, amount, logos = true, kind = "bill" }) {
   const { t } = useTranslation();
-  const upiUrl = upiPayUrl(business, amount);
-  if (!upiUrl) return null;
+  const [open, setOpen] = useState(false);
+  const hasUpi = isValidUpiId(business?.upiId);
+  const businessName = String(business?.name || "").trim();
+  const due = Number(amount);
+  const hasDue = Number.isFinite(due) && due > 0;
+  if (!hasUpi || !hasDue) return null;
+
   return (
     <div className="mt-5">
-      <a
-        href={upiUrl}
-        onClick={() =>
+      <button
+        type="button"
+        onClick={() => {
           capture("upi_pay_tapped", {
             kind,
             amount_bucket: amountBucket(amount),
-          })
-        }
-        className="flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--forest)] text-sm font-semibold text-white dark:bg-[var(--lime)] dark:text-[var(--forest)]"
+          });
+          setOpen(true);
+        }}
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--forest)] px-5 text-sm font-semibold text-white dark:bg-[var(--lime)] dark:text-[var(--forest)]"
       >
-        <IndianRupee className="size-4" />
-        {t("publicBill.pay")}
-      </a>
+        {businessName
+          ? t("publicBill.payBusiness", { name: businessName })
+          : t("publicBill.pay")}
+      </button>
       {logos ? <UpiAppLogos /> : null}
+      {open ? (
+        <PublicPaySheet
+          business={business}
+          amount={amount}
+          kind={kind}
+          onClose={() => setOpen(false)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function PublicPaySheet({ business, amount, kind, onClose }) {
+  const { t } = useTranslation();
+  const cardRef = useRef(null);
+  const [leaving, setLeaving] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const name = String(business?.name || "").trim();
+  const phone = String(business?.phone || "").trim();
+  const due = Number(amount);
+  const hasAmount = Number.isFinite(due) && due > 0;
+  const paymentUrl = buildUpiPaymentUrl({
+    upiId: business?.upiId,
+    name: name || undefined,
+    amount: hasAmount ? due : undefined,
+  });
+  const actionCount = Number(Boolean(phone)) + Number(Boolean(paymentUrl));
+
+  function requestClose() {
+    if (leaving) return;
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    if (reduceMotion) {
+      onClose();
+      return;
+    }
+    setLeaving(true);
+  }
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!leaving) return;
+    const timer = window.setTimeout(() => onClose(), 220);
+    return () => window.clearTimeout(timer);
+  }, [leaving, onClose]);
+
+  useEffect(() => {
+    function onKey(event) {
+      if (event.key === "Escape") requestClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [leaving, onClose]);
+
+  async function copyPhone() {
+    if (!phone) return;
+    try {
+      await navigator.clipboard.writeText(phone);
+      setCopiedPhone(true);
+      window.setTimeout(() => setCopiedPhone(false), 1800);
+      capture("public_pay_copied", { field: "phone", kind });
+    } catch {
+      // ignore
+    }
+  }
+
+  async function downloadQr() {
+    if (!paymentUrl || downloading || !cardRef.current) return;
+    setDownloading(true);
+    try {
+      const slug = (name || "moneykit")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 40);
+      await downloadPaySheetCard(
+        cardRef.current,
+        `${slug || "moneykit"}-upi-qr.png`
+      );
+      capture("public_pay_qr_downloaded", {
+        kind,
+        amount_bucket: amountBucket(amount),
+      });
+    } catch {
+      // ignore — keep sheet open so they can retry / scan
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <div
+      className={`pay-sheet-backdrop fixed inset-0 z-50 flex flex-col overflow-hidden bg-[var(--app-bg)]${
+        leaving ? " pay-sheet-leaving" : ""
+      }`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={
+        name
+          ? t("publicBill.payBusiness", { name })
+          : t("publicBill.payScanHint")
+      }
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[42%] bg-[radial-gradient(ellipse_at_top,rgba(11,48,31,0.14),transparent_68%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(200,232,106,0.12),transparent_70%)]"
+      />
+
+      <div className="relative z-10 flex justify-end px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2">
+        <button
+          type="button"
+          onClick={requestClose}
+          aria-label={t("publicBill.close")}
+          className="flex size-10 items-center justify-center rounded-full border border-black/[0.04] bg-white/90 text-zinc-600 backdrop-blur-sm transition-colors hover:text-zinc-950 dark:border-white/10 dark:bg-zinc-900/90 dark:text-zinc-300 dark:hover:text-white"
+        >
+          <X className="size-5" strokeWidth={2} />
+        </button>
+      </div>
+
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-5 overflow-y-auto px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
+        <div className="pay-sheet-rise pay-sheet-d2 w-full max-w-sm">
+          <div
+            ref={cardRef}
+            className="rounded-[1.75rem] bg-[var(--app-bg)] px-5 pb-6 pt-5"
+          >
+            <div className="flex flex-col items-center gap-5">
+              <div className="flex items-center gap-2.5">
+                <div
+                  data-pay-sheet-logo
+                  className="size-9 overflow-hidden rounded-[0.85rem] bg-white"
+                >
+                  <MoneyKitLogo size={36} className="size-9 rounded-[0.85rem]" />
+                </div>
+                <div>
+                  <p className="text-[15px] font-semibold tracking-tight text-zinc-950 dark:text-white">
+                    {APP_NAME}
+                  </p>
+                  <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+                    {t("publicBill.payScanHint")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="w-full text-center">
+                {name ? (
+                  <h2 className="text-[1.35rem] font-semibold tracking-tight text-zinc-950 dark:text-white">
+                    {name}
+                  </h2>
+                ) : null}
+                {phone ? (
+                  <p
+                    className={`text-[15px] font-medium tabular-nums tracking-tight text-zinc-500 dark:text-zinc-400 ${
+                      name ? "mt-1.5" : ""
+                    }`}
+                  >
+                    {phone}
+                  </p>
+                ) : null}
+                {hasAmount ? (
+                  <p
+                    className={`font-semibold tracking-tight text-zinc-950 dark:text-white ${
+                      name || phone ? "mt-2.5" : ""
+                    } text-[2.35rem] leading-none tabular-nums sm:text-[2.6rem]`}
+                  >
+                    {formatINR(due)}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="w-full max-w-[17.5rem]">
+                <div className="rounded-[1.75rem] border border-black/[0.04] bg-white p-5 dark:border-white/10 dark:bg-zinc-950">
+                  {paymentUrl ? (
+                    <QrCodeBlock value={paymentUrl} className="w-full" />
+                  ) : null}
+                </div>
+                <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[var(--lime)]/80" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {actionCount > 0 ? (
+          <div
+            className={`pay-sheet-rise pay-sheet-d4 grid w-full max-w-sm gap-2.5 ${
+              actionCount > 1 ? "grid-cols-2" : "grid-cols-1"
+            }`}
+          >
+            {phone ? (
+              <button
+                type="button"
+                onClick={copyPhone}
+                className="flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--forest)] px-3 text-[13px] font-semibold text-white transition-[transform,opacity] active:scale-[0.98] dark:bg-[var(--lime)] dark:text-[var(--forest)]"
+              >
+                {copiedPhone ? (
+                  <>
+                    <Check className="size-4 shrink-0" strokeWidth={2.5} />
+                    {t("publicBill.copied")}
+                  </>
+                ) : (
+                  <>
+                    <Copy className="size-4 shrink-0" strokeWidth={2} />
+                    {t("publicBill.copyPhone")}
+                  </>
+                )}
+              </button>
+            ) : null}
+            {paymentUrl ? (
+              <button
+                type="button"
+                onClick={downloadQr}
+                disabled={downloading}
+                className="flex h-12 items-center justify-center gap-2 rounded-full border border-black/[0.06] bg-white px-3 text-[13px] font-semibold text-zinc-950 transition-[transform,opacity] active:scale-[0.98] disabled:opacity-60 dark:border-white/10 dark:bg-zinc-950 dark:text-white"
+              >
+                <Download className="size-4 shrink-0" strokeWidth={2} />
+                {downloading
+                  ? t("publicBill.downloadingQr")
+                  : t("publicBill.downloadQr")}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="pay-sheet-rise pay-sheet-d5">
+          <UpiAppLogos className="mt-0 gap-4" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -138,7 +372,7 @@ function PublicStatementBody({ snapshot }) {
 
       <PayWithUpi
         business={business}
-        amount={due > 0 ? due : undefined}
+        amount={due}
         kind="statement"
       />
 

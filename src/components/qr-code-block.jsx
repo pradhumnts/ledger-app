@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import QRCodeStyling from "qr-code-styling";
 import { APP_LOGO_WEBP } from "@/lib/branding";
 import { cn } from "@/lib/utils";
@@ -23,19 +23,27 @@ const QR_SHAPES = {
   },
 };
 
-export function QrCodeBlock({
-  value,
-  fg = "#18181b",
-  bg = "#ffffff",
-  style = "square",
-  className = "",
-}) {
-  const ref = useRef(null);
+export const QrCodeBlock = forwardRef(function QrCodeBlock(
+  { value, fg = "#18181b", bg = "#ffffff", style = "square", className = "" },
+  ref
+) {
+  const containerRef = useRef(null);
   const qrRef = useRef(null);
   const shape = QR_SHAPES[style] || QR_SHAPES.square;
 
+  useImperativeHandle(ref, () => ({
+    async download(filename = "moneykit-qr") {
+      if (!qrRef.current || !value) return false;
+      await qrRef.current.download({
+        name: filename,
+        extension: "png",
+      });
+      return true;
+    },
+  }));
+
   useEffect(() => {
-    if (!ref.current) return;
+    if (!containerRef.current) return;
 
     if (!qrRef.current) {
       qrRef.current = new QRCodeStyling({
@@ -50,7 +58,7 @@ export function QrCodeBlock({
         cornersDotOptions: { color: fg, type: shape.cornersDot },
         backgroundOptions: { color: bg },
       });
-      qrRef.current.append(ref.current);
+      qrRef.current.append(containerRef.current);
     } else {
       qrRef.current.update({
         data: value,
@@ -67,7 +75,7 @@ export function QrCodeBlock({
       className={cn("ph-no-capture relative", className)}
       aria-hidden={!value}
     >
-      <div ref={ref} className="[&_svg]:h-auto [&_svg]:w-full" />
+      <div ref={containerRef} className="[&_svg]:h-auto [&_svg]:w-full" />
       {value ? (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div
@@ -84,4 +92,4 @@ export function QrCodeBlock({
       ) : null}
     </div>
   );
-}
+});

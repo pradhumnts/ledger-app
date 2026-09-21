@@ -149,9 +149,7 @@ export function payAmountForPublicBill(entry) {
   if (!entry) return undefined;
   const due = Number(entry.due);
   if (Number.isFinite(due) && due > 0) return due;
-  if (entry.type === "got") return undefined;
-  const amount = Number(entry.amount);
-  return Number.isFinite(amount) && amount > 0 ? amount : undefined;
+  return undefined;
 }
 
 const MAX_STATEMENT_ENTRIES = 20;
