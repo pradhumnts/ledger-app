@@ -320,8 +320,14 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
           </div>
         ) : null}
 
-        <div className="pay-sheet-rise pay-sheet-d5">
-          <UpiAppLogos className="mt-0 gap-4" />
+        <div className="pay-sheet-rise pay-sheet-d5 w-full max-w-sm">
+          <UpiAppLogos
+            className="mt-0 gap-4"
+            openApps
+            phone={phone}
+            kind={kind}
+            hint={t("publicBill.openUpiAppHint")}
+          />
         </div>
       </div>
     </div>
