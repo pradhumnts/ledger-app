@@ -5,7 +5,7 @@ import gpaySrc from "../../public/google-pay.png";
 import phonePeSrc from "../../public/phone-pe.png";
 import paytmSrc from "../../public/paytm.png";
 import upiSrc from "../../public/UPI-Logo.webp";
-import { capture, amountBucket } from "@/lib/analytics";
+import { capture } from "@/lib/analytics";
 import { openUpiApp } from "@/lib/upi-apps";
 import { cn } from "@/lib/utils";
 
@@ -45,9 +45,6 @@ const LOGOS = [
  *   className?: string,
  *   openApps?: boolean,
  *   phone?: string,
- *   upiId?: string,
- *   name?: string,
- *   amount?: number,
  *   kind?: string,
  *   hint?: string,
  * }} props
@@ -56,20 +53,14 @@ export function UpiAppLogos({
   className,
   openApps = false,
   phone = "",
-  upiId = "",
-  name = "",
-  amount,
   kind = "bill",
   hint,
 }) {
   async function onOpenApp(appId) {
     const phoneText = String(phone || "").trim();
-    const vpa = String(upiId || "").trim();
-    // Prefer phone on clipboard for paste fallback; else UPI ID.
-    const clip = phoneText || vpa;
-    if (clip) {
+    if (phoneText) {
       try {
-        await navigator.clipboard.writeText(clip);
+        await navigator.clipboard.writeText(phoneText);
       } catch {
         // App open still helps even if clipboard is blocked.
       }
@@ -78,10 +69,8 @@ export function UpiAppLogos({
       app: appId,
       kind,
       has_phone: Boolean(phoneText),
-      has_upi: Boolean(vpa),
-      amount_bucket: amountBucket(amount),
     });
-    openUpiApp(appId, { upiId: vpa, name, amount });
+    openUpiApp(appId);
   }
 
   return (
@@ -102,7 +91,7 @@ export function UpiAppLogos({
                 key={logo.id}
                 type="button"
                 onClick={() => onOpenApp(logo.id)}
-                aria-label={`Pay with ${logo.alt}`}
+                aria-label={`Open ${logo.alt}`}
                 className="flex size-11 items-center justify-center rounded-2xl border border-black/[0.04] bg-white transition-[transform,opacity] active:scale-95 dark:border-white/10 dark:bg-zinc-950"
               >
                 <Image

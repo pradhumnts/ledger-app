@@ -131,16 +131,33 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
   }
 
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const { body, documentElement } = document;
+    const scrollY = window.scrollY;
+    const prev = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      htmlOverflow: documentElement.style.overflow,
+    };
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    documentElement.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = prev;
+      body.style.overflow = prev.overflow;
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      documentElement.style.overflow = prev.htmlOverflow;
+      window.scrollTo(0, scrollY);
     };
   }, []);
 
   useEffect(() => {
     if (!leaving) return;
-    const timer = window.setTimeout(() => onClose(), 220);
+    const timer = window.setTimeout(() => onClose(), 200);
     return () => window.clearTimeout(timer);
   }, [leaving, onClose]);
 
@@ -190,7 +207,7 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
 
   return (
     <div
-      className={`pay-sheet-backdrop fixed inset-0 z-50 flex flex-col overflow-hidden bg-[var(--app-bg)]${
+      className={`pay-sheet-backdrop fixed inset-0 z-50 flex h-dvh max-h-dvh flex-col overflow-hidden overscroll-none bg-[var(--app-bg)]${
         leaving ? " pay-sheet-leaving" : ""
       }`}
       role="dialog"
@@ -203,10 +220,10 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[42%] bg-[radial-gradient(ellipse_at_top,rgba(11,48,31,0.14),transparent_68%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(200,232,106,0.12),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[38%] bg-[radial-gradient(ellipse_at_top,rgba(11,48,31,0.1),transparent_72%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(200,232,106,0.1),transparent_72%)]"
       />
 
-      <div className="relative z-10 flex justify-end px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2">
+      <div className="relative z-10 flex shrink-0 justify-end px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-2">
         <button
           type="button"
           onClick={requestClose}
@@ -217,12 +234,9 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
         </button>
       </div>
 
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-5 overflow-y-auto px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center gap-5 overflow-x-hidden overflow-y-auto overscroll-contain px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
         <div className="pay-sheet-rise pay-sheet-d2 w-full max-w-sm">
-          <div
-            ref={cardRef}
-            className="rounded-[1.75rem] bg-[var(--app-bg)] px-5 pb-6 pt-5"
-          >
+          <div ref={cardRef} className="px-1 pb-2 pt-1">
             <div className="flex flex-col items-center gap-5">
               <div className="flex items-center gap-2.5">
                 <div
@@ -325,9 +339,6 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
             className="mt-0 gap-4"
             openApps
             phone={phone}
-            upiId={business?.upiId}
-            name={name}
-            amount={hasAmount ? due : undefined}
             kind={kind}
             hint={t("publicBill.openUpiAppHint")}
           />
