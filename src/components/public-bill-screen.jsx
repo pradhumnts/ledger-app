@@ -233,10 +233,10 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
         </button>
       </div>
 
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center gap-5 overflow-x-hidden overflow-y-auto overscroll-contain px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center gap-3.5 overflow-x-hidden overflow-y-auto overscroll-contain px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <div className="pay-sheet-rise pay-sheet-d2 w-full max-w-sm">
-          <div ref={cardRef} className="px-1 pb-2 pt-1">
-            <div className="flex flex-col items-center gap-5">
+          <div ref={cardRef} className="px-1 pb-1 pt-0.5">
+            <div className="flex flex-col items-center gap-3.5">
               <div className="flex items-center gap-2.5">
                 <div
                   data-pay-sheet-logo
@@ -256,14 +256,14 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
 
               <div className="w-full text-center">
                 {name ? (
-                  <h2 className="text-[1.35rem] font-semibold tracking-tight text-zinc-950 dark:text-white">
+                  <h2 className="text-[1.25rem] font-semibold tracking-tight text-zinc-950 dark:text-white">
                     {name}
                   </h2>
                 ) : null}
                 {phone ? (
                   <p
-                    className={`text-[15px] font-medium tabular-nums tracking-tight text-zinc-500 dark:text-zinc-400 ${
-                      name ? "mt-1.5" : ""
+                    className={`text-[14px] font-medium tabular-nums tracking-tight text-zinc-500 dark:text-zinc-400 ${
+                      name ? "mt-1" : ""
                     }`}
                   >
                     {phone}
@@ -272,21 +272,21 @@ function PublicPaySheet({ business, amount, kind, onClose }) {
                 {hasAmount ? (
                   <p
                     className={`font-semibold tracking-tight text-zinc-950 dark:text-white ${
-                      name || phone ? "mt-2.5" : ""
-                    } text-[2.35rem] leading-none tabular-nums sm:text-[2.6rem]`}
+                      name || phone ? "mt-2" : ""
+                    } text-[2rem] leading-none tabular-nums sm:text-[2.25rem]`}
                   >
                     {formatINR(due)}
                   </p>
                 ) : null}
               </div>
 
-              <div className="w-full max-w-[17.5rem]">
-                <div className="rounded-[1.75rem] border border-black/[0.04] bg-white p-5 dark:border-white/10 dark:bg-zinc-950">
+              <div className="w-full max-w-[13.25rem]">
+                <div className="rounded-[1.5rem] border border-black/[0.04] bg-white p-3.5 dark:border-white/10 dark:bg-zinc-950">
                   {paymentUrl ? (
                     <QrCodeBlock value={paymentUrl} className="w-full" />
                   ) : null}
                 </div>
-                <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[var(--lime)]/80" />
+                <div className="mx-auto mt-2.5 h-1 w-9 rounded-full bg-[var(--lime)]/80" />
               </div>
             </div>
           </div>
