@@ -1,0 +1,45 @@
+import { revalidatePath } from "next/cache";
+import { corsJson, corsPreflight } from "@/lib/api-cors";
+import { siteRequest } from "@/lib/sites/api";
+import { loadSiteForUser } from "@/lib/sites/store";
+import {
+  recordPlaySubscription,
+  siteAccess,
+  SubscriptionError,
+} from "@/lib/sites/subscription";
+
+export const runtime = "nodejs";
+
+const ERROR_STATUS = {
+  notConfigured: 503,
+  otherAccount: 409,
+  save: 500,
+};
+
+export async function OPTIONS(request) {
+  return corsPreflight(request);
+}
+
+/** Store a Play purchase token (when sent) and return the shop's publish access. */
+export async function POST(request) {
+  const ctx = await siteRequest(request);
+  if (ctx.response) return ctx.response;
+  const { admin, user, body } = ctx;
+
+  const purchaseToken = String(body.purchaseToken || "").trim();
+  if (purchaseToken) {
+    try {
+      await recordPlaySubscription(admin, { userId: user.id, purchaseToken });
+    } catch (error) {
+      const code = error instanceof SubscriptionError ? error.code : "notVerified";
+      return corsJson(request, { error: code }, { status: ERROR_STATUS[code] || 400 });
+    }
+  }
+
+  const access = await siteAccess(admin, user);
+  if (purchaseToken && access.active) {
+    const site = await loadSiteForUser(admin, user.id);
+    if (site?.slug && site.status === "live") revalidatePath(`/sites/${site.slug}`);
+  }
+  return corsJson(request, { access });
+}

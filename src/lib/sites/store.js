@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { siteUrl, slugProblem } from "@/lib/sites/config";
+import { ownerHasSiteAccess } from "@/lib/sites/subscription";
 
 const MEDIA_BUCKET = "site-media";
 
@@ -27,10 +28,11 @@ export async function loadLiveSite(slug) {
   if (!admin) return null;
   const { data } = await admin
     .from("sites")
-    .select("slug, status, published, published_at")
+    .select("user_id, slug, status, published, published_at")
     .eq("slug", slug)
     .maybeSingle();
   if (!data || data.status !== "live" || !data.published) return null;
+  if (!(await ownerHasSiteAccess(admin, data.user_id))) return null;
   return data;
 }
 
@@ -50,6 +52,20 @@ export async function loadBusiness(admin, userId) {
     .eq("user_id", userId)
     .maybeSingle();
   return data || {};
+}
+
+/** Saved business row, filled in from the app's local copy when it has not synced yet. */
+export async function loadProfile(admin, userId, local) {
+  const business = await loadBusiness(admin, userId);
+  const source = local && typeof local === "object" ? local : {};
+  const pick = (value, fallback) => String(value || "").trim() || String(fallback || "").trim();
+  return {
+    ...business,
+    name: pick(business.name, source.name),
+    phone: pick(business.phone, source.phone),
+    address: pick(business.address, source.address),
+    business_type: pick(business.business_type, source.type),
+  };
 }
 
 export async function isSlugTaken(admin, slug, userId) {

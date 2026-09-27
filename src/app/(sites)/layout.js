@@ -1,15 +1,16 @@
-import { Cormorant_Garamond, Geist } from "next/font/google";
+import { DM_Sans, Instrument_Serif } from "next/font/google";
 import "./sites.css";
 
-const sans = Geist({
+const sans = DM_Sans({
   variable: "--font-site-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
-const serif = Cormorant_Garamond({
+const serif = Instrument_Serif({
   variable: "--font-site-serif",
   subsets: ["latin"],
-  weight: ["500", "600"],
+  weight: "400",
   style: ["normal", "italic"],
 });
 
@@ -21,7 +22,7 @@ export const viewport = {
 
 export default function SitesLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${sans.variable} ${serif.variable} font-sans antialiased`}>
         {children}
       </body>

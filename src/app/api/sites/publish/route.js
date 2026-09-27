@@ -1,8 +1,8 @@
 import { revalidatePath } from "next/cache";
 import { corsJson, corsPreflight } from "@/lib/api-cors";
 import { siteRequest } from "@/lib/sites/api";
-import { isFreePublish } from "@/lib/sites/config";
 import { publishDraft, siteSummary } from "@/lib/sites/store";
+import { siteAccess } from "@/lib/sites/subscription";
 
 export const runtime = "nodejs";
 
@@ -15,8 +15,9 @@ export async function POST(request) {
   if (ctx.response) return ctx.response;
   const { admin, user } = ctx;
 
-  if (!isFreePublish()) {
-    return corsJson(request, { error: "subscriptionRequired" }, { status: 402 });
+  const access = await siteAccess(admin, user);
+  if (!access.active) {
+    return corsJson(request, { error: "subscriptionRequired", access }, { status: 402 });
   }
 
   const { row, error } = await publishDraft(admin, user.id);
@@ -26,5 +27,5 @@ export async function POST(request) {
   }
 
   revalidatePath(`/sites/${row.slug}`);
-  return corsJson(request, { site: siteSummary(row) });
+  return corsJson(request, { site: siteSummary(row), access });
 }

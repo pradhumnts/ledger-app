@@ -90,6 +90,56 @@ export async function getPlayProductPurchase(sku, purchaseToken) {
   return body;
 }
 
+function purchasesUrl(packageName, path) {
+  return (
+    `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+    `${encodeURIComponent(packageName)}/purchases/${path}`
+  );
+}
+
+/** Subscription state from Google (subscriptionsv2), the source of truth for renewals. */
+export async function getPlaySubscription(purchaseToken) {
+  const { packageName, configured } = playBillingConfig();
+  if (!configured) {
+    throw new Error("Play Billing is not configured on the server.");
+  }
+
+  const accessToken = await getAccessToken();
+  const url = purchasesUrl(
+    packageName,
+    `subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`
+  );
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    cache: "no-store",
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.error?.message || "Could not confirm that Play subscription.");
+  }
+  return body;
+}
+
+export async function acknowledgePlaySubscription(productId, purchaseToken) {
+  const { packageName, configured } = playBillingConfig();
+  if (!configured) return;
+
+  const accessToken = await getAccessToken();
+  const url = purchasesUrl(
+    packageName,
+    `subscriptions/${encodeURIComponent(productId)}/tokens/` +
+      `${encodeURIComponent(purchaseToken)}:acknowledge`
+  );
+  await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: "{}",
+  });
+}
+
 export async function acknowledgePlayPurchase(sku, purchaseToken) {
   const { packageName, configured } = playBillingConfig();
   if (!configured) return;

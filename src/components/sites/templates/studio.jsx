@@ -1,192 +1,554 @@
 /* eslint-disable @next/next/no-img-element -- plain <img> keeps customer sites off Vercel image optimisation billing */
-import { ArrowUpRight, Clock, MapPin, Phone } from "lucide-react";
-import { InstagramIcon, WhatsAppIcon } from "@/components/sites/icons";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Camera,
+  Clock,
+  MapPin,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
+import {
+  FacebookIcon,
+  InstagramIcon,
+  WhatsAppIcon,
+  YouTubeIcon,
+} from "@/components/sites/icons";
+import { MobileMenu } from "@/components/sites/mobile-menu";
 import { APP_SITE_URL } from "@/lib/branding";
 import {
   formatRupees,
   instagramHandle,
-  instagramUrl,
   mapsUrl,
+  phoneDigits,
+  socialUrl,
   telUrl,
   whatsappUrl,
 } from "@/lib/sites/links";
+import { getPack } from "@/lib/sites/packs";
 
-const container = "mx-auto w-full max-w-6xl px-5 sm:px-8";
+/** Headline → [plain line, italic line]: split after the first comma, else the last word or two. */
+function splitTitle(title) {
+  const text = String(title || "").trim();
+  const mark = text.search(/[,:;]\s/);
+  if (mark > 0 && mark < text.length - 2) {
+    return [text.slice(0, mark + 1), text.slice(mark + 1).trim()];
+  }
+  const words = text.split(/\s+/);
+  if (words.length < 3) return [text, ""];
+  const tail = words.length > 4 ? 2 : 1;
+  return [words.slice(0, -tail).join(" "), words.slice(-tail).join(" ")];
+}
 
-function SectionTitle({ children, align = "left" }) {
-  if (!children) return null;
+function titleSize(title) {
+  const length = String(title || "").length;
+  if (length <= 24) return undefined;
+  return length <= 44 ? "m" : "s";
+}
+
+function cityFrom(address) {
+  const parts = String(address || "")
+    .split(/[,\n]/)
+    .map((part) =>
+      part
+        .replace(/\d+/g, "")
+        .replace(/[\s-]+$/, "")
+        .trim(),
+    )
+    .filter((part) => part && !/^india$/i.test(part));
+  return parts.at(-1) || "";
+}
+
+function formatPhone(value) {
+  const digits = phoneDigits(value);
+  if (digits.length !== 10) return String(value || "").trim();
+  return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+}
+
+function initialOf(name) {
   return (
-    <h2
-      className={`font-serif text-4xl leading-tight font-semibold sm:text-5xl ${
-        align === "center" ? "text-center" : ""
-      }`}
-    >
-      {children}
-    </h2>
+    String(name || "")
+      .trim()
+      .charAt(0)
+      .toUpperCase() || "M"
   );
 }
 
-function Header({ business, whatsapp, links }) {
+function linkProps(href) {
+  return href?.startsWith("http")
+    ? { target: "_blank", rel: "noopener noreferrer" }
+    : {};
+}
+
+function BrandMark({ business, ui, light = false }) {
   return (
-    <header className="absolute inset-x-0 top-0 z-20">
-      <div className={`${container} flex items-center justify-between gap-4 py-5`}>
-        <a href="#top" className="flex min-w-0 items-center gap-3 text-white">
-          {business.logo ? (
-            <img
-              src={business.logo}
-              alt=""
-              className="size-10 shrink-0 rounded-full object-cover ring-1 ring-white/30"
-            />
-          ) : null}
-          <span className="truncate font-serif text-2xl font-semibold tracking-wide">
-            {business.name}
-          </span>
+    <span
+      className={`grid size-11 shrink-0 place-items-center overflow-hidden rounded-full ${
+        light ? "bg-s-accent text-s-on-accent" : "bg-s-brand text-s-accent"
+      }`}
+    >
+      {business.logo ? (
+        <img src={business.logo} alt="" className="size-full object-cover" />
+      ) : ui.icon === "camera" ? (
+        <Camera className="size-5" strokeWidth={1.6} />
+      ) : (
+        <span className="s-serif text-xl leading-none">
+          {initialOf(business.name)}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function Wordmark({ business, ui, light = false }) {
+  return (
+    <>
+      <BrandMark business={business} ui={ui} light={light} />
+      <span className="s-serif truncate text-[1.6rem] leading-none tracking-[-0.01em]">
+        {business.name}
+      </span>
+    </>
+  );
+}
+
+function Header({ business, ui, links, cta }) {
+  return (
+    <header className="s-header sticky top-0 z-40">
+      <div className="s-wrap flex h-[4.75rem] items-center justify-between gap-4">
+        <a href="#top" className="flex min-w-0 items-center gap-3 text-s-brand">
+          <Wordmark business={business} ui={ui} />
         </a>
-        <nav className="hidden items-center gap-8 text-sm text-white/80 md:flex">
+        <nav className="s-nav hidden items-center gap-9 text-s-ink/75 md:flex">
           {links.map((link) => (
-            <a key={link.href} href={link.href} className="transition hover:text-white">
+            <a
+              key={link.href}
+              href={link.href}
+              className="transition-colors hover:text-s-brand"
+            >
               {link.label}
             </a>
           ))}
         </nav>
-        {whatsapp ? (
+        <div className="flex shrink-0 items-center gap-2">
           <a
-            href={whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25"
+            href={cta.href}
+            {...linkProps(cta.href)}
+            className="s-btn s-btn-primary s-btn-sm hidden sm:inline-flex"
           >
-            <WhatsAppIcon className="size-4" />
-            <span className="hidden sm:inline">WhatsApp</span>
+            {cta.label}
+            <ArrowRight className="s-arrow size-4" />
           </a>
-        ) : null}
+          <MobileMenu name={business.name} links={links} cta={cta} />
+        </div>
       </div>
     </header>
   );
 }
 
-function Hero({ hero, primaryHref }) {
-  const external = primaryHref.startsWith("http");
+function Hero({ hero, ui, reach, primaryHref, secondaryHref }) {
+  const [first, second] = splitTitle(hero.title);
   return (
     <section
       id="top"
       data-section="hero"
-      className="relative flex min-h-[88svh] items-end overflow-hidden bg-[#1a1917] text-white"
+      className="relative pt-6 pb-20 sm:pt-10 md:pt-16 md:pb-32"
     >
-      {hero.image ? (
-        <img
-          src={hero.image}
-          alt=""
-          fetchPriority="high"
-          className="absolute inset-0 size-full object-cover"
-        />
-      ) : null}
-      <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-black/45" />
-      <div className={`${container} relative pt-32 pb-16 sm:pb-24`}>
-        {hero.eyebrow ? (
-          <p className="text-xs tracking-[0.3em] text-white/75 uppercase">{hero.eyebrow}</p>
-        ) : null}
-        {hero.title ? (
-          <h1 className="mt-4 max-w-3xl font-serif text-5xl leading-[1.02] font-semibold sm:text-7xl">
-            {hero.title}
-          </h1>
-        ) : null}
-        {hero.subtitle ? (
-          <p className="mt-5 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-            {hero.subtitle}
-          </p>
-        ) : null}
-        {hero.cta ? (
-          <a
-            href={primaryHref}
-            {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-s-primary px-7 py-3.5 text-sm font-medium text-s-on-primary transition hover:opacity-90"
-          >
-            {hero.cta}
-            <ArrowUpRight className="size-4" />
-          </a>
-        ) : null}
-      </div>
-    </section>
-  );
-}
-
-function About({ about }) {
-  return (
-    <section id="about" data-section="about" className="py-20 sm:py-28">
-      <div
-        className={`${container} grid items-center gap-10 ${
-          about.image ? "md:grid-cols-2 md:gap-16" : "max-w-3xl"
-        }`}
-      >
-        {about.image ? (
-          <img
-            src={about.image}
-            alt=""
-            loading="lazy"
-            className="aspect-4/5 w-full rounded-4xl object-cover"
+      <div className="s-wrap grid items-center gap-12 md:grid-cols-[1.08fr_0.92fr] md:gap-16">
+        <div className="relative md:order-last" data-reveal>
+          <div
+            aria-hidden
+            className="absolute top-12 -right-3 size-28 rounded-full bg-s-accent sm:-right-6 md:top-16 md:-right-10 md:size-40"
           />
-        ) : null}
-        <div>
-          <SectionTitle>{about.heading}</SectionTitle>
-          {about.text ? (
-            <p className="mt-6 text-base leading-relaxed whitespace-pre-line text-s-muted sm:text-lg">
-              {about.text}
+          <div className="s-arch relative h-[min(122vw,34rem)] overflow-hidden bg-s-brand md:h-[min(82svh,46rem)]">
+            {hero.image ? (
+              <img
+                src={hero.image}
+                alt=""
+                fetchPriority="high"
+                className="size-full object-cover"
+              />
+            ) : (
+              <div className="grid size-full place-items-center text-s-accent/60">
+                <Camera className="size-14" strokeWidth={1} />
+              </div>
+            )}
+          </div>
+          {reach ? (
+            <p className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-2.5 rounded-full bg-s-paper/95 px-4 py-2.5 text-[0.82rem] font-medium whitespace-nowrap text-s-brand shadow-[0_18px_40px_-20px_rgba(0,0,0,0.45)] md:bottom-14 md:-left-10 md:translate-x-0">
+              <span className="size-2 rounded-full bg-s-accent ring-4 ring-s-accent/35" />
+              {reach}
             </p>
           ) : null}
+        </div>
+
+        <div data-reveal style={{ "--d": "0.08s" }}>
+          {hero.eyebrow ? (
+            <p className="s-eyebrow flex items-center gap-3 text-s-brand">
+              <span className="h-px w-10 bg-s-brand/50" />
+              {hero.eyebrow}
+            </p>
+          ) : null}
+          {hero.title ? (
+            <h1
+              data-size={titleSize(hero.title)}
+              className="s-serif s-hero-title mt-6 text-s-ink md:mt-8"
+            >
+              <span className="block">{first}</span>
+              {second ? (
+                <span className="s-italic block text-s-brand">{second}</span>
+              ) : null}
+            </h1>
+          ) : null}
+          {hero.subtitle ? (
+            <p className="mt-8 max-w-[34rem] text-[1.06rem] leading-[1.75] text-s-muted sm:text-lg">
+              {hero.subtitle}
+            </p>
+          ) : null}
+          <div className="mt-10 flex flex-wrap gap-3">
+            {hero.cta ? (
+              <a
+                href={primaryHref}
+                {...linkProps(primaryHref)}
+                className="s-btn s-btn-primary flex-1 sm:flex-none"
+              >
+                {hero.cta}
+                <ArrowRight className="s-arrow size-4" />
+              </a>
+            ) : null}
+            {ui.cta2 ? (
+              <a
+                href={secondaryHref}
+                className="s-btn s-btn-secondary flex-1 sm:flex-none"
+              >
+                {ui.cta2}
+              </a>
+            ) : null}
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function Services({ services, business, whatsappPhone }) {
+function RingBadge({ text, ui, name }) {
   return (
-    <section id="services" data-section="services" className="bg-s-surface py-20 sm:py-28">
-      <div className={container}>
-        <SectionTitle>{services.heading}</SectionTitle>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+    <div className="relative grid size-32 place-items-center rounded-full bg-s-brand text-s-paper shadow-[0_24px_50px_-24px_rgba(0,0,0,0.55)] md:size-36">
+      <svg
+        viewBox="0 0 120 120"
+        aria-hidden
+        className="s-spin absolute inset-0 size-full"
+      >
+        <defs>
+          <path
+            id="s-badge-ring"
+            d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"
+          />
+        </defs>
+        <text
+          fill="currentColor"
+          fontSize="8.6"
+          fontWeight="600"
+          letterSpacing="1.4"
+        >
+          <textPath
+            href="#s-badge-ring"
+            textLength="272"
+            lengthAdjust="spacing"
+          >
+            {text.toUpperCase()}
+          </textPath>
+        </text>
+      </svg>
+      <span className="grid size-12 place-items-center rounded-full bg-s-accent text-s-on-accent">
+        {ui.icon === "camera" ? (
+          <Camera className="size-5" strokeWidth={1.6} />
+        ) : (
+          <span className="s-serif text-xl leading-none">
+            {initialOf(name)}
+          </span>
+        )}
+      </span>
+    </div>
+  );
+}
+
+function About({ about, image, ui, business }) {
+  const badge = ui.badge ? (
+    <RingBadge text={ui.badge} ui={ui} name={business.name} />
+  ) : null;
+  return (
+    <section id="about" data-section="about" className="py-24 md:py-36">
+      <div
+        className={`s-wrap grid items-center gap-16 ${
+          image ? "md:grid-cols-[0.9fr_1.1fr] md:gap-24" : ""
+        }`}
+      >
+        {image ? (
+          <div className="relative mr-5 mb-5" data-reveal>
+            <div
+              aria-hidden
+              className="absolute inset-0 translate-x-5 translate-y-5 rounded-[1.25rem] bg-s-accent"
+            />
+            <img
+              src={image}
+              alt=""
+              loading="lazy"
+              className="relative aspect-4/5 w-full rounded-[1.25rem] object-cover"
+            />
+            {badge ? (
+              <div className="absolute -top-10 -right-4 md:top-auto md:-right-14 md:-bottom-12">
+                {badge}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        <div
+          className={image ? "" : "max-w-3xl"}
+          data-reveal
+          style={{ "--d": "0.1s" }}
+        >
+          {ui.aboutLabel ? (
+            <p className="s-eyebrow text-s-brand/70">{ui.aboutLabel}</p>
+          ) : null}
+          {about.heading ? (
+            <h2 className="s-serif s-h2 mt-5 text-s-ink">{about.heading}</h2>
+          ) : null}
+          {about.text ? (
+            <p className="mt-8 max-w-xl text-[1.05rem] leading-[1.8] whitespace-pre-line text-s-muted">
+              {about.text}
+            </p>
+          ) : null}
+          <p className="mt-10 flex items-center gap-4 text-s-brand">
+            <span className="h-px w-12 bg-s-brand/40" />
+            <span className="s-serif s-italic s-signature">
+              {business.name}
+            </span>
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Services({ services, ui, business, whatsappPhone, cta }) {
+  return (
+    <section
+      id="services"
+      data-section="services"
+      className="relative overflow-hidden bg-s-brand py-24 text-s-paper md:py-36"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-48 -right-48 size-[32rem] rounded-full bg-s-brand-2"
+      />
+      <div className="s-wrap relative">
+        <div
+          className="grid gap-8 md:grid-cols-[1.25fr_0.75fr] md:items-end md:gap-16"
+          data-reveal
+        >
+          <div>
+            {ui.servicesLabel ? (
+              <p className="s-eyebrow text-s-accent">{ui.servicesLabel}</p>
+            ) : null}
+            {services.heading ? (
+              <h2 className="s-serif s-h2 mt-5">{services.heading}</h2>
+            ) : null}
+          </div>
+          <div>
+            {ui.servicesIntro ? (
+              <p className="max-w-md text-[1.02rem] leading-[1.75] text-s-paper/65">
+                {ui.servicesIntro}
+              </p>
+            ) : null}
+            <a
+              href={cta.href}
+              {...linkProps(cta.href)}
+              className="s-btn s-btn-primary mt-7"
+            >
+              {cta.label}
+              <ArrowRight className="s-arrow size-4" />
+            </a>
+          </div>
+        </div>
+
+        <ol className="mt-14 grid border-t border-s-paper/15 md:mt-20 md:grid-cols-2 md:gap-x-14">
           {services.items.map((item, index) => {
             const price = formatRupees(item.price);
-            const enquire = whatsappUrl(
-              whatsappPhone,
-              item.name ? `Hi ${business.name}! I'm interested in ${item.name}.` : ""
-            );
+            const href =
+              whatsappUrl(
+                whatsappPhone,
+                item.name
+                  ? `Hi ${business.name}! I'm interested in ${item.name}.`
+                  : "",
+              ) || cta.href;
             return (
-              <div
+              <li
                 key={`${item.name}-${index}`}
-                className="flex flex-col rounded-3xl border border-s-line bg-s-bg p-6 sm:p-7"
+                data-reveal
+                style={{ "--d": `${(index % 2) * 0.08}s` }}
+                className="border-b border-s-paper/15"
               >
-                {item.name ? (
-                  <h3 className="font-serif text-2xl font-semibold">{item.name}</h3>
-                ) : null}
-                {item.note ? (
-                  <p className="mt-2 text-sm leading-relaxed text-s-muted">{item.note}</p>
-                ) : null}
-                <div className="mt-auto flex items-end justify-between gap-4 pt-6">
-                  {price ? (
-                    <p className="text-sm text-s-muted">
-                      From{" "}
-                      <span className="font-serif text-2xl font-semibold text-s-primary">
-                        {price}
-                      </span>
-                    </p>
-                  ) : (
-                    <span />
-                  )}
-                  {enquire ? (
-                    <a
-                      href={enquire}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm font-medium text-s-primary"
-                    >
-                      Enquire
-                      <ArrowUpRight className="size-4" />
-                    </a>
+                <a
+                  href={href}
+                  {...linkProps(href)}
+                  className="group -mx-3 flex gap-4 rounded-2xl px-3 py-7 transition-colors duration-300 hover:bg-s-accent/[0.07] sm:gap-6 md:py-8"
+                >
+                  <span className="s-eyebrow w-7 shrink-0 pt-2 text-s-accent tabular-nums">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    {item.name ? (
+                      <h3 className="s-serif s-service-title">{item.name}</h3>
+                    ) : null}
+                    {item.note ? (
+                      <p className="mt-2.5 text-[0.95rem] leading-relaxed text-s-paper/60">
+                        {item.note}
+                      </p>
+                    ) : null}
+                    {price ? (
+                      <p className="mt-4 text-sm text-s-paper/55 sm:hidden">
+                        {ui.priceFrom}{" "}
+                        <span className="s-serif text-xl text-s-accent">
+                          {price}
+                        </span>
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="hidden shrink-0 flex-col items-end text-right sm:flex">
+                    {price ? (
+                      <>
+                        <span className="s-eyebrow text-[0.66rem] text-s-paper/45">
+                          {ui.priceFrom}
+                        </span>
+                        <span className="s-serif mt-1.5 text-[1.75rem] leading-none text-s-accent">
+                          {price}
+                        </span>
+                      </>
+                    ) : null}
+                    <span className="mt-4 inline-flex items-center gap-1 text-[0.82rem] font-medium text-s-paper/40 transition-colors group-hover:text-s-accent">
+                      {ui.enquire}
+                      <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </span>
+                  </div>
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+/** Editorial rows on a 12-col grid: [7,5] · [4,4,4] · [12], repeating. */
+function galleryTiles(count) {
+  const rows = [[7, 5], [4, 4, 4], [12]];
+  const tiles = [];
+  for (let row = 0; tiles.length < count; row += 1) {
+    const pattern = rows[row % rows.length];
+    const take = Math.min(pattern.length, count - tiles.length);
+    const triple = pattern.length === 3;
+    for (let slot = 0; slot < take; slot += 1) {
+      const md = take === pattern.length ? pattern[slot] : 12 / take;
+      const wideThird = triple && take === 3 && slot === 2;
+      const sm =
+        triple && take === 3 ? (wideThird ? 12 : 6) : md === 12 ? 12 : 6;
+      const xs = triple && take >= 2 && !wideThird ? 6 : 12;
+      tiles.push({
+        "--md": md,
+        "--md-h":
+          md === 12
+            ? "34rem"
+            : pattern.length === 2
+              ? "36rem"
+              : md === 6
+                ? "30rem"
+                : "26rem",
+        "--sm": sm,
+        "--sm-h":
+          sm === 12 ? "28rem" : pattern.length === 2 ? "26rem" : "22rem",
+        "--xs": xs,
+        "--xs-h": xs === 12 ? "25rem" : "13rem",
+      });
+    }
+  }
+  return tiles;
+}
+
+function Gallery({ gallery, ui, socials, cta }) {
+  const tiles = galleryTiles(gallery.images.length);
+  const tags = ui.galleryTags || [];
+  const instagram = socialUrl("instagram", socials.instagram);
+  return (
+    <section
+      id="gallery"
+      data-section="gallery"
+      className="bg-s-paper py-24 md:py-36"
+    >
+      <div className="s-wrap">
+        <div
+          className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between"
+          data-reveal
+        >
+          <div className="max-w-3xl">
+            {ui.galleryLabel ? (
+              <p className="s-eyebrow text-s-brand/70">{ui.galleryLabel}</p>
+            ) : null}
+            {gallery.heading ? (
+              <h2 className="s-serif s-h2 mt-5 text-s-ink">
+                {gallery.heading}
+              </h2>
+            ) : null}
+          </div>
+          {instagram ? (
+            <a
+              href={instagram}
+              {...linkProps(instagram)}
+              className="s-btn s-btn-secondary shrink-0 self-start md:self-auto"
+            >
+              <InstagramIcon className="size-4" />@
+              {instagramHandle(socials.instagram)}
+            </a>
+          ) : ui.galleryCta ? (
+            <a
+              href={cta.href}
+              {...linkProps(cta.href)}
+              className="s-btn s-btn-secondary shrink-0 self-start md:self-auto"
+            >
+              {ui.galleryCta}
+              <ArrowRight className="s-arrow size-4" />
+            </a>
+          ) : null}
+        </div>
+
+        <div className="s-gallery mt-12 md:mt-16">
+          {gallery.images.map((src, index) => {
+            const sample = src.startsWith("/");
+            const tag = sample && tags.length ? tags[index % tags.length] : "";
+            return (
+              <figure
+                key={`${src}-${index}`}
+                data-reveal
+                style={{ ...tiles[index], "--d": `${(index % 3) * 0.07}s` }}
+                className="s-tile relative m-0 overflow-hidden rounded-[1.25rem] bg-s-bg"
+              >
+                <img
+                  src={src}
+                  alt={tag}
+                  loading="lazy"
+                  className="size-full object-cover"
+                />
+                <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 via-black/30 to-transparent p-4 pt-16 text-white sm:p-6 sm:pt-20">
+                  <span className="s-eyebrow block text-[0.66rem] text-s-accent">
+                    No. {String(index + 1).padStart(2, "0")}
+                  </span>
+                  {tag ? (
+                    <span className="s-serif mt-1.5 block text-[1.35rem] leading-none sm:text-[1.7rem]">
+                      {tag}
+                    </span>
                   ) : null}
-                </div>
-              </div>
+                </figcaption>
+              </figure>
             );
           })}
         </div>
@@ -195,142 +557,191 @@ function Services({ services, business, whatsappPhone }) {
   );
 }
 
-function Gallery({ gallery }) {
+function InfoRow({ label, icon: Icon, value, href }) {
+  if (!value) return null;
+  const Row = href ? "a" : "div";
   return (
-    <section id="gallery" data-section="gallery" className="py-20 sm:py-28">
-      <div className={container}>
-        <SectionTitle>{gallery.heading}</SectionTitle>
-        <div className="site-gallery mt-10">
-          {gallery.images.map((src, index) => (
-            <img
-              key={`${src}-${index}`}
-              src={src}
-              alt=""
-              loading="lazy"
-              className="mb-3 w-full break-inside-avoid rounded-2xl sm:mb-4"
-            />
-          ))}
-        </div>
-      </div>
-    </section>
+    <li className="border-b border-s-on-accent/20 last:border-b-0">
+      <Row
+        {...(href ? { href, ...linkProps(href) } : {})}
+        className="flex items-center gap-4 px-5 py-5 transition-colors hover:bg-s-paper/25 sm:gap-5 sm:px-6"
+      >
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-s-brand text-s-paper sm:size-12">
+          <Icon className="size-5" strokeWidth={1.75} />
+        </span>
+        <span className="min-w-0">
+          <span className="s-eyebrow block text-[0.72rem] opacity-65">
+            {label}
+          </span>
+          <span className="mt-1 block text-[1.1rem] leading-snug font-semibold whitespace-pre-line text-s-ink sm:text-[1.2rem]">
+            {value}
+          </span>
+        </span>
+      </Row>
+    </li>
   );
 }
 
-function Testimonials({ testimonials }) {
-  return (
-    <section id="reviews" data-section="testimonials" className="bg-s-surface py-20 sm:py-28">
-      <div className={container}>
-        <SectionTitle>{testimonials.heading}</SectionTitle>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {testimonials.items.map((item, index) => (
-            <figure
-              key={`${item.name}-${index}`}
-              className="flex flex-col rounded-3xl border border-s-line bg-s-bg p-7"
-            >
-              <span className="font-serif text-5xl leading-none text-s-primary">“</span>
-              <blockquote className="mt-2 font-serif text-xl leading-snug italic">
-                {item.quote}
-              </blockquote>
-              {item.name ? (
-                <figcaption className="mt-auto pt-6 text-xs tracking-[0.2em] text-s-muted uppercase">
-                  {item.name}
-                </figcaption>
-              ) : null}
-            </figure>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ContactButton({ href, icon, label, primary = false }) {
-  if (!href) return null;
-  const external = href.startsWith("http");
-  return (
-    <a
-      href={href}
-      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-medium transition ${
-        primary
-          ? "bg-s-primary text-s-on-primary hover:opacity-90"
-          : "border border-s-line hover:bg-s-surface"
-      }`}
-    >
-      {icon}
-      {label}
-    </a>
-  );
-}
-
-function Contact({ contact, business, whatsapp }) {
+function Contact({ contact, ui, business, whatsapp }) {
   const call = telUrl(business.phone);
-  const directions = mapsUrl(business.address);
-  const instagram = instagramUrl(business.instagram);
+  const primary = whatsapp || call;
   return (
-    <section id="contact" data-section="contact" className="py-20 sm:py-28">
-      <div className={`${container} max-w-3xl text-center`}>
-        <SectionTitle align="center">{contact.heading}</SectionTitle>
-        {contact.text ? (
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-s-muted sm:text-lg">
-            {contact.text}
-          </p>
-        ) : null}
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <ContactButton
-            primary
-            href={whatsapp}
-            icon={<WhatsAppIcon className="size-4" />}
-            label="WhatsApp"
-          />
-          <ContactButton href={call} icon={<Phone className="size-4" />} label="Call" />
-          <ContactButton
-            href={directions}
-            icon={<MapPin className="size-4" />}
-            label="Directions"
-          />
-          <ContactButton
-            href={instagram}
-            icon={<InstagramIcon className="size-4" />}
-            label={`@${instagramHandle(business.instagram)}`}
-          />
+    <section
+      id="contact"
+      data-section="contact"
+      className="relative overflow-hidden bg-s-accent py-24 text-s-on-accent md:py-36"
+    >
+      <span
+        aria-hidden
+        className="s-serif pointer-events-none absolute top-1/2 -right-[0.06em] -translate-y-1/2 text-[clamp(24rem,55vw,50rem)] leading-none opacity-[0.08] select-none"
+      >
+        {initialOf(business.name)}
+      </span>
+      <div className="s-wrap relative grid gap-14 md:grid-cols-[1.1fr_0.9fr] md:items-end md:gap-20">
+        <div data-reveal>
+          {ui.contactLabel ? (
+            <p className="s-eyebrow opacity-70">{ui.contactLabel}</p>
+          ) : null}
+          {contact.heading ? (
+            <h2 className="s-serif s-contact-title mt-5">{contact.heading}</h2>
+          ) : null}
+          {contact.text ? (
+            <p className="mt-7 max-w-xl text-[1.06rem] leading-[1.75] opacity-75">
+              {contact.text}
+            </p>
+          ) : null}
+          {primary ? (
+            <a
+              href={primary}
+              {...linkProps(primary)}
+              className="s-btn mt-10 w-full bg-s-brand px-8 text-[1.05rem] text-s-paper shadow-[0_18px_36px_-20px_rgba(0,0,0,0.6)] sm:w-auto"
+            >
+              {whatsapp ? ui.contactCta : formatPhone(business.phone)}
+              <ArrowRight className="s-arrow ml-2 size-5" strokeWidth={1.75} />
+            </a>
+          ) : null}
         </div>
-        {business.address || business.hours ? (
-          <div className="mt-10 space-y-3 text-sm text-s-muted">
-            {business.address ? (
-              <p className="flex items-start justify-center gap-2 whitespace-pre-line">
-                <MapPin className="mt-0.5 size-4 shrink-0" />
-                {business.address}
-              </p>
-            ) : null}
-            {business.hours ? (
-              <p className="flex items-center justify-center gap-2">
-                <Clock className="size-4 shrink-0" />
-                {business.hours}
-              </p>
+        <ul
+          className="m-0 list-none overflow-hidden rounded-[1.5rem] border border-s-on-accent/25 bg-s-paper/40 p-0 backdrop-blur-sm"
+          data-reveal
+          style={{ "--d": "0.12s" }}
+        >
+          <InfoRow
+            label={ui.callLabel || "Call us"}
+            icon={Phone}
+            value={formatPhone(business.phone)}
+            href={call}
+          />
+          <InfoRow
+            label="WhatsApp"
+            icon={MessageCircle}
+            value={whatsapp ? ui.whatsappNote || "Chat with us" : ""}
+            href={whatsapp}
+          />
+          <InfoRow
+            label={ui.placeLabel || "Visit us"}
+            icon={MapPin}
+            value={business.address}
+            href={mapsUrl(business.address)}
+          />
+          <InfoRow
+            label={ui.hoursLabel || "Open"}
+            icon={Clock}
+            value={business.hours}
+          />
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function Footer({ business, ui, links, socials, whatsapp, intro }) {
+  const socialLinks = [
+    {
+      label: "Instagram",
+      href: socialUrl("instagram", socials.instagram),
+      icon: InstagramIcon,
+    },
+    {
+      label: "Facebook",
+      href: socialUrl("facebook", socials.facebook),
+      icon: FacebookIcon,
+    },
+    {
+      label: "YouTube",
+      href: socialUrl("youtube", socials.youtube),
+      icon: YouTubeIcon,
+    },
+    { label: "WhatsApp", href: whatsapp, icon: WhatsAppIcon },
+  ].filter((item) => item.href);
+
+  return (
+    <footer
+      data-section="socials"
+      className="bg-s-footer pt-20 pb-28 text-s-paper/65 md:pt-24 md:pb-10"
+    >
+      <div className="s-wrap">
+        <div className="grid gap-12 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr] md:gap-16">
+          <div className="sm:col-span-2 md:col-span-1">
+            <a
+              href="#top"
+              className="inline-flex max-w-full items-center gap-3 text-s-paper"
+            >
+              <Wordmark business={business} ui={ui} light />
+            </a>
+            {intro ? (
+              <p className="mt-6 max-w-sm leading-[1.75]">{intro}</p>
             ) : null}
           </div>
-        ) : null}
-      </div>
-    </section>
-  );
-}
-
-function Footer({ business }) {
-  return (
-    <footer className="border-t border-s-line py-8 pb-24 sm:pb-8">
-      <div className={`${container} flex flex-col items-center justify-between gap-2 text-xs text-s-muted sm:flex-row`}>
-        <p>
-          © {new Date().getFullYear()} {business.name}
-        </p>
-        <a
-          href={`${APP_SITE_URL}/?ref=site`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="transition hover:text-s-text"
-        >
-          Website by MoneyKit
-        </a>
+          <div>
+            <p className="s-eyebrow text-s-accent">Explore</p>
+            <ul className="mt-6 space-y-3.5">
+              {links.map((link) => (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    className="transition-colors hover:text-s-paper"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+          {socialLinks.length ? (
+            <div>
+              <p className="s-eyebrow text-s-accent">Social</p>
+              <ul className="mt-6 space-y-3.5">
+                {socialLinks.map(({ label, href, icon: Icon }) => (
+                  <li key={label}>
+                    <a
+                      href={href}
+                      {...linkProps(href)}
+                      className="inline-flex items-center gap-2.5 transition-colors hover:text-s-paper"
+                    >
+                      <Icon className="size-4" />
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+        <div className="mt-16 flex flex-col gap-4 border-t border-s-paper/10 pt-8 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} {business.name}. All rights reserved.
+          </p>
+          <a
+            href={`${APP_SITE_URL}/?ref=site`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 transition-colors hover:text-s-paper"
+          >
+            <span className="size-1.5 rounded-full bg-s-accent" />
+            Website powered by MoneyKit
+          </a>
+        </div>
       </div>
     </footer>
   );
@@ -344,9 +755,9 @@ function FloatingWhatsApp({ href }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat on WhatsApp"
-      className="fixed right-5 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-30 grid size-14 place-items-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/25 transition hover:scale-105"
+      className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 grid size-14 place-items-center rounded-full bg-s-brand text-s-accent shadow-[0_16px_36px_-12px_rgba(0,0,0,0.5)] ring-1 ring-s-accent/30 transition hover:scale-105 md:hidden"
     >
-      <WhatsAppIcon className="size-7" />
+      <WhatsAppIcon className="size-6" />
     </a>
   );
 }
@@ -358,18 +769,18 @@ export function StudioTemplate({ doc, isShown }) {
   const about = sections.about || {};
   const services = { heading: "", items: [], ...sections.services };
   const gallery = { heading: "", images: [], ...sections.gallery };
-  const testimonials = { heading: "", items: [], ...sections.testimonials };
+  const socials = sections.socials || {};
   const contact = sections.contact || {};
+  const ui = getPack(doc?.packId).ui || {};
 
   const whatsappPhone = business.whatsapp || business.phone;
   const whatsapp = whatsappUrl(whatsappPhone, doc?.whatsappMessage);
-  const primaryHref = whatsapp || telUrl(business.phone) || "#contact";
+  const contactHref = whatsapp || telUrl(business.phone) || "#contact";
 
   const show = {
     about: isShown("about") && Boolean(about.heading || about.text),
     services: isShown("services") && services.items.length > 0,
     gallery: isShown("gallery") && gallery.images.length > 0,
-    testimonials: isShown("testimonials") && testimonials.items.length > 0,
   };
 
   const links = [
@@ -379,20 +790,59 @@ export function StudioTemplate({ doc, isShown }) {
     { href: "#contact", label: "Contact" },
   ].filter(Boolean);
 
+  const cta = { href: contactHref, label: ui.availability || "Contact us" };
+  const primaryHref =
+    ui.primaryTarget === "gallery" && show.gallery ? "#gallery" : contactHref;
+  const secondaryHref = show.services ? "#services" : "#contact";
+  const city = cityFrom(business.address);
+  const reach = [city, ui.reach].filter(Boolean).join(" · ");
+
   return (
     <>
-      <Header business={business} whatsapp={whatsapp} links={links} />
-      <main>
-        <Hero hero={hero} primaryHref={primaryHref} />
-        {show.about ? <About about={about} /> : null}
-        {show.services ? (
-          <Services services={services} business={business} whatsappPhone={whatsappPhone} />
+      <Header business={business} ui={ui} links={links} cta={cta} />
+      <main className="overflow-x-clip">
+        <Hero
+          hero={hero}
+          ui={ui}
+          reach={reach}
+          primaryHref={primaryHref}
+          secondaryHref={secondaryHref}
+        />
+        {show.about ? (
+          <About
+            about={about}
+            image={about.image || hero.image}
+            ui={ui}
+            business={business}
+          />
         ) : null}
-        {show.gallery ? <Gallery gallery={gallery} /> : null}
-        {show.testimonials ? <Testimonials testimonials={testimonials} /> : null}
-        <Contact contact={contact} business={business} whatsapp={whatsapp} />
+        {show.services ? (
+          <Services
+            services={services}
+            ui={ui}
+            business={business}
+            whatsappPhone={whatsappPhone}
+            cta={cta}
+          />
+        ) : null}
+        {show.gallery ? (
+          <Gallery gallery={gallery} ui={ui} socials={socials} cta={cta} />
+        ) : null}
+        <Contact
+          contact={contact}
+          ui={ui}
+          business={business}
+          whatsapp={whatsapp}
+        />
       </main>
-      <Footer business={business} />
+      <Footer
+        business={business}
+        ui={ui}
+        links={links}
+        socials={socials}
+        whatsapp={whatsapp}
+        intro={hero.subtitle}
+      />
       <FloatingWhatsApp href={whatsapp} />
     </>
   );

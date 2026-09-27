@@ -1,14 +1,21 @@
 import { corsJson, corsPreflight } from "@/lib/api-cors";
 import { siteRequest } from "@/lib/sites/api";
 import { isFreePublish, siteUrl, suggestSlugs } from "@/lib/sites/config";
-import { buildStarterSite } from "@/lib/sites/document";
+import {
+  applyBusinessProfile,
+  buildStarterSite,
+  sanitizeSiteDocument,
+  siteDefaults,
+} from "@/lib/sites/document";
+import { publicCatalog } from "@/lib/sites/catalog";
 import { getPack } from "@/lib/sites/packs";
 import {
-  loadBusiness,
+  loadProfile,
   loadSiteForUser,
   publishLogo,
   siteSummary,
 } from "@/lib/sites/store";
+import { siteAccess } from "@/lib/sites/subscription";
 
 export const runtime = "nodejs";
 
@@ -23,37 +30,31 @@ async function freeSuggestions(admin, candidates) {
   return candidates.filter((slug) => !taken.has(slug)).slice(0, 3);
 }
 
-/** The app may not have synced the shop yet, so it sends its local copy as a fallback. */
-function withLocalBusiness(business, local) {
-  const source = local && typeof local === "object" ? local : {};
-  const pick = (value, fallback) => String(value || "").trim() || String(fallback || "").trim();
-  return {
-    ...business,
-    name: pick(business.name, source.name),
-    phone: pick(business.phone, source.phone),
-    address: pick(business.address, source.address),
-    business_type: pick(business.business_type, source.type),
-  };
-}
-
 export async function POST(request) {
   const ctx = await siteRequest(request);
   if (ctx.response) return ctx.response;
   const { admin, user, body } = ctx;
 
-  const [row, savedBusiness] = await Promise.all([
+  const [row, business, access] = await Promise.all([
     loadSiteForUser(admin, user.id),
-    loadBusiness(admin, user.id),
+    loadProfile(admin, user.id, body.business),
+    siteAccess(admin, user),
   ]);
-  const business = withLocalBusiness(savedBusiness, body.business);
+  const logoUrl = await publishLogo(admin, user.id, business.logo_path);
 
-  let draft = row?.draft || null;
-  if (!draft) {
-    const logoUrl = await publishLogo(admin, user.id, business.logo_path);
-    draft = buildStarterSite({ business, logoUrl });
-  }
+  const draft = row?.draft
+    ? applyBusinessProfile(sanitizeSiteDocument(row.draft, { userId: user.id }), business, {
+        logoUrl,
+      })
+    : buildStarterSite({ business, logoUrl });
 
   const pack = getPack(draft.packId || business.business_type);
+  const defaults = Object.fromEntries(
+    publicCatalog().templates.map((template) => [
+      template.id,
+      siteDefaults(template.id, draft.packId),
+    ])
+  );
   const suggestions = row?.slug
     ? []
     : await freeSuggestions(admin, suggestSlugs(business.name, pack.slugSuffixes));
@@ -61,8 +62,10 @@ export async function POST(request) {
   return corsJson(request, {
     site: siteSummary(row),
     draft,
+    defaults,
     suggestions,
     exampleUrl: siteUrl("your-name"),
     freePublish: isFreePublish(),
+    access,
   });
 }

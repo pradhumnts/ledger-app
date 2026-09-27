@@ -1,8 +1,9 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
+import { RevealOnScroll } from "@/components/sites/reveal";
 import { SiteRenderer } from "@/components/sites/site-renderer";
 import { siteUrl } from "@/lib/sites/config";
-import { siteDescription } from "@/lib/sites/document";
+import { siteDescription, withSiteDefaults } from "@/lib/sites/document";
 import { loadLiveSite } from "@/lib/sites/store";
 
 export const revalidate = 300;
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }) {
   const site = await getSite(slug);
   if (!site) return { title: "Website not found", robots: { index: false } };
 
-  const doc = site.published;
+  const doc = withSiteDefaults(site.published);
   const url = siteUrl(site.slug);
   const title = doc.business?.name || site.slug;
   const description = siteDescription(doc);
@@ -51,5 +52,10 @@ export default async function SitePage({ params }) {
   const { slug } = await params;
   const site = await getSite(slug);
   if (!site) notFound();
-  return <SiteRenderer doc={site.published} />;
+  return (
+    <>
+      <SiteRenderer doc={site.published} />
+      <RevealOnScroll />
+    </>
+  );
 }

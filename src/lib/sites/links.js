@@ -28,16 +28,57 @@ export function mapsUrl(address) {
 export function instagramHandle(value) {
   return String(value || "")
     .trim()
-    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+    .replace(/^(https?:\/\/)?(www\.|m\.)?instagram\.com\//i, "")
     .replace(/^@/, "")
     .replace(/[/?#].*$/, "")
     .replace(/[^A-Za-z0-9._]/g, "")
     .slice(0, 30);
 }
 
-export function instagramUrl(value) {
-  const handle = instagramHandle(value);
-  return handle ? `https://instagram.com/${handle}` : "";
+const SOCIAL_HOSTS = {
+  facebook: ["facebook.com", "www.facebook.com", "m.facebook.com", "fb.com", "www.fb.com", "fb.me"],
+  youtube: ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"],
+};
+
+function socialLink(value) {
+  const raw = String(value || "").trim();
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^(www\.|m\.)?(facebook|fb|youtube|youtu)\.(com|be|me)\//i.test(raw)) return `https://${raw}`;
+  return "";
+}
+
+/** Stored form of a social account: a username, or a full https link for Facebook/YouTube. */
+export function cleanSocial(kind, value) {
+  if (kind === "instagram") return instagramHandle(value);
+  const link = socialLink(value);
+  if (link) {
+    try {
+      const url = new URL(link);
+      const host = url.hostname.toLowerCase();
+      if (!SOCIAL_HOSTS[kind]?.includes(host)) return "";
+      const profileId = url.pathname === "/profile.php" ? url.searchParams.get("id") : "";
+      const path = url.pathname.replace(/\/+$/, "");
+      const query = profileId && /^\d+$/.test(profileId) ? `?id=${profileId}` : "";
+      return `https://${host}${path}${query}`.slice(0, 200);
+    } catch {
+      return "";
+    }
+  }
+  return String(value || "")
+    .trim()
+    .replace(/^@/, "")
+    .replace(/[^A-Za-z0-9._-]/g, "")
+    .slice(0, 60);
+}
+
+export function socialUrl(kind, value) {
+  const cleaned = cleanSocial(kind, value);
+  if (!cleaned) return "";
+  if (cleaned.startsWith("https://")) return cleaned;
+  if (kind === "instagram") return `https://instagram.com/${cleaned}`;
+  if (kind === "facebook") return `https://facebook.com/${cleaned}`;
+  if (kind === "youtube") return `https://youtube.com/@${cleaned}`;
+  return "";
 }
 
 export function formatRupees(value) {

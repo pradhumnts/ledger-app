@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { RevealOnScroll } from "@/components/sites/reveal";
 import { SiteRenderer } from "@/components/sites/site-renderer";
 import { buildStarterSite } from "@/lib/sites/document";
+import { getPack } from "@/lib/sites/packs";
 
 function postToApp(message) {
   window.ReactNativeWebView?.postMessage(JSON.stringify(message));
@@ -19,27 +21,34 @@ function scrollToSection(section, attempt = 0) {
   }
 }
 
+function demoSite(params) {
+  const packId = params.get("pack") || "photographer";
+  const demo = getPack(packId).demo || {};
+  const doc = buildStarterSite({
+    business: {
+      name: params.get("name") || demo.name || "Your Studio",
+      phone: demo.phone || "9876543210",
+      address: params.get("address") || demo.address || "Connaught Place, New Delhi",
+      business_type: packId,
+    },
+    templateId: params.get("template") || undefined,
+    paletteId: params.get("palette") || undefined,
+  });
+  if (demo.socials && doc.sections.socials) {
+    doc.sections.socials = { ...doc.sections.socials, ...demo.socials };
+  }
+  return doc;
+}
+
 /**
  * In-app live preview. The app loads `/site-preview?embed=1` in a WebView and
  * pushes the draft with `window.__mkSite.setDoc(doc)` (or a postMessage of
- * `{ type: "doc", doc }`). Without `embed`, `?pack=&palette=` shows a demo.
+ * `{ type: "doc", doc }`). Without `embed`, `?template=&pack=&palette=` shows a demo.
  */
 export function PreviewClient() {
   const params = useSearchParams();
   const embedded = params.get("embed") === "1";
-  const [doc, setDoc] = useState(() =>
-    embedded
-      ? null
-      : buildStarterSite({
-          business: {
-            name: params.get("name") || "Your Studio",
-            phone: "9876543210",
-            address: "Connaught Place, New Delhi",
-            business_type: params.get("pack") || "photographer",
-          },
-          paletteId: params.get("palette") || undefined,
-        })
-  );
+  const [doc, setDoc] = useState(() => (embedded ? null : demoSite(params)));
 
   useEffect(() => {
     const handle = (message) => {
@@ -82,6 +91,12 @@ export function PreviewClient() {
     };
   }, []);
 
-  if (!doc) return <div className="min-h-dvh bg-[#0f0e0d]" />;
-  return <SiteRenderer doc={doc} />;
+  if (!doc) return <div className="min-h-dvh bg-[#f6f1e7]" />;
+  return (
+    <>
+      <SiteRenderer doc={doc} />
+      {/* Only the static demo: the app swaps sections in later, which the one-time observer would miss. */}
+      {embedded ? null : <RevealOnScroll />}
+    </>
+  );
 }
