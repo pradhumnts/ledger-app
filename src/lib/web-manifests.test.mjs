@@ -13,6 +13,7 @@ describe("web manifests", () => {
     assert.equal(manifest.start_url, "/");
     assert.equal(manifest.prefer_related_applications, true);
     assert.ok(manifest.related_applications?.length);
+    assert.deepEqual(manifest.shortcuts, []);
   });
 
   it("installs admin as its own standalone PWA", () => {

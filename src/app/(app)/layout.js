@@ -84,13 +84,11 @@ export default function RootLayout({ children }) {
         <script
           dangerouslySetInnerHTML={{ __html: INSTALLED_APP_BOOT_SCRIPT }}
         />
-        {process.env.NODE_ENV === "production" ? (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js");`,
-            }}
-          />
-        ) : null}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if("serviceWorker"in navigator)navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(x){x.unregister()})});if(window.caches)caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})});`,
+          }}
+        />
         <PostHogProvider>
           <AppProvider>
             <LandingGateProvider>

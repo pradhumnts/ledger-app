@@ -41,8 +41,7 @@ og-preview*.png
 # supabase CLI local state
 supabase/.temp/
 
-# PWA (generated at build time)
-public/sw.js
+# Old next-pwa build output (public/sw.js is now a hand-written retirement worker)
 public/sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map

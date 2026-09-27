@@ -35,14 +35,15 @@ export function isShopSitePath(pathname) {
   );
 }
 
-/** Routes anyone can open without finishing onboarding. */
-export function isUnauthedAllowedPath(pathname) {
+/**
+ * Everything the website still serves. The shop app lives in the React Native
+ * app now, so any other page (onboarding, customers, bills…) redirects to `/`.
+ */
+export function isWebAccessiblePath(pathname) {
   return (
-    pathname === "/" ||
-    pathname === "/onboarding" ||
+    isMarketingPath(pathname) ||
     isPublicSharePath(pathname) ||
     isShopSitePath(pathname) ||
-    isPublicLegalPath(pathname) ||
     isAdminPath(pathname)
   );
 }

@@ -8,7 +8,7 @@ import {
   ONBOARDING_COOKIE,
   isAdminPath,
   isShopSitePath,
-  isUnauthedAllowedPath,
+  isWebAccessiblePath,
 } from "@/lib/onboarding-gate";
 import {
   isRootSitesHost,
@@ -16,6 +16,8 @@ import {
   sitesDomain,
   slugFromHost,
 } from "@/lib/sites/config";
+
+const STATIC_FILE = /\.[a-z0-9]+$/i;
 
 /** `{slug}.{SITES_DOMAIN}` serves /sites/{slug}; nothing else of the app is reachable there. */
 function routeSiteHost(request, pathname) {
@@ -74,18 +76,15 @@ export async function proxy(request) {
     return NextResponse.next();
   }
 
-  const onboarded = request.cookies.get(ONBOARDING_COOKIE)?.value === "1";
-  const onOnboarding = pathname === "/onboarding";
-
-  if (!onboarded && !isUnauthedAllowedPath(pathname)) {
-    return NextResponse.redirect(new URL("/onboarding", request.url));
+  if (STATIC_FILE.test(pathname) || isWebAccessiblePath(pathname)) {
+    return NextResponse.next();
   }
 
-  if (onboarded && onOnboarding) {
-    return NextResponse.redirect(new URL("/", request.url));
+  const response = NextResponse.redirect(new URL("/", request.url));
+  if (request.cookies.has(ONBOARDING_COOKIE)) {
+    response.cookies.delete(ONBOARDING_COOKIE);
   }
-
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

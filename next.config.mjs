@@ -1,22 +1,12 @@
-import withPWAInit from "@ducanh2912/next-pwa";
-
-const withPWA = withPWAInit({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-  skipWaiting: true,
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
-  reloadOnOnline: true,
-  customWorkerSrc: "worker",
-  workboxOptions: {
-    disableDevLogs: true,
-  },
-});
+const NO_CACHE_HEADERS = [
+  { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+];
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   turbopack: {},
+  // Lets a phone on the same Wi-Fi load the dev server (Expo app testing).
+  allowedDevOrigins: ["192.168.1.5"],
   experimental: {
     globalNotFound: true,
   },
@@ -35,6 +25,12 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      { source: "/sw.js", headers: NO_CACHE_HEADERS },
+      { source: "/push-sw.js", headers: NO_CACHE_HEADERS },
+    ];
+  },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;

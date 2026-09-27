@@ -86,26 +86,7 @@ export function shopWebManifest() {
         ]
       : [],
     icons: APP_ICONS,
-    shortcuts: [
-      {
-        name: "Customers",
-        short_name: "Customers",
-        url: "/customers",
-        icons: SHORTCUT_ICONS,
-      },
-      {
-        name: "Receive payment",
-        short_name: "Pay QR",
-        url: "/pay",
-        icons: SHORTCUT_ICONS,
-      },
-      {
-        name: "Create bill",
-        short_name: "Bill",
-        url: "/invoice/new",
-        icons: SHORTCUT_ICONS,
-      },
-    ],
+    shortcuts: [],
     screenshots: [
       {
         src: "/screenshots/home-screen.png",
