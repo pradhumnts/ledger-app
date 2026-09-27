@@ -10,7 +10,10 @@ const nextConfig = {
   experimental: {
     globalNotFound: true,
   },
-  serverExternalPackages: ["@resvg/resvg-js", "web-push"],
+  serverExternalPackages: ["@resvg/resvg-js", "web-push", "sharp"],
+  outputFileTracingIncludes: {
+    "/sites/\\[slug\\]/share-image": ["./src/lib/og/fonts/*.ttf"],
+  },
   images: {
     remotePatterns: [
       {

@@ -2,7 +2,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import { RevealOnScroll } from "@/components/sites/reveal";
 import { SiteRenderer } from "@/components/sites/site-renderer";
-import { siteUrl } from "@/lib/sites/config";
+import { SHARE_IMAGE_SIZE, siteUrl } from "@/lib/sites/config";
 import { siteDescription, withSiteDefaults } from "@/lib/sites/document";
 import { loadLiveSite } from "@/lib/sites/store";
 
@@ -23,7 +23,13 @@ export async function generateMetadata({ params }) {
   const url = siteUrl(site.slug);
   const title = doc.business?.name || site.slug;
   const description = siteDescription(doc);
-  const image = doc.sections?.hero?.image;
+  const version = Date.parse(site.published_at || "") || 0;
+  const image = {
+    url: `${url}/share-image?v=${version.toString(36)}`,
+    ...SHARE_IMAGE_SIZE,
+    type: "image/jpeg",
+    alt: title,
+  };
   const icon = doc.business?.logo;
 
   return {
@@ -37,12 +43,13 @@ export async function generateMetadata({ params }) {
       title,
       description,
       siteName: title,
-      ...(image ? { images: [{ url: image }] } : {}),
+      images: [image],
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
+      images: [image.url],
     },
     ...(icon ? { icons: { icon, apple: icon } } : {}),
   };

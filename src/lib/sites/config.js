@@ -1,5 +1,8 @@
 import { APP_SITE_URL } from "@/lib/branding";
 
+/** Link-preview card served at `/sites/{slug}/share-image`. */
+export const SHARE_IMAGE_SIZE = { width: 1200, height: 630 };
+
 export const SLUG_MIN = 3;
 export const SLUG_MAX = 30;
 

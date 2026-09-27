@@ -19,6 +19,29 @@ export function telUrl(phone) {
   return digits.length === 10 ? `tel:+91${digits}` : "";
 }
 
+/** "Hill Road, Bandra West, Mumbai 400050" → "Bandra West, Mumbai" */
+export function areaFrom(address) {
+  const parts = String(address || "")
+    .split(/[,\n]/)
+    .map((part) => part.replace(/\b\d{3}\s?\d{3}\b/g, "").replace(/[\s-]+$/, "").trim())
+    .filter((part) => part && !/^india$/i.test(part));
+  return parts.slice(-2).join(", ");
+}
+
+/** Headline → [plain, italic, plain]: "Beauty, beautifully personal." → "Beauty," / "beautifully" / "personal." */
+export function splitTitle(title) {
+  const text = String(title || "").trim();
+  const mark = text.search(/[,:;]\s/);
+  if (mark > 0 && mark < text.length - 2) {
+    const [accent, ...tail] = text.slice(mark + 1).trim().split(/\s+/);
+    return [text.slice(0, mark + 1), accent, tail.join(" ")];
+  }
+  const words = text.split(/\s+/);
+  if (words.length < 3) return [text, "", ""];
+  const take = words.length > 4 ? 2 : 1;
+  return [words.slice(0, -take).join(" "), words.slice(-take).join(" "), ""];
+}
+
 export function mapsUrl(address) {
   const query = String(address || "").trim();
   if (!query) return "";

@@ -12,43 +12,22 @@ import { MobileMenu } from "@/components/sites/mobile-menu";
 import { ScrollHeader } from "@/components/sites/scroll-header";
 import { APP_SITE_URL } from "@/lib/branding";
 import {
+  areaFrom,
   formatRupees,
   instagramHandle,
   mapsUrl,
   phoneDigits,
   socialUrl,
+  splitTitle,
   telUrl,
   whatsappUrl,
 } from "@/lib/sites/links";
 import { getPack } from "@/lib/sites/packs";
 
-/** Headline → [plain, italic, plain]: "Beauty, beautifully personal." → "Beauty," / "beautifully" / "personal." */
-function splitTitle(title) {
-  const text = String(title || "").trim();
-  const mark = text.search(/[,:;]\s/);
-  if (mark > 0 && mark < text.length - 2) {
-    const [accent, ...tail] = text.slice(mark + 1).trim().split(/\s+/);
-    return [text.slice(0, mark + 1), accent, tail.join(" ")];
-  }
-  const words = text.split(/\s+/);
-  if (words.length < 3) return [text, "", ""];
-  const take = words.length > 4 ? 2 : 1;
-  return [words.slice(0, -take).join(" "), words.slice(-take).join(" "), ""];
-}
-
 function titleSize(lines) {
   const longest = Math.max(...lines.map((line) => line.length));
   if (longest <= 13) return undefined;
   return longest <= 22 ? "m" : "s";
-}
-
-/** "Hill Road, Bandra West, Mumbai 400050" → "Bandra West, Mumbai" */
-function areaFrom(address) {
-  const parts = String(address || "")
-    .split(/[,\n]/)
-    .map((part) => part.replace(/\b\d{3}\s?\d{3}\b/g, "").replace(/[\s-]+$/, "").trim())
-    .filter((part) => part && !/^india$/i.test(part));
-  return parts.slice(-2).join(", ");
 }
 
 function linkProps(href) {
