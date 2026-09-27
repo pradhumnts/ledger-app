@@ -10,7 +10,7 @@ import {
 import { applyAppColorScheme } from "@/lib/app-color-scheme";
 import { getHtmlLang, normalizeLanguage, translate } from "@/lib/i18n";
 import { peekStoredPrefs } from "@/lib/store";
-import "./globals.css";
+import "./(app)/globals.css";
 
 export default function GlobalError({ error, retry, reset }) {
   const recover = retry || reset;

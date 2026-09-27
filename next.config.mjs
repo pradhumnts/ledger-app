@@ -17,6 +17,9 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   turbopack: {},
+  experimental: {
+    globalNotFound: true,
+  },
   serverExternalPackages: ["@resvg/resvg-js", "web-push"],
   images: {
     remotePatterns: [

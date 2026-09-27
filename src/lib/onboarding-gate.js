@@ -27,12 +27,21 @@ export function isPublicSharePath(pathname) {
   );
 }
 
+/** Customer websites (path mode) and the in-app website preview. */
+export function isShopSitePath(pathname) {
+  return (
+    pathname === "/site-preview" ||
+    Boolean(pathname?.startsWith("/sites/"))
+  );
+}
+
 /** Routes anyone can open without finishing onboarding. */
 export function isUnauthedAllowedPath(pathname) {
   return (
     pathname === "/" ||
     pathname === "/onboarding" ||
     isPublicSharePath(pathname) ||
+    isShopSitePath(pathname) ||
     isPublicLegalPath(pathname) ||
     isAdminPath(pathname)
   );

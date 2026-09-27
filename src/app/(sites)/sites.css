@@ -1,0 +1,38 @@
+@import "tailwindcss" source(none);
+
+@source "./";
+@source "../../components/sites";
+
+@theme inline {
+  --font-sans: var(--font-site-sans);
+  --font-serif: var(--font-site-serif);
+  --color-s-bg: var(--s-bg);
+  --color-s-surface: var(--s-surface);
+  --color-s-text: var(--s-text);
+  --color-s-muted: var(--s-muted);
+  --color-s-line: var(--s-line);
+  --color-s-primary: var(--s-primary);
+  --color-s-on-primary: var(--s-on-primary);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.site-gallery {
+  columns: 2;
+  column-gap: 0.75rem;
+}
+
+@media (min-width: 900px) {
+  .site-gallery {
+    columns: 3;
+    column-gap: 1rem;
+  }
+}
