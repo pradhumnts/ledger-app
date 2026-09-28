@@ -6,7 +6,8 @@ const NO_CACHE_HEADERS = [
 const nextConfig = {
   turbopack: {},
   // Lets a phone on the same Wi-Fi load the dev server (Expo app testing).
-  allowedDevOrigins: ["192.168.1.5"],
+  // Any home/office Wi-Fi address, so a changed DHCP lease doesn't break testing.
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*"],
   experimental: {
     globalNotFound: true,
   },

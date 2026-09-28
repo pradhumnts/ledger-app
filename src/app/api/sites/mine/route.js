@@ -35,12 +35,14 @@ export async function POST(request) {
   if (ctx.response) return ctx.response;
   const { admin, user, body } = ctx;
 
-  const [row, business, access] = await Promise.all([
+  const [row, { business, logoUrl }, access] = await Promise.all([
     loadSiteForUser(admin, user.id),
-    loadProfile(admin, user.id, body.business),
+    loadProfile(admin, user.id, body.business).then(async (profile) => ({
+      business: profile,
+      logoUrl: await publishLogo(admin, user.id, profile.logo_path),
+    })),
     siteAccess(admin, user),
   ]);
-  const logoUrl = await publishLogo(admin, user.id, business.logo_path);
 
   const draft = row?.draft
     ? applyBusinessProfile(sanitizeSiteDocument(row.draft, { userId: user.id }), business, {

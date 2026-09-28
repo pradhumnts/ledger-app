@@ -7,9 +7,31 @@ function tokenFromRequest(request, bodyToken = "") {
   return String(bearer || custom || bodyToken || "").trim();
 }
 
+// Verified tokens, briefly, so an app screen's burst of requests costs one auth round trip.
+const VERIFIED_TTL_MS = 60_000;
+const VERIFIED_MAX = 500;
+const verified = new Map();
+
+function cachedUser(token) {
+  const hit = verified.get(token);
+  if (!hit) return null;
+  if (hit.until < Date.now()) {
+    verified.delete(token);
+    return null;
+  }
+  return hit.user;
+}
+
+function remember(token, user) {
+  if (verified.size >= VERIFIED_MAX) verified.delete(verified.keys().next().value);
+  verified.set(token, { user, until: Date.now() + VERIFIED_TTL_MS });
+}
+
 export async function getUserFromRequest(request, bodyToken = "") {
   const token = tokenFromRequest(request, bodyToken);
   if (!token) return null;
+  const hit = cachedUser(token);
+  if (hit) return hit;
 
   const { url, anonKey, configured } = getSupabaseEnv();
   if (!configured) return null;
@@ -23,5 +45,7 @@ export async function getUserFromRequest(request, bodyToken = "") {
   });
   if (!response.ok) return null;
   const user = await response.json().catch(() => null);
-  return user?.id ? user : null;
+  if (!user?.id) return null;
+  remember(token, user);
+  return user;
 }

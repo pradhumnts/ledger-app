@@ -78,6 +78,8 @@ export function PreviewClient() {
       setDoc: (next) => handle({ type: "doc", doc: next }),
       scrollTo: (section) => handle({ type: "scroll", section }),
     };
+    // The app can hand the draft over before the page loads, saving a round trip.
+    if (embedded && window.__mkInitialDoc) handle({ type: "doc", doc: window.__mkInitialDoc });
     window.addEventListener("message", onMessage);
     document.addEventListener("message", onMessage);
     document.addEventListener("click", onClick, true);
@@ -89,7 +91,7 @@ export function PreviewClient() {
       document.removeEventListener("message", onMessage);
       document.removeEventListener("click", onClick, true);
     };
-  }, []);
+  }, [embedded]);
 
   if (!doc) return <div className="min-h-dvh bg-[#f6f1e7]" />;
   return (

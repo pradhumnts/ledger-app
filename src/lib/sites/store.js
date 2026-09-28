@@ -77,48 +77,62 @@ export async function isSlugTaken(admin, slug, userId) {
   return Boolean(data && data.user_id !== userId);
 }
 
-/** Copy the private shop logo into the public site bucket so live sites can show it. */
+/** Last-modified time (ms) of a storage object, or 0 when it doesn't exist. */
+async function objectUpdatedAt(admin, bucket, path) {
+  const slash = path.lastIndexOf("/");
+  const name = path.slice(slash + 1);
+  const { data } = await admin.storage
+    .from(bucket)
+    .list(path.slice(0, slash), { search: name, limit: 5 });
+  const item = (data || []).find((entry) => entry.name === name);
+  return item ? new Date(item.updated_at || item.created_at || 0).getTime() || 0 : 0;
+}
+
+/**
+ * Public copy of the private shop logo for live sites. Only re-copied when the
+ * shop's logo changed; the `?v=` is the logo's own timestamp so the URL (and
+ * the draft) stay the same between loads.
+ */
 export async function publishLogo(admin, userId, logoPath) {
   if (!logoPath) return "";
+  const path = `${userId}/logo.jpg`;
   try {
+    const [source, copy] = await Promise.all([
+      objectUpdatedAt(admin, "business-logos", logoPath),
+      objectUpdatedAt(admin, MEDIA_BUCKET, path),
+    ]);
+    if (!source) return "";
+    const url = `${publicMediaUrl(path)}?v=${source}`;
+    if (copy >= source) return url;
+
     const { data: file, error } = await admin.storage
       .from("business-logos")
       .download(logoPath);
     if (error || !file) return "";
-    const path = `${userId}/logo.jpg`;
     const { error: uploadError } = await admin.storage
       .from(MEDIA_BUCKET)
       .upload(path, await file.arrayBuffer(), {
         contentType: file.type || "image/jpeg",
         upsert: true,
       });
-    return uploadError ? "" : `${publicMediaUrl(path)}?v=${Date.now()}`;
+    return uploadError ? "" : url;
   } catch {
     return "";
   }
 }
 
+/** One round trip: new shops get a draft row (status defaults to draft), others are updated. */
 export async function saveDraft(admin, { userId, draft, slug }) {
-  const existing = await loadSiteForUser(admin, userId);
   const patch = {
+    user_id: userId,
     draft,
     template_id: draft.templateId,
     template_version: draft.templateVersion,
   };
   if (slug !== undefined) patch.slug = slug;
-
-  if (existing) {
-    const { data, error } = await admin
-      .from("sites")
-      .update(patch)
-      .eq("user_id", userId)
-      .select("*")
-      .single();
-    return { row: data, error };
-  }
   const { data, error } = await admin
     .from("sites")
-    .insert({ user_id: userId, status: "draft", ...patch })
+    .upsert(patch, { onConflict: "user_id" })
     .select("*")
     .single();
   return { row: data, error };
