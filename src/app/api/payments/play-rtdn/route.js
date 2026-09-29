@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { loadSiteForUser } from "@/lib/sites/store";
-import { refreshPlaySubscription } from "@/lib/sites/subscription";
+import { claimPlaySubscription, refreshPlaySubscription } from "@/lib/sites/subscription";
 
 export const runtime = "nodejs";
 
@@ -25,7 +25,7 @@ function decodeMessage(body) {
 /**
  * Google Play real-time developer notifications (Pub/Sub push). The push URL
  * carries `?token=PLAY_RTDN_TOKEN`. Always 200 once authenticated so Pub/Sub
- * stops retrying; tokens we have never seen are claimed later from the app.
+ * stops retrying; unknown tokens are claimed when Google says whose they are.
  */
 export async function POST(request) {
   const expected = process.env.PLAY_RTDN_TOKEN || "";
@@ -45,10 +45,13 @@ export async function POST(request) {
     .select("*")
     .eq("purchase_token", purchaseToken)
     .maybeSingle();
-  if (!row) return NextResponse.json({ ok: true });
 
-  await refreshPlaySubscription(admin, row);
-  const site = await loadSiteForUser(admin, row.user_id);
+  const saved = row
+    ? await refreshPlaySubscription(admin, row)
+    : await claimPlaySubscription(admin, purchaseToken);
+  if (!saved) return NextResponse.json({ ok: true });
+
+  const site = await loadSiteForUser(admin, saved.user_id);
   if (site?.slug) revalidatePath(`/sites/${site.slug}`);
   return NextResponse.json({ ok: true });
 }

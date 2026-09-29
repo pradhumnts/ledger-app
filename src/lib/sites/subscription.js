@@ -90,6 +90,18 @@ function rowFrom(userId, purchaseToken, play) {
   };
 }
 
+async function saveVerified(admin, userId, purchaseToken, play) {
+  if (!play.acknowledged && ACCESS_STATES.has(play.state)) {
+    await acknowledgePlaySubscription(play.productId, purchaseToken).catch(() => {});
+  }
+  const row = rowFrom(userId, purchaseToken, play);
+  const { error } = await admin
+    .from("site_subscriptions")
+    .upsert(row, { onConflict: "purchase_token" });
+  if (error) throw new SubscriptionError("save");
+  return row;
+}
+
 /** Check a purchase token with Google and store it for this shop. */
 export async function recordPlaySubscription(admin, { userId, purchaseToken }) {
   if (!playBillingConfig().configured) throw new SubscriptionError("notConfigured");
@@ -111,16 +123,45 @@ export async function recordPlaySubscription(admin, { userId, purchaseToken }) {
   if (play.accountId && play.accountId !== userId) throw new SubscriptionError("otherAccount");
   if (play.state === "SUBSCRIPTION_STATE_PENDING") throw new SubscriptionError("pending");
 
-  if (!play.acknowledged && ACCESS_STATES.has(play.state)) {
-    await acknowledgePlaySubscription(play.productId, purchaseToken).catch(() => {});
-  }
+  return saveVerified(admin, userId, purchaseToken, play);
+}
 
-  const row = rowFrom(userId, purchaseToken, play);
-  const { error } = await admin
-    .from("site_subscriptions")
-    .upsert(row, { onConflict: "purchase_token" });
-  if (error) throw new SubscriptionError("save");
-  return row;
+/**
+ * Store a token we have never seen, found through a Play notification: a plan
+ * switch (the replaced token is ours) or a purchase that finished after the app
+ * closed (the app sends the shop's user id as the obfuscated account id).
+ * Returns the saved row, or null when the token isn't ours to claim.
+ */
+export async function claimPlaySubscription(admin, purchaseToken) {
+  if (!playBillingConfig().configured) return null;
+
+  let play;
+  try {
+    play = fromPlay(await getPlaySubscription(purchaseToken));
+  } catch {
+    return null;
+  }
+  if (!sitePlanIds().has(play.productId)) return null;
+  if (play.state === "SUBSCRIPTION_STATE_PENDING") return null;
+
+  let userId = "";
+  if (play.linkedPurchaseToken) {
+    const { data: replaced } = await admin
+      .from("site_subscriptions")
+      .select("user_id")
+      .eq("purchase_token", play.linkedPurchaseToken)
+      .maybeSingle();
+    userId = replaced?.user_id || "";
+  }
+  if (userId && play.accountId && play.accountId !== userId) return null;
+  userId = userId || play.accountId;
+  if (!userId) return null;
+
+  try {
+    return await saveVerified(admin, userId, purchaseToken, play);
+  } catch {
+    return null;
+  }
 }
 
 /** Re-read a stored token from Google (renewals, cancellations, refunds). */
