@@ -5,7 +5,6 @@ import {
   Camera,
   Clock,
   MapPin,
-  MessageCircle,
   Phone,
 } from "lucide-react";
 import {
@@ -80,6 +79,14 @@ function linkProps(href) {
     : {};
 }
 
+function CtaIcon({ cta, className }) {
+  if (cta.whatsapp) return <WhatsAppIcon className={className} />;
+  if (cta.href?.startsWith("tel:")) {
+    return <Phone className={className} strokeWidth={1.75} />;
+  }
+  return null;
+}
+
 function BrandMark({ business, ui, light = false }) {
   return (
     <span
@@ -113,7 +120,7 @@ function Wordmark({ business, ui, light = false }) {
 
 function Header({ business, ui, links, cta }) {
   return (
-    <header className="s-header sticky top-0 z-40">
+    <header className="s-header sa-intro sticky top-0 z-40">
       <div className="s-wrap flex h-[4.75rem] items-center justify-between gap-4">
         <a href="#top" className="flex min-w-0 items-center gap-3 text-s-brand">
           <Wordmark business={business} ui={ui} />
@@ -135,17 +142,23 @@ function Header({ business, ui, links, cta }) {
             {...linkProps(cta.href)}
             className="s-btn s-btn-primary s-btn-sm hidden sm:inline-flex"
           >
+            <CtaIcon cta={cta} className="size-4" />
             {cta.label}
             <ArrowRight className="s-arrow size-4" />
           </a>
-          <MobileMenu name={business.name} links={links} cta={cta} />
+          <MobileMenu
+            name={business.name}
+            links={links}
+            cta={cta}
+            ctaIcon={<CtaIcon cta={cta} className="size-5" />}
+          />
         </div>
       </div>
     </header>
   );
 }
 
-function Hero({ hero, ui, reach, primaryHref, secondaryHref }) {
+function Hero({ hero, ui, reach, primary, secondaryHref }) {
   const [first, second] = splitTitle(hero.title);
   return (
     <section
@@ -154,18 +167,22 @@ function Hero({ hero, ui, reach, primaryHref, secondaryHref }) {
       className="relative pt-6 pb-20 sm:pt-10 md:pt-16 md:pb-32"
     >
       <div className="s-wrap grid items-center gap-12 md:grid-cols-[1.08fr_0.92fr] md:gap-16">
-        <div className="relative md:order-last" data-reveal>
+        <div className="relative md:order-last">
           <div
             aria-hidden
-            className="absolute top-12 -right-3 size-28 rounded-full bg-s-accent sm:-right-6 md:top-16 md:-right-10 md:size-40"
+            className="st-pop absolute top-12 -right-3 size-28 rounded-full bg-s-accent sm:-right-6 md:top-16 md:-right-10 md:size-40"
+            style={{ "--d": "0.55s" }}
           />
-          <div className="s-arch relative h-[min(122vw,34rem)] overflow-hidden bg-s-brand md:h-[min(82svh,46rem)]">
+          <div
+            className="s-arch sa-in relative h-[min(122vw,34rem)] overflow-hidden bg-s-brand md:h-[min(82svh,46rem)]"
+            style={{ "--d": "0.1s" }}
+          >
             {hero.image ? (
               <img
                 src={hero.image}
                 alt=""
                 fetchPriority="high"
-                className="size-full object-cover"
+                className="sa-hero-img size-full object-cover"
               />
             ) : (
               <div className="grid size-full place-items-center text-s-accent/60">
@@ -174,17 +191,25 @@ function Hero({ hero, ui, reach, primaryHref, secondaryHref }) {
             )}
           </div>
           {reach ? (
-            <p className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-2.5 rounded-full bg-s-paper/95 px-4 py-2.5 text-[0.82rem] font-medium whitespace-nowrap text-s-brand shadow-[0_18px_40px_-20px_rgba(0,0,0,0.45)] md:bottom-14 md:-left-10 md:translate-x-0">
-              <span className="size-2 rounded-full bg-s-accent ring-4 ring-s-accent/35" />
-              {reach}
-            </p>
+            <div
+              className="sa-in absolute bottom-5 left-1/2 -translate-x-1/2 md:bottom-14 md:-left-10 md:translate-x-0"
+              style={{ "--d": "0.95s" }}
+            >
+              <p className="flex items-center gap-2.5 rounded-full bg-s-paper/95 px-4 py-2.5 text-[0.82rem] font-medium whitespace-nowrap text-s-brand shadow-[0_18px_40px_-20px_rgba(0,0,0,0.45)]">
+                <span className="size-2 rounded-full bg-s-accent ring-4 ring-s-accent/35" />
+                {reach}
+              </p>
+            </div>
           ) : null}
         </div>
 
-        <div data-reveal style={{ "--d": "0.08s" }}>
+        <div>
           {hero.eyebrow ? (
-            <p className="s-eyebrow flex items-center gap-3 text-s-brand">
-              <span className="h-px w-10 bg-s-brand/50" />
+            <p
+              className="s-eyebrow sa-in flex items-center gap-3 text-s-brand"
+              style={{ "--d": "0.3s" }}
+            >
+              <span className="sa-rule h-px w-10 bg-s-brand/50" />
               {hero.eyebrow}
             </p>
           ) : null}
@@ -193,24 +218,36 @@ function Hero({ hero, ui, reach, primaryHref, secondaryHref }) {
               data-size={titleSize(hero.title)}
               className="s-serif s-hero-title mt-6 text-s-ink md:mt-8"
             >
-              <span className="block">{first}</span>
+              <span className="sa-line block" style={{ "--d": "0.4s" }}>
+                {first}
+              </span>
               {second ? (
-                <span className="s-italic block text-s-brand">{second}</span>
+                <span
+                  className="sa-line s-italic block text-s-brand"
+                  style={{ "--d": "0.6s" }}
+                >
+                  {second}
+                </span>
               ) : null}
             </h1>
           ) : null}
           {hero.subtitle ? (
-            <p className="mt-8 max-w-[34rem] text-[1.06rem] leading-[1.75] text-s-muted sm:text-lg">
+            <p
+              className="sa-in mt-8 max-w-[34rem] text-[1.06rem] leading-[1.75] text-s-muted sm:text-lg"
+              style={{ "--d": "0.8s" }}
+            >
               {hero.subtitle}
             </p>
           ) : null}
           <div className="mt-10 flex flex-wrap gap-3">
             {hero.cta ? (
               <a
-                href={primaryHref}
-                {...linkProps(primaryHref)}
-                className="s-btn s-btn-primary flex-1 sm:flex-none"
+                href={primary.href}
+                {...linkProps(primary.href)}
+                className="s-btn s-btn-primary sa-sheen sa-in flex-1 sm:flex-none"
+                style={{ "--d": "0.95s" }}
               >
+                <CtaIcon cta={primary} className="size-5" />
                 {hero.cta}
                 <ArrowRight className="s-arrow size-4" />
               </a>
@@ -218,7 +255,8 @@ function Hero({ hero, ui, reach, primaryHref, secondaryHref }) {
             {ui.cta2 ? (
               <a
                 href={secondaryHref}
-                className="s-btn s-btn-secondary flex-1 sm:flex-none"
+                className="s-btn s-btn-secondary sa-in flex-1 sm:flex-none"
+                style={{ "--d": "1.05s" }}
               >
                 {ui.cta2}
               </a>
@@ -284,19 +322,30 @@ function About({ about, image, ui, business }) {
         }`}
       >
         {image ? (
-          <div className="relative mr-5 mb-5" data-reveal>
+          <div className="relative mr-5 mb-5">
             <div
               aria-hidden
+              data-reveal
+              style={{ "--d": "0.35s" }}
               className="absolute inset-0 translate-x-5 translate-y-5 rounded-[1.25rem] bg-s-accent"
             />
-            <img
-              src={image}
-              alt=""
-              loading="lazy"
-              className="relative aspect-4/5 w-full rounded-[1.25rem] object-cover"
-            />
+            <div
+              data-reveal
+              className="st-photo relative overflow-hidden rounded-[1.25rem]"
+            >
+              <img
+                src={image}
+                alt=""
+                loading="lazy"
+                className="aspect-4/5 w-full object-cover"
+              />
+            </div>
             {badge ? (
-              <div className="absolute -top-10 -right-4 md:top-auto md:-right-14 md:-bottom-12">
+              <div
+                data-reveal
+                style={{ "--d": "0.6s" }}
+                className="absolute -top-10 -right-4 md:top-auto md:-right-14 md:-bottom-12"
+              >
                 {badge}
               </div>
             ) : null}
@@ -365,6 +414,7 @@ function Services({ services, ui, business, whatsappPhone, cta }) {
               {...linkProps(cta.href)}
               className="s-btn s-btn-primary mt-7"
             >
+              <CtaIcon cta={cta} className="size-5" />
               {cta.label}
               <ArrowRight className="s-arrow size-4" />
             </a>
@@ -386,7 +436,7 @@ function Services({ services, ui, business, whatsappPhone, cta }) {
                 key={`${item.name}-${index}`}
                 data-reveal
                 style={{ "--d": `${(index % 2) * 0.08}s` }}
-                className="border-b border-s-paper/15"
+                className="sa-row [--row-line:color-mix(in_srgb,var(--s-paper)_15%,transparent)]"
               >
                 <a
                   href={href}
@@ -515,6 +565,7 @@ function Gallery({ gallery, ui, socials, cta }) {
               {...linkProps(cta.href)}
               className="s-btn s-btn-secondary shrink-0 self-start md:self-auto"
             >
+              <CtaIcon cta={cta} className="size-4" />
               {ui.galleryCta}
               <ArrowRight className="s-arrow size-4" />
             </a>
@@ -529,8 +580,8 @@ function Gallery({ gallery, ui, socials, cta }) {
               <figure
                 key={`${src}-${index}`}
                 data-reveal
-                style={{ ...tiles[index], "--d": `${(index % 3) * 0.07}s` }}
-                className="s-tile relative m-0 overflow-hidden rounded-[1.25rem] bg-s-bg"
+                style={{ ...tiles[index], "--d": `${(index % 3) * 0.1}s` }}
+                className="s-tile st-photo relative m-0 overflow-hidden rounded-[1.25rem] bg-s-bg"
               >
                 <img
                   src={src}
@@ -614,8 +665,12 @@ function Contact({ contact, ui, business, whatsapp }) {
             <a
               href={primary}
               {...linkProps(primary)}
-              className="s-btn mt-10 w-full bg-s-brand px-8 text-[1.05rem] text-s-paper shadow-[0_18px_36px_-20px_rgba(0,0,0,0.6)] sm:w-auto"
+              className="s-btn sa-sheen mt-10 w-full bg-s-brand px-8 text-[1.05rem] text-s-paper shadow-[0_18px_36px_-20px_rgba(0,0,0,0.6)] sm:w-auto"
             >
+              <CtaIcon
+                cta={{ href: primary, whatsapp: Boolean(whatsapp) }}
+                className="size-5"
+              />
               {whatsapp ? ui.contactCta : formatPhone(business.phone)}
               <ArrowRight className="s-arrow ml-2 size-5" strokeWidth={1.75} />
             </a>
@@ -634,7 +689,7 @@ function Contact({ contact, ui, business, whatsapp }) {
           />
           <InfoRow
             label="WhatsApp"
-            icon={MessageCircle}
+            icon={WhatsAppIcon}
             value={whatsapp ? ui.whatsappNote || "Chat with us" : ""}
             href={whatsapp}
           />
@@ -790,9 +845,15 @@ export function StudioTemplate({ doc, isShown }) {
     { href: "#contact", label: "Contact" },
   ].filter(Boolean);
 
-  const cta = { href: contactHref, label: ui.availability || "Contact us" };
-  const primaryHref =
-    ui.primaryTarget === "gallery" && show.gallery ? "#gallery" : contactHref;
+  const cta = {
+    href: contactHref,
+    label: ui.availability || "Contact us",
+    whatsapp: Boolean(whatsapp),
+  };
+  const primary =
+    ui.primaryTarget === "gallery" && show.gallery
+      ? { href: "#gallery", whatsapp: false }
+      : cta;
   const secondaryHref = show.services ? "#services" : "#contact";
   const city = cityFrom(business.address);
   const reach = [city, ui.reach].filter(Boolean).join(" · ");
@@ -805,7 +866,7 @@ export function StudioTemplate({ doc, isShown }) {
           hero={hero}
           ui={ui}
           reach={reach}
-          primaryHref={primaryHref}
+          primary={primary}
           secondaryHref={secondaryHref}
         />
         {show.about ? (
