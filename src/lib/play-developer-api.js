@@ -140,6 +140,42 @@ export async function acknowledgePlaySubscription(productId, purchaseToken) {
   });
 }
 
+/**
+ * Push a subscription's next charge back (free months). Google refuses when
+ * `expectedExpiry` is stale, so pass the expiry just read from subscriptionsv2.
+ */
+export async function deferPlaySubscription(productId, purchaseToken, expectedExpiry, desiredExpiry) {
+  const { packageName, configured } = playBillingConfig();
+  if (!configured) {
+    throw new Error("Play Billing is not configured on the server.");
+  }
+
+  const accessToken = await getAccessToken();
+  const url = purchasesUrl(
+    packageName,
+    `subscriptions/${encodeURIComponent(productId)}/tokens/` +
+      `${encodeURIComponent(purchaseToken)}:defer`
+  );
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      deferralInfo: {
+        expectedExpiryTimeMillis: String(new Date(expectedExpiry).getTime()),
+        desiredExpiryTimeMillis: String(new Date(desiredExpiry).getTime()),
+      },
+    }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.error?.message || "Could not extend that Play subscription.");
+  }
+  return body;
+}
+
 export async function acknowledgePlayPurchase(sku, purchaseToken) {
   const { packageName, configured } = playBillingConfig();
   if (!configured) return;

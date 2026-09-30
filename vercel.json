@@ -1,3 +1,5 @@
 {
-  "crons": []
+  "crons": [
+    { "path": "/api/cron/referrals", "schedule": "30 3 * * *" }
+  ]
 }

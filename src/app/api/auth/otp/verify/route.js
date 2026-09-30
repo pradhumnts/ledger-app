@@ -1,7 +1,9 @@
+import { after } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { corsJson, corsPreflight } from "@/lib/api-cors";
+import { forgetOtpRequest, otpRequestPhone } from "@/lib/otp-requests";
 import { ensureShopUser } from "@/lib/supabase/ensure-shop-user";
-import { toE164India } from "@/lib/supabase/phone";
+import { indianMobileDigits, toE164India } from "@/lib/supabase/phone";
 import { validateOtp, validateRequiredPhone } from "@/lib/validation";
 import { msg91VerifyOtp } from "@/lib/msg91";
 import {
@@ -42,20 +44,33 @@ export async function POST(request) {
     );
   }
 
-  try {
-    if (isPlayReviewLogin(body.phone, body.otp)) {
-      if (body.reqId !== PLAY_REVIEW_REQ_ID) {
-        return corsJson(request, { error: "That code didn't work." }, { status: 400 });
-      }
-    } else {
-      await msg91VerifyOtp(body.reqId, body.otp);
+  if (isPlayReviewLogin(body.phone, body.otp)) {
+    if (body.reqId !== PLAY_REVIEW_REQ_ID) {
+      return corsJson(request, { error: "That code didn't work." }, { status: 400 });
     }
-  } catch (error) {
-    return corsJson(
-      request,
-      { error: error.message || "That code didn't work." },
-      { status: 400 }
-    );
+  } else {
+    const [sentTo, failed] = await Promise.all([
+      otpRequestPhone(admin, body.reqId),
+      msg91VerifyOtp(body.reqId, body.otp).then(
+        () => null,
+        (error) => error
+      ),
+    ]);
+    if (failed) {
+      return corsJson(
+        request,
+        { error: failed.message || "That code didn't work." },
+        { status: 400 }
+      );
+    }
+    if (!sentTo || sentTo !== indianMobileDigits(body.phone)) {
+      return corsJson(
+        request,
+        { error: "That code has expired. Request a new one." },
+        { status: 400 }
+      );
+    }
+    after(() => forgetOtpRequest(admin, body.reqId));
   }
 
   const e164 = toE164India(body.phone);

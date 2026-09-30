@@ -3,6 +3,8 @@ import {
   getPlaySubscription,
   playBillingConfig,
 } from "@/lib/play-developer-api";
+import { activeGrant } from "@/lib/referrals/grants";
+import { onSubscriptionSaved } from "@/lib/referrals/store";
 import { indianMobileDigits } from "@/lib/supabase/phone";
 import { isFreePublish } from "@/lib/sites/config";
 
@@ -65,6 +67,8 @@ function fromPlay(subscription) {
   return {
     productId: String(item.productId || ""),
     basePlanId: item.offerDetails?.basePlanId || null,
+    offerId: item.offerDetails?.offerId || null,
+    startTime: subscription.startTime || null,
     expiresAt: item.expiryTime || null,
     autoRenewing: Boolean(item.autoRenewingPlan?.autoRenewEnabled),
     orderId: item.latestSuccessfulOrderId || subscription.latestOrderId || null,
@@ -90,6 +94,15 @@ function rowFrom(userId, purchaseToken, play) {
   };
 }
 
+/** Referral rewards must never block a purchase or renewal from being saved. */
+async function trackReferral(admin, userId, purchaseToken, play) {
+  try {
+    await onSubscriptionSaved(admin, { userId, purchaseToken, play });
+  } catch (error) {
+    console.error("referral tracking failed", error);
+  }
+}
+
 async function saveVerified(admin, userId, purchaseToken, play) {
   if (!play.acknowledged && ACCESS_STATES.has(play.state)) {
     await acknowledgePlaySubscription(play.productId, purchaseToken).catch(() => {});
@@ -99,6 +112,7 @@ async function saveVerified(admin, userId, purchaseToken, play) {
     .from("site_subscriptions")
     .upsert(row, { onConflict: "purchase_token" });
   if (error) throw new SubscriptionError("save");
+  await trackReferral(admin, userId, purchaseToken, play);
   return row;
 }
 
@@ -174,13 +188,14 @@ export async function refreshPlaySubscription(admin, row) {
       .from("site_subscriptions")
       .update(next)
       .eq("purchase_token", row.purchase_token);
+    await trackReferral(admin, row.user_id, row.purchase_token, play);
     return next;
   } catch {
     return row;
   }
 }
 
-async function activeSubscription(admin, userId) {
+export async function activeSubscription(admin, userId) {
   const { data } = await admin
     .from("site_subscriptions")
     .select("*")
@@ -210,20 +225,31 @@ function planSummary(row) {
 
 /**
  * Whether this signed-in shop may publish, and why:
- * `free` (launch test mode), `owner` (allowlisted number) or `play`.
+ * `free` (launch test mode), `owner` (allowlisted number), `play` or
+ * `referral` (free months earned by referring shops).
  */
 export async function siteAccess(admin, user) {
   if (isFreePublish()) return { active: true, source: "free" };
   if (hasFreeAccess(user)) return { active: true, source: "owner" };
-  const row = await activeSubscription(admin, user.id);
+  const [row, grant] = await Promise.all([
+    activeSubscription(admin, user.id),
+    activeGrant(admin, user.id),
+  ]);
   if (row) return { active: true, source: "play", ...planSummary(row) };
+  if (grant) {
+    return { active: true, source: "referral", expiresAt: grant.endsAt, autoRenewing: false };
+  }
   return { active: false, source: "" };
 }
 
 /** Same check for a live site visit, where we only know the owner's id. */
 export async function ownerHasSiteAccess(admin, userId) {
   if (isFreePublish()) return true;
-  if (await activeSubscription(admin, userId)) return true;
+  const [row, grant] = await Promise.all([
+    activeSubscription(admin, userId),
+    activeGrant(admin, userId),
+  ]);
+  if (row || grant) return true;
   if (!freePhones().size) return false;
   const { data } = await admin.auth.admin.getUserById(userId);
   return hasFreeAccess(data?.user);

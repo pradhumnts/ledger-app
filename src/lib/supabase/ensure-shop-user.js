@@ -61,6 +61,15 @@ async function findCandidateIds(admin, e164, email) {
     if (row.user_id) ids.add(row.user_id);
   }
 
+  const { data: authIds, error: lookupError } = await admin.rpc("shop_login_user_ids", {
+    p_digits: digits,
+    p_email: email || "",
+  });
+  if (!lookupError) {
+    for (const id of authIds || []) ids.add(id);
+    return [...ids];
+  }
+
   try {
     const users = await listAuthUsers(admin);
     for (const user of users) {
@@ -73,7 +82,7 @@ async function findCandidateIds(admin, e164, email) {
       }
     }
   } catch {
-    // Auth listing is a fallback; profiles / businesses may still find the shop.
+    // Slow path until shop_login_user_ids exists; profiles / businesses may still find the shop.
   }
 
   return [...ids];

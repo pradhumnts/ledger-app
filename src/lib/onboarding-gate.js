@@ -8,11 +8,6 @@ export function isPublicLegalPath(pathname) {
   );
 }
 
-/** MoneyKit platform admin — separate from shop onboarding. */
-export function isAdminPath(pathname) {
-  return pathname === "/admin" || Boolean(pathname?.startsWith("/admin/"));
-}
-
 /** Browser marketing site — landing, legal pages (not the signed-in shop app). */
 export function isMarketingPath(pathname) {
   return pathname === "/" || isPublicLegalPath(pathname);
@@ -35,6 +30,11 @@ export function isShopSitePath(pathname) {
   );
 }
 
+/** Referral short links (`/r/CODE`) and the affiliate partner page. */
+export function isReferralPath(pathname) {
+  return pathname === "/partner" || Boolean(pathname?.startsWith("/r/"));
+}
+
 /**
  * Everything the website still serves. The shop app lives in the React Native
  * app now, so any other page (onboarding, customers, bills…) redirects to `/`.
@@ -44,7 +44,7 @@ export function isWebAccessiblePath(pathname) {
     isMarketingPath(pathname) ||
     isPublicSharePath(pathname) ||
     isShopSitePath(pathname) ||
-    isAdminPath(pathname)
+    isReferralPath(pathname)
   );
 }
 

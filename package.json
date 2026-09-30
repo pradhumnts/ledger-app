@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test src/lib/ledger-math.test.mjs src/lib/reminders.test.mjs src/lib/web-manifests.test.mjs"
+    "test": "node --test src/lib/ledger-math.test.mjs src/lib/reminders.test.mjs src/lib/web-manifests.test.mjs src/lib/referrals/rules.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -1,6 +1,9 @@
+import { after } from "next/server";
 import { msg91SendOtp } from "@/lib/msg91";
 import { corsJson, corsPreflight } from "@/lib/api-cors";
+import { pruneOtpRequests, rememberOtpRequest } from "@/lib/otp-requests";
 import { PLAY_REVIEW_REQ_ID, isPlayReviewLogin } from "@/lib/play-review-auth";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { indianMobileDigits, toE164India } from "@/lib/supabase/phone";
 import { validateRequiredPhone } from "@/lib/validation";
 
@@ -30,8 +33,20 @@ export async function POST(request) {
     });
   }
 
+  const admin = getSupabaseAdmin();
+  if (!admin) {
+    return corsJson(
+      request,
+      { error: "Supabase service role is not configured on the server." },
+      { status: 503 }
+    );
+  }
+
   try {
-    const result = await msg91SendOtp(indianMobileDigits(body.phone));
+    const digits = indianMobileDigits(body.phone);
+    const result = await msg91SendOtp(digits);
+    await rememberOtpRequest(admin, result.reqId, digits);
+    if (Math.random() < 0.05) after(() => pruneOtpRequests(admin));
     return corsJson(request, {
       reqId: result.reqId,
       phone: toE164India(body.phone),

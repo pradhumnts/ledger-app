@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import { voidRewardsForToken } from "@/lib/referrals/store";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { loadSiteForUser } from "@/lib/sites/store";
 import { claimPlaySubscription, refreshPlaySubscription } from "@/lib/sites/subscription";
@@ -37,6 +38,14 @@ export async function POST(request) {
 
   const admin = getSupabaseAdmin();
   const note = decodeMessage(await request.json().catch(() => ({})));
+
+  // Refunds (with or without revoking access) take back referral rewards still on hold.
+  const voidedToken = note?.voidedPurchaseNotification?.purchaseToken;
+  if (admin && voidedToken) {
+    await voidRewardsForToken(admin, voidedToken, "refunded").catch(() => {});
+    return NextResponse.json({ ok: true });
+  }
+
   const purchaseToken = note?.subscriptionNotification?.purchaseToken;
   if (!admin || !purchaseToken) return NextResponse.json({ ok: true });
 
