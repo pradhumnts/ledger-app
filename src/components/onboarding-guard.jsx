@@ -3,11 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "@/context/app-provider";
-import {
-  isAdminPath,
-  isPublicLegalPath,
-  isPublicSharePath,
-} from "@/lib/onboarding-gate";
+import { isPublicLegalPath, isPublicSharePath } from "@/lib/onboarding-gate";
 
 export function OnboardingGuard({ children }) {
   const { ready, settings } = useApp();
@@ -16,16 +12,14 @@ export function OnboardingGuard({ children }) {
   const onOnboarding = pathname === "/onboarding";
   const onPublicShare = isPublicSharePath(pathname);
   const onPublicLegal = isPublicLegalPath(pathname);
-  const onAdmin = isAdminPath(pathname);
   const onboarded = Boolean(settings?.onboardingComplete);
   const allowed =
     onPublicShare ||
     onPublicLegal ||
-    onAdmin ||
     (ready && (onboarded ? !onOnboarding : onOnboarding));
 
   useEffect(() => {
-    if (!ready || onPublicShare || onPublicLegal || onAdmin) return;
+    if (!ready || onPublicShare || onPublicLegal) return;
     if (!onboarded && !onOnboarding) {
       router.replace("/onboarding");
       return;
@@ -39,7 +33,6 @@ export function OnboardingGuard({ children }) {
     onOnboarding,
     onPublicShare,
     onPublicLegal,
-    onAdmin,
     router,
   ]);
 

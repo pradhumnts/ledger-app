@@ -7,11 +7,7 @@ import { useApp } from "@/context/app-provider";
 import { useTranslation } from "@/hooks/use-translation";
 import { APP_NAME } from "@/lib/branding";
 import { isInstalledApp, setSplashChrome, skipWebSplash } from "@/lib/installed-app";
-import {
-  isAdminPath,
-  isPublicLegalPath,
-  isPublicSharePath,
-} from "@/lib/onboarding-gate";
+import { isPublicLegalPath, isPublicSharePath } from "@/lib/onboarding-gate";
 import { cn } from "@/lib/utils";
 
 const MIN_MS = 900;
@@ -26,15 +22,13 @@ export function SplashScreen() {
   const [hideWebSplash, setHideWebSplash] = useState(false);
 
   const onPublicShare = isPublicSharePath(pathname);
-  const onAdmin = isAdminPath(pathname);
   const blocking =
-    !onAdmin &&
-    (!ready ||
-      (pathname !== "/onboarding" &&
-        !onPublicShare &&
-        pathname !== "/" &&
-        !isPublicLegalPath(pathname) &&
-        !settings?.onboardingComplete));
+    !ready ||
+    (pathname !== "/onboarding" &&
+      !onPublicShare &&
+      pathname !== "/" &&
+      !isPublicLegalPath(pathname) &&
+      !settings?.onboardingComplete);
 
   useEffect(() => {
     if (skipWebSplash()) setHideWebSplash(true);
@@ -67,7 +61,6 @@ export function SplashScreen() {
   }, [forestChrome]);
 
   if (hideWebSplash) return null;
-  if (onAdmin) return null;
   if (pathname === "/onboarding" && ready) return null;
   if (onPublicShare || isPublicLegalPath(pathname)) return null;
   if (!blocking && phase === "hidden") return null;

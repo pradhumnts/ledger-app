@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
-import {
-  ADMIN_SESSION_COOKIE,
-  parseAdminSessionToken,
-} from "@/lib/admin-session";
 import { APP_SITE_URL } from "@/lib/branding";
 import {
   ONBOARDING_COOKIE,
-  isAdminPath,
   isShopSitePath,
   isWebAccessiblePath,
 } from "@/lib/onboarding-gate";
@@ -45,7 +40,7 @@ function routeSiteHost(request, pathname) {
   return null;
 }
 
-export async function proxy(request) {
+export function proxy(request) {
   const { pathname } = request.nextUrl;
 
   const siteResponse = routeSiteHost(request, pathname);
@@ -58,21 +53,6 @@ export async function proxy(request) {
     pathname.startsWith("/manifests/") ||
     pathname.endsWith(".webmanifest")
   ) {
-    return NextResponse.next();
-  }
-
-  if (isAdminPath(pathname)) {
-    const onLogin =
-      pathname === "/admin/login" || pathname === "/admin/login/";
-    const session = await parseAdminSessionToken(
-      request.cookies.get(ADMIN_SESSION_COOKIE)?.value
-    );
-    if (!onLogin && !session) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
-    }
-    if (onLogin && session) {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
     return NextResponse.next();
   }
 

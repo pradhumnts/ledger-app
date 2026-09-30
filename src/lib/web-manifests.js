@@ -8,10 +8,8 @@ import {
   BACKGROUND_COLOR,
   PLAY_PACKAGE_NAME,
   PLAY_STORE_URL,
-  THEME_COLOR,
 } from "./branding.js";
 
-export const ADMIN_MANIFEST_PATH = "/manifests/admin";
 export const SHOP_MANIFEST_PATH = "/manifests/shop";
 
 const APP_ICONS = [
@@ -38,14 +36,6 @@ const APP_ICONS = [
     sizes: "512x512",
     type: "image/png",
     purpose: "maskable",
-  },
-];
-
-const SHORTCUT_ICONS = [
-  {
-    src: APP_ICON_192,
-    sizes: "192x192",
-    type: "image/png",
   },
 ];
 
@@ -122,48 +112,6 @@ export function shopWebManifest() {
         type: "image/png",
         form_factor: "narrow",
         label: "Bill and QR themes for your shop",
-      },
-    ],
-  };
-}
-
-/** Standalone admin dashboard PWA. */
-export function adminWebManifest() {
-  return {
-    id: "/admin",
-    lang: "en",
-    dir: "ltr",
-    name: `${APP_NAME} Admin`,
-    short_name: "MK Admin",
-    description: `Platform metrics and shop profiles for ${APP_NAME}.`,
-    start_url: "/admin",
-    scope: "/admin",
-    display: "standalone",
-    display_override: ["standalone", "minimal-ui"],
-    background_color: BACKGROUND_COLOR,
-    theme_color: THEME_COLOR,
-    categories: ["business", "productivity"],
-    prefer_related_applications: false,
-    related_applications: [],
-    icons: APP_ICONS,
-    shortcuts: [
-      {
-        name: "Overview",
-        short_name: "Overview",
-        url: "/admin",
-        icons: SHORTCUT_ICONS,
-      },
-      {
-        name: "Shops",
-        short_name: "Shops",
-        url: "/admin/businesses",
-        icons: SHORTCUT_ICONS,
-      },
-      {
-        name: "Purchases",
-        short_name: "Purchases",
-        url: "/admin/purchases",
-        icons: SHORTCUT_ICONS,
       },
     ],
   };

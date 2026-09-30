@@ -38,7 +38,7 @@ export const metadata = {
   applicationName: APP_NAME,
   manifest: SHOP_MANIFEST_PATH,
   // Shop users install the React Native Play Store app. The website stays a
-  // browser landing page; /admin has its own standalone PWA manifest.
+  // browser landing page.
   icons: {
     icon: [
       { url: APP_ICON_SVG, type: "image/svg+xml" },
