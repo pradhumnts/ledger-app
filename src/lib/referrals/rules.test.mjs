@@ -64,3 +64,24 @@ test("invite names are masked", () => {
 test("short link", () => {
   assert.equal(referralLink("https://moneykitapp.com/", "RAHUL"), "https://moneykitapp.com/r/RAHUL");
 });
+
+test("link previews: bots get a card, people get the redirect", async () => {
+  const { isLinkPreviewBot, referralPreviewHtml } = await import("./link-preview.js");
+  assert.equal(isLinkPreviewBot("WhatsApp/2.24.1.0 A"), true);
+  assert.equal(isLinkPreviewBot("facebookexternalhit/1.1"), true);
+  assert.equal(isLinkPreviewBot("TelegramBot (like TwitterBot)"), true);
+  assert.equal(isLinkPreviewBot("Mozilla/5.0 (Linux; Android 14) Chrome/128 Mobile Safari/537.36"), false);
+  assert.equal(isLinkPreviewBot(""), false);
+
+  const html = referralPreviewHtml({
+    label: `Ravi "<script>" Store`,
+    code: "RAVI123",
+    url: "https://moneykitapp.com/r/RAVI123",
+    image: "https://moneykitapp.com/r/RAVI123/image",
+    playUrl: "https://play.google.com/store/apps/details?id=app.moneykit.android&referrer=ref%3DRAVI123",
+  });
+  assert.ok(html.includes(`content="https://moneykitapp.com/r/RAVI123/image"`));
+  assert.ok(html.includes("Ravi &quot;&lt;script&gt;&quot; Store invited you to MoneyKit"));
+  assert.ok(html.includes("Use code RAVI123 for 10% off"));
+  assert.ok(!html.includes(`"<script>"`), "shop name can't inject markup");
+});

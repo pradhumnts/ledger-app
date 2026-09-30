@@ -14,6 +14,7 @@ const nextConfig = {
   serverExternalPackages: ["@resvg/resvg-js", "web-push", "sharp"],
   outputFileTracingIncludes: {
     "/sites/\\[slug\\]/share-image": ["./src/lib/og/fonts/*.ttf"],
+    "/r/\\[code\\]/image": ["./src/lib/og/fonts/*.ttf", "./public/icon-192.png"],
   },
   images: {
     remotePatterns: [
