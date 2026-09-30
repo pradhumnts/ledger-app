@@ -14,7 +14,7 @@ import {
   YouTubeIcon,
 } from "@/components/sites/icons";
 import { MobileMenu } from "@/components/sites/mobile-menu";
-import { APP_SITE_URL } from "@/lib/branding";
+import { shopSitePlayUrl } from "@/lib/branding";
 import {
   formatRupees,
   instagramHandle,
@@ -788,7 +788,7 @@ function Footer({ business, ui, links, socials, whatsapp, intro }) {
             © {new Date().getFullYear()} {business.name}. All rights reserved.
           </p>
           <a
-            href={`${APP_SITE_URL}/?ref=site`}
+            href={shopSitePlayUrl("footer")}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 transition-colors hover:text-s-paper"
