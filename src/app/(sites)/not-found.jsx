@@ -1,4 +1,4 @@
-import { shopSitePlayUrl } from "@/lib/branding";
+import { playStoreUrl } from "@/lib/branding";
 
 export const metadata = {
   title: "Website not found",
@@ -15,7 +15,7 @@ export default function SiteNotFound() {
           The link may be wrong, or the business has not published it yet.
         </p>
         <a
-          href={shopSitePlayUrl("not_found")}
+          href={playStoreUrl("shop_site", "not_found")}
           className="mt-8 inline-flex rounded-full bg-[#1f1b16] px-6 py-3 text-sm font-medium text-[#f7f3ec]"
         >
           Make your own website with MoneyKit

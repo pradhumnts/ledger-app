@@ -8,7 +8,7 @@ import { PageSpinner } from "@/components/page-spinner";
 import { SoftCard } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/use-translation";
 import { capture, amountBucket } from "@/lib/analytics";
-import { APP_NAME, PLAY_STORE_URL } from "@/lib/branding";
+import { APP_NAME, playStoreUrl } from "@/lib/branding";
 import { formatINR } from "@/lib/format";
 import { buildUpiPaymentUrl, isValidUpiId } from "@/lib/upi";
 import { rupeesToPaise } from "@/lib/supabase/money";
@@ -109,7 +109,7 @@ export default function PayLinkPage() {
   return (
     <div className="flex min-h-dvh flex-col px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <a
-        href={PLAY_STORE_URL}
+        href={playStoreUrl("pay_page", "logo")}
         target="_blank"
         rel="noopener noreferrer"
         className="mb-8 flex justify-center"

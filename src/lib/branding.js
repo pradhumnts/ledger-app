@@ -9,9 +9,9 @@ export const SUPPORT_WHATSAPP = "6350052979";
 export const PLAY_PACKAGE_NAME = "app.moneykit.android";
 export const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=app.moneykit.android";
-/** Play listing linked from shop sites; the referrer shows up in Play Console acquisition. */
-export function shopSitePlayUrl(medium) {
-  const referrer = `utm_source=shop_site&utm_medium=${medium}`;
+/** Play listing tagged for Play Console acquisition, which reports only utm_source and utm_campaign. */
+export function playStoreUrl(source, campaign) {
+  const referrer = `utm_source=${source}&utm_campaign=${campaign}`;
   return `${PLAY_STORE_URL}&referrer=${encodeURIComponent(referrer)}`;
 }
 

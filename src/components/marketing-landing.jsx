@@ -17,7 +17,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { MoneyKitLogo } from "@/components/moneykit-logo";
-import { APP_NAME, APP_TAGLINE, PLAY_STORE_URL, SUPPORT_WHATSAPP } from "@/lib/branding";
+import { APP_NAME, APP_TAGLINE, SUPPORT_WHATSAPP, playStoreUrl } from "@/lib/branding";
 import { openWhatsApp } from "@/lib/share";
 import { cn } from "@/lib/utils";
 
@@ -273,7 +273,7 @@ export function MarketingLanding() {
       <div className="relative mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-5 pb-10 pt-[max(1.25rem,env(safe-area-inset-top))]">
         <header className="flex justify-center">
           <a
-            href={PLAY_STORE_URL}
+            href={playStoreUrl("website", "logo")}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2.5 rounded-full border border-black/[0.05] bg-white/90 py-1.5 pl-1.5 pr-4 shadow-[0_8px_24px_rgba(11,48,31,0.06)] backdrop-blur-sm"
@@ -331,7 +331,7 @@ export function MarketingLanding() {
           </p>
           <div className="mx-auto mt-5 max-w-xs">
             <a
-              href={PLAY_STORE_URL}
+              href={playStoreUrl("website", "cta")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-12 w-full items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-semibold text-white"
