@@ -226,7 +226,7 @@ function planSummary(row) {
 /**
  * Whether this signed-in shop may publish, and why:
  * `free` (launch test mode), `owner` (allowlisted number), `play` or
- * `referral` (free months earned by referring shops).
+ * `grant` (a free month, e.g. from the bill challenge).
  */
 export async function siteAccess(admin, user) {
   if (isFreePublish()) return { active: true, source: "free" };
@@ -237,7 +237,7 @@ export async function siteAccess(admin, user) {
   ]);
   if (row) return { active: true, source: "play", ...planSummary(row) };
   if (grant) {
-    return { active: true, source: "referral", expiresAt: grant.endsAt, autoRenewing: false };
+    return { active: true, source: "grant", expiresAt: grant.endsAt, autoRenewing: false };
   }
   return { active: false, source: "" };
 }

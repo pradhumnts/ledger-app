@@ -1,7 +1,15 @@
 export const HOLD_DAYS = 14;
 export const AFFILIATE_REWARD_PAISE = 30_000;
-export const SHOP_REWARD_MONTHS = 1;
+export const SHOP_REWARD_PAISE = 10_000;
+/** Shops ask for a payout only once this much has cleared, to keep UPI transfers few. */
+export const SHOP_MIN_PAYOUT_PAISE = 30_000;
 export const REFERRAL_DISCOUNT_PERCENT = 10;
+
+const UPI_ID = /^[a-zA-Z0-9._-]{2,}@[a-zA-Z0-9]{2,}$/;
+
+export function isUpiId(value) {
+  return UPI_ID.test(String(value || "").trim());
+}
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CODE_ALPHABET = "23456789";

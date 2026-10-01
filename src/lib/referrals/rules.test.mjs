@@ -4,6 +4,7 @@ import {
   addMonths,
   codeFromReferrer,
   holdUntil,
+  isUpiId,
   isYearlyPlan,
   maskName,
   normalizeCode,
@@ -17,6 +18,14 @@ test("codes are case-insensitive and ignore spaces", () => {
   assert.equal(normalizeCode("ab"), "");
   assert.equal(normalizeCode(""), "");
   assert.equal(normalizeCode("x".repeat(21)), "");
+});
+
+test("payout UPI IDs need a handle and a bank", () => {
+  assert.equal(isUpiId("sharma.kirana@okaxis"), true);
+  assert.equal(isUpiId(" 9876543210@ybl "), true);
+  assert.equal(isUpiId("sharma"), false);
+  assert.equal(isUpiId("a@b"), false);
+  assert.equal(isUpiId(""), false);
 });
 
 test("shop codes come from the business name", () => {

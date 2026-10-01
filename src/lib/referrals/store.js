@@ -5,7 +5,8 @@ import {
   AFFILIATE_REWARD_PAISE,
   HOLD_DAYS,
   REFERRAL_DISCOUNT_PERCENT,
-  SHOP_REWARD_MONTHS,
+  SHOP_MIN_PAYOUT_PAISE,
+  SHOP_REWARD_PAISE,
   holdUntil,
   isYearlyPlan,
   mapInBatches,
@@ -197,9 +198,9 @@ async function createRewards(admin, referral) {
   if (referral.referrer_user_id) {
     rows.push({
       ...base,
-      kind: "free_month",
+      kind: "cash",
       user_id: referral.referrer_user_id,
-      months: SHOP_REWARD_MONTHS,
+      amount_paise: SHOP_REWARD_PAISE,
     });
   }
   if (!rows.length) return;
@@ -324,57 +325,107 @@ function inviteRow(row, names) {
   };
 }
 
+/** Rupees per reward status; `due` is held money already past its hold, `nextReadyAt` the next to clear. */
+function earningsFrom(rewards) {
+  const now = nowIso();
+  const earnings = { held: 0, ready: 0, requested: 0, paid: 0, due: 0, nextReadyAt: null };
+  for (const reward of rewards || []) {
+    const rupees = Math.round((reward.amount_paise || 0) / 100);
+    if (reward.status === "held") {
+      earnings.held += rupees;
+      if (reward.hold_until <= now) earnings.due += rupees;
+      if (!earnings.nextReadyAt || reward.hold_until < earnings.nextReadyAt) {
+        earnings.nextReadyAt = reward.hold_until;
+      }
+    } else if (["ready", "requested", "paid"].includes(reward.status)) {
+      earnings[reward.status] += rupees;
+    }
+  }
+  return earnings;
+}
+
+function payoutRow(row) {
+  return {
+    id: row.id,
+    amount: Math.round(row.amount_paise / 100),
+    upiId: row.upi_id,
+    status: row.status,
+    reference: row.reference,
+    note: row.note || "",
+    requestedAt: row.requested_at,
+    paidAt: row.paid_at,
+  };
+}
+
 /** Everything the app's Refer & earn page shows. */
 export async function shopReferralSummary(admin, userId) {
-  const [code, { data: invites }, { data: rewards }, from] = await Promise.all([
-    ensureShopCode(admin, userId),
-    admin
-      .from("referrals")
-      .select("referred_user_id, status, created_at, subscribed_at")
-      .eq("referrer_user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(200),
-    admin
-      .from("referral_rewards")
-      .select("status, months, hold_until, used_via")
-      .eq("user_id", userId)
-      .eq("kind", "free_month"),
-    referredBy(admin, userId),
-  ]);
+  const [code, { data: invites }, { data: rewards }, { data: payouts }, { data: business }, from] =
+    await Promise.all([
+      ensureShopCode(admin, userId),
+      admin
+        .from("referrals")
+        .select("referred_user_id, status, created_at, subscribed_at")
+        .eq("referrer_user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(200),
+      admin
+        .from("referral_rewards")
+        .select("status, amount_paise, hold_until")
+        .eq("user_id", userId)
+        .eq("kind", "cash"),
+      admin
+        .from("affiliate_payouts")
+        .select("id, amount_paise, upi_id, status, reference, note, requested_at, paid_at")
+        .eq("user_id", userId)
+        .order("requested_at", { ascending: false })
+        .limit(20),
+      admin.from("businesses").select("upi_id").eq("user_id", userId).maybeSingle(),
+      referredBy(admin, userId),
+    ]);
 
   const list = invites || [];
   const names = await businessNames(admin, list.slice(0, 50).map((row) => row.referred_user_id));
-  const now = nowIso();
-  const months = { pending: 0, ready: 0, used: 0, due: 0, nextReadyAt: null };
-  for (const reward of rewards || []) {
-    const count = reward.months || 1;
-    if (reward.status === "held") {
-      months.pending += count;
-      if (reward.hold_until <= now) months.due += count;
-      if (!months.nextReadyAt || reward.hold_until < months.nextReadyAt) {
-        months.nextReadyAt = reward.hold_until;
-      }
-    } else if (reward.status === "ready" || reward.status === "applying") {
-      months.ready += count;
-    } else if (reward.status === "used") {
-      months.used += count;
-    }
-  }
+  const payoutList = (payouts || []).map(payoutRow);
 
   return {
     code,
     link: referralLink(APP_SITE_URL, code),
     discountPercent: REFERRAL_DISCOUNT_PERCENT,
-    rewardMonths: SHOP_REWARD_MONTHS,
+    rewardRupees: SHOP_REWARD_PAISE / 100,
+    minPayoutRupees: SHOP_MIN_PAYOUT_PAISE / 100,
     holdDays: HOLD_DAYS,
     referredBy: from,
     stats: {
       joined: list.length,
       subscribed: list.filter((row) => row.status === "subscribed").length,
     },
-    months,
+    earnings: earningsFrom(rewards),
+    upiId: payoutList[0]?.upiId || business?.upi_id || "",
+    payouts: payoutList,
     invites: list.slice(0, 50).map((row) => inviteRow(row, names)),
   };
+}
+
+/** Ask for every cleared ₹ to be sent to `upiId`; needs at least the minimum payout. */
+export async function requestShopPayout(admin, userId, upiId) {
+  await unlockDueRewards(admin, { userId });
+  const { data, error } = await admin.rpc("request_shop_payout", {
+    p_user: userId,
+    p_upi: upiId,
+    p_min_paise: SHOP_MIN_PAYOUT_PAISE,
+  });
+  if (error) throw new ReferralError("save");
+  if (!data?.id) {
+    const { data: ready } = await admin
+      .from("referral_rewards")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("kind", "cash")
+      .eq("status", "ready")
+      .limit(1);
+    throw new ReferralError(ready?.length ? "belowMinimum" : "nothingReady");
+  }
+  return payoutRow(data);
 }
 
 async function countClicks(admin, codes, since) {
@@ -423,26 +474,14 @@ export async function affiliateSummary(admin, affiliateId) {
         .eq("kind", "cash"),
       admin
         .from("affiliate_payouts")
-        .select("id, amount_paise, upi_id, status, reference, requested_at, paid_at")
+        .select("id, amount_paise, upi_id, status, reference, note, requested_at, paid_at")
         .eq("affiliate_id", affiliateId)
         .order("requested_at", { ascending: false })
         .limit(20),
     ]);
 
-  const earnings = { held: 0, ready: 0, requested: 0, paid: 0, nextReadyAt: null };
-  const rewardByShop = new Map();
-  for (const reward of rewards || []) {
-    rewardByShop.set(reward.referred_user_id, reward);
-    const rupees = Math.round((reward.amount_paise || 0) / 100);
-    if (reward.status === "held") {
-      earnings.held += rupees;
-      if (!earnings.nextReadyAt || reward.hold_until < earnings.nextReadyAt) {
-        earnings.nextReadyAt = reward.hold_until;
-      }
-    } else if (reward.status in earnings) {
-      earnings[reward.status] += rupees;
-    }
-  }
+  const earnings = earningsFrom(rewards);
+  const rewardByShop = new Map((rewards || []).map((reward) => [reward.referred_user_id, reward]));
 
   const list = referrals || [];
   const recent = list.slice(0, 50);
@@ -470,15 +509,7 @@ export async function affiliateSummary(admin, affiliateId) {
         readyAt: reward?.status === "held" ? reward.hold_until : null,
       };
     }),
-    payouts: (payouts || []).map((row) => ({
-      id: row.id,
-      amount: Math.round(row.amount_paise / 100),
-      upiId: row.upi_id,
-      status: row.status,
-      reference: row.reference,
-      requestedAt: row.requested_at,
-      paidAt: row.paid_at,
-    })),
+    payouts: (payouts || []).map(payoutRow),
   };
 }
 

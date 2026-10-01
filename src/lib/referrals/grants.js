@@ -1,5 +1,5 @@
 /**
- * Website access from free months the shop used without a Play plan.
+ * Website access from free months given outside a Play plan (the bill challenge).
  * Back-to-back grants count as one run; returns when it ends, or null.
  */
 export async function activeGrant(admin, userId, now = Date.now()) {
