@@ -11,6 +11,7 @@ import {
 import { MobileMenu } from "@/components/sites/mobile-menu";
 import { ScrollHeader } from "@/components/sites/scroll-header";
 import { playStoreUrl } from "@/lib/branding";
+import { photoProps } from "@/lib/sites/photo";
 import {
   areaFrom,
   formatRupees,
@@ -107,7 +108,7 @@ function Hero({ hero, primary, directions }) {
       <div aria-hidden className="absolute inset-0 -z-10 md:left-[36%]">
         {hero.image ? (
           <img
-            src={hero.image}
+            {...photoProps(hero.image, "(min-width: 768px) 64vw, 100vw")}
             alt=""
             fetchPriority="high"
             className="sa-hero-img size-full object-cover object-[50%_18%]"
@@ -259,7 +260,7 @@ function About({ about, ui, business }) {
             className="sa-photo relative mx-auto mt-12 aspect-4/5 max-w-5xl overflow-hidden rounded-[1.5rem] bg-s-brand sm:aspect-4/3 md:mt-16 md:aspect-16/9"
           >
             <img
-              src={about.image}
+              {...photoProps(about.image, "(min-width: 1024px) 1024px, 100vw")}
               alt=""
               loading="lazy"
               className="size-full object-cover object-[45%_center]"
@@ -456,7 +457,7 @@ function Gallery({ gallery, ui, business, socials }) {
             >
               <div className="group aspect-4/5 overflow-hidden rounded-[1.25rem] bg-s-line md:aspect-auto">
                 <img
-                  src={src}
+                  {...photoProps(src, "(min-width: 768px) 33vw, (min-width: 640px) 44vw, 78vw")}
                   alt={`${business.name} — photo ${index + 1}`}
                   loading="lazy"
                   className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] md:h-auto"

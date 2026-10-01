@@ -15,6 +15,7 @@ import {
 } from "@/components/sites/icons";
 import { MobileMenu } from "@/components/sites/mobile-menu";
 import { playStoreUrl } from "@/lib/branding";
+import { photoProps } from "@/lib/sites/photo";
 import {
   formatRupees,
   instagramHandle,
@@ -179,7 +180,7 @@ function Hero({ hero, ui, reach, primary, secondaryHref }) {
           >
             {hero.image ? (
               <img
-                src={hero.image}
+                {...photoProps(hero.image, "(min-width: 768px) 46vw, 100vw")}
                 alt=""
                 fetchPriority="high"
                 className="sa-hero-img size-full object-cover"
@@ -334,7 +335,7 @@ function About({ about, image, ui, business }) {
               className="st-photo relative overflow-hidden rounded-[1.25rem]"
             >
               <img
-                src={image}
+                {...photoProps(image, "(min-width: 768px) 45vw, 100vw")}
                 alt=""
                 loading="lazy"
                 className="aspect-4/5 w-full object-cover"
@@ -584,7 +585,7 @@ function Gallery({ gallery, ui, socials, cta }) {
                 className="s-tile st-photo relative m-0 overflow-hidden rounded-[1.25rem] bg-s-bg"
               >
                 <img
-                  src={src}
+                  {...photoProps(src, "(min-width: 768px) 40vw, 90vw")}
                   alt={tag}
                   loading="lazy"
                   className="size-full object-cover"
