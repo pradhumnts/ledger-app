@@ -1,3 +1,4 @@
+import architecture from "./architecture.js";
 import beauty from "./beauty.js";
 import eyeglasses from "./eyeglasses.js";
 import fitness from "./fitness.js";
@@ -8,7 +9,10 @@ import photographer from "./photographer.js";
 import restaurant from "./restaurant.js";
 import salon from "./salon.js";
 
-/** Content packs by business type (ids from `business-types.js`). */
+/**
+ * Content packs by business type (ids from `business-types.js`). `architecture`
+ * is not offered in onboarding; a shop gets it only when its type is set to it directly.
+ */
 const PACKS = {
   photographer,
   salon,
@@ -18,6 +22,7 @@ const PACKS = {
   eyeglasses,
   mobiles,
   restaurant,
+  architecture,
 };
 
 export function getPack(businessType) {
