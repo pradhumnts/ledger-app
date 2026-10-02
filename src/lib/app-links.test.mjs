@@ -5,6 +5,7 @@ import { appLinkPlayUrl, cleanAppLinkTag } from "./app-links.js";
 const referrer = (url) => decodeURIComponent(new URL(url).searchParams.get("referrer"));
 
 test("known tags keep the utm pairs the app used before", () => {
+  assert.equal(referrer(appLinkPlayUrl("wa")), "utm_source=whatsapp&utm_campaign=share");
   assert.equal(referrer(appLinkPlayUrl("bill")), "utm_source=whatsapp&utm_campaign=bill");
   assert.equal(referrer(appLinkPlayUrl("invite")), "utm_source=app_share&utm_campaign=invite");
   assert.equal(referrer(appLinkPlayUrl("pdf")), "utm_source=bill_pdf&utm_campaign=footer");

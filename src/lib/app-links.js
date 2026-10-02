@@ -6,6 +6,7 @@ import { PLAY_STORE_URL } from "./branding.js";
  * reports stay continuous. Play only reports utm_source and utm_campaign.
  */
 const TAGS = {
+  wa: { source: "whatsapp", campaign: "share" },
   bill: { source: "whatsapp", campaign: "bill" },
   receipt: { source: "whatsapp", campaign: "receipt" },
   statement: { source: "whatsapp", campaign: "statement" },
