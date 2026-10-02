@@ -35,6 +35,11 @@ export function isReferralPath(pathname) {
   return pathname === "/partner" || Boolean(pathname?.startsWith("/r/"));
 }
 
+/** Short install links (`/get`, `/get/bill`). */
+export function isAppLinkPath(pathname) {
+  return pathname === "/get" || Boolean(pathname?.startsWith("/get/"));
+}
+
 /**
  * Everything the website still serves. The shop app lives in the React Native
  * app now, so any other page (onboarding, customers, bills…) redirects to `/`.
@@ -44,7 +49,8 @@ export function isWebAccessiblePath(pathname) {
     isMarketingPath(pathname) ||
     isPublicSharePath(pathname) ||
     isShopSitePath(pathname) ||
-    isReferralPath(pathname)
+    isReferralPath(pathname) ||
+    isAppLinkPath(pathname)
   );
 }
 
