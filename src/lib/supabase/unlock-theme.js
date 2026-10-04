@@ -68,6 +68,43 @@ export async function markThemePaid(admin, { userId, kind, themeId, orderId, pay
   return { ...unlocked, newlyPaid };
 }
 
+/** `transactionId`: the App Store originalTransactionId, the same on every restore. */
+export async function markAppleThemePaid(admin, {
+  userId,
+  kind,
+  themeId,
+  sku,
+  transactionId,
+  amountPaise,
+}) {
+  const { data: existing } = await admin
+    .from("theme_purchases")
+    .select("id")
+    .eq("apple_transaction_id", transactionId)
+    .maybeSingle();
+
+  if (!existing) {
+    const { error } = await admin.from("theme_purchases").insert({
+      user_id: userId,
+      kind,
+      theme_id: themeId,
+      amount_paise: amountPaise,
+      provider: "apple",
+      play_sku: sku,
+      apple_transaction_id: transactionId,
+      razorpay_order_id: null,
+      status: "paid",
+      paid_at: new Date().toISOString(),
+    });
+    if (error && error.code !== "23505") {
+      throw new Error(error.message || "Could not save that payment.");
+    }
+  }
+
+  const unlocked = await unlockThemeOnSettings(admin, { userId, kind, themeId });
+  return { ...unlocked, newlyPaid: !existing };
+}
+
 export async function markPlayThemePaid(admin, {
   userId,
   kind,

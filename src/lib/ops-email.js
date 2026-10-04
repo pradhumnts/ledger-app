@@ -94,7 +94,7 @@ export async function notifyThemePurchase({
   const theme = getPaidTheme(kind, themeId);
   const label = theme?.name || clip(themeId) || "theme";
   const type = kind === "qr" ? "QR" : "Bill";
-  const pay = provider === "play" ? "Play" : "Razorpay";
+  const pay = provider === "play" ? "Play" : provider === "apple" ? "App Store" : "Razorpay";
   const paise = Number(amountPaise);
   const rupees = Number.isFinite(paise)
     ? Math.round(paise / 100)

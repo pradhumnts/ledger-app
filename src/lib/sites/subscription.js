@@ -1,9 +1,18 @@
 import {
+  appleOriginalId,
+  appleToken,
+  appStoreConfig,
+  fromAppleSubscription,
+  getAppleSubscription,
+  verifyAppleTransaction,
+} from "@/lib/app-store-api";
+import {
   acknowledgePlaySubscription,
   getPlaySubscription,
   playBillingConfig,
 } from "@/lib/play-developer-api";
 import { activeGrant } from "@/lib/referrals/grants";
+import { appleSitePlan } from "@/lib/sites/apple-plans";
 import { onSubscriptionSaved } from "@/lib/referrals/store";
 import { indianMobileDigits } from "@/lib/supabase/phone";
 import { isFreePublish } from "@/lib/sites/config";
@@ -80,8 +89,9 @@ function fromPlay(subscription) {
   };
 }
 
-function rowFrom(userId, purchaseToken, play) {
-  return {
+/** `apple`: `{ environment }` for App Store rows; Play rows leave the columns at their defaults. */
+function rowFrom(userId, purchaseToken, play, apple = null) {
+  const row = {
     purchase_token: purchaseToken,
     user_id: userId,
     product_id: play.productId,
@@ -92,6 +102,11 @@ function rowFrom(userId, purchaseToken, play) {
     order_id: play.orderId,
     linked_purchase_token: play.linkedPurchaseToken,
   };
+  if (apple) {
+    row.provider = "apple";
+    row.store_environment = apple.environment || null;
+  }
+  return row;
 }
 
 /** Referral rewards must never block a purchase or renewal from being saved. */
@@ -103,11 +118,11 @@ async function trackReferral(admin, userId, purchaseToken, play) {
   }
 }
 
-async function saveVerified(admin, userId, purchaseToken, play) {
+async function saveVerified(admin, userId, purchaseToken, play, apple = null) {
   if (!play.acknowledged && ACCESS_STATES.has(play.state)) {
     await acknowledgePlaySubscription(play.productId, purchaseToken).catch(() => {});
   }
-  const row = rowFrom(userId, purchaseToken, play);
+  const row = rowFrom(userId, purchaseToken, play, apple);
   const { error } = await admin
     .from("site_subscriptions")
     .upsert(row, { onConflict: "purchase_token" });
@@ -195,6 +210,102 @@ export async function refreshPlaySubscription(admin, row) {
   }
 }
 
+function sameAccount(a, b) {
+  return String(a || "").toLowerCase() === String(b || "").toLowerCase();
+}
+
+/**
+ * Check a signed App Store transaction from the iPhone app, read the
+ * subscription's latest state from Apple and store it for this shop.
+ */
+export async function recordAppleSubscription(admin, { userId, signedTransaction }) {
+  if (!appStoreConfig().configured) throw new SubscriptionError("notConfigured");
+
+  let signed;
+  try {
+    signed = await verifyAppleTransaction(signedTransaction);
+  } catch {
+    throw new SubscriptionError("notVerified");
+  }
+  if (!appleSitePlan(signed.productId)) throw new SubscriptionError("notSitePlan");
+  if (signed.appAccountToken && !sameAccount(signed.appAccountToken, userId)) {
+    throw new SubscriptionError("otherAccount");
+  }
+
+  const purchaseToken = appleToken(signed.originalTransactionId);
+  const { data: existing } = await admin
+    .from("site_subscriptions")
+    .select("user_id")
+    .eq("purchase_token", purchaseToken)
+    .maybeSingle();
+  if (existing && existing.user_id !== userId) throw new SubscriptionError("otherAccount");
+
+  let play;
+  try {
+    play = fromAppleSubscription(
+      await getAppleSubscription(signed.originalTransactionId, signed.environment)
+    );
+  } catch {
+    throw new SubscriptionError("notVerified");
+  }
+  if (play.accountId && !sameAccount(play.accountId, userId)) {
+    throw new SubscriptionError("otherAccount");
+  }
+  return saveVerified(admin, userId, purchaseToken, play, { environment: signed.environment });
+}
+
+/**
+ * Store an App Store subscription we have never seen, found through a server
+ * notification (the app sends the shop's user id as the appAccountToken).
+ * Returns the saved row, or null when it isn't ours to claim.
+ */
+export async function claimAppleSubscription(admin, { originalTransactionId, environment }) {
+  if (!appStoreConfig().configured || !originalTransactionId) return null;
+  let play;
+  try {
+    play = fromAppleSubscription(await getAppleSubscription(originalTransactionId, environment));
+  } catch {
+    return null;
+  }
+  if (!appleSitePlan(play.productId) || !play.accountId) return null;
+  try {
+    return await saveVerified(admin, play.accountId, appleToken(originalTransactionId), play, {
+      environment,
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function refreshAppleSubscription(admin, row) {
+  if (!appStoreConfig().configured) return row;
+  try {
+    const apple = await getAppleSubscription(
+      appleOriginalId(row.purchase_token),
+      row.store_environment
+    );
+    const play = fromAppleSubscription(apple);
+    const next = rowFrom(row.user_id, row.purchase_token, play, {
+      environment: apple.environment,
+    });
+    await admin
+      .from("site_subscriptions")
+      .update(next)
+      .eq("purchase_token", row.purchase_token);
+    await trackReferral(admin, row.user_id, row.purchase_token, play);
+    return next;
+  } catch {
+    return row;
+  }
+}
+
+/** Re-read a stored row from whichever store sold it. */
+export async function refreshSubscription(admin, row) {
+  return row?.provider === "apple"
+    ? refreshAppleSubscription(admin, row)
+    : refreshPlaySubscription(admin, row);
+}
+
 export async function activeSubscription(admin, userId) {
   const { data } = await admin
     .from("site_subscriptions")
@@ -206,15 +317,16 @@ export async function activeSubscription(admin, userId) {
   const active = rows.find((row) => isActiveRow(row));
   if (active) return active;
 
-  // Renewals only reach us through Google; ask before treating the shop as lapsed.
+  // Renewals may not have reached us yet; ask the store before treating the shop as lapsed.
   const latest = rows[0];
   if (!latest || FINAL_STATES.has(latest.state)) return null;
-  const fresh = await refreshPlaySubscription(admin, latest);
+  const fresh = await refreshSubscription(admin, latest);
   return isActiveRow(fresh) ? fresh : null;
 }
 
 function planSummary(row) {
   return {
+    store: row.provider === "apple" ? "apple" : "play",
     productId: row.product_id,
     basePlanId: row.base_plan_id,
     expiresAt: row.expires_at,
@@ -225,8 +337,9 @@ function planSummary(row) {
 
 /**
  * Whether this signed-in shop may publish, and why:
- * `free` (launch test mode), `owner` (allowlisted number), `play` or
- * `grant` (a free month, e.g. from the bill challenge).
+ * `free` (launch test mode), `owner` (allowlisted number), `play` (a paid
+ * plan from either store; `store` says which) or `grant` (a free month,
+ * e.g. from the bill challenge).
  */
 export async function siteAccess(admin, user) {
   if (isFreePublish()) return { active: true, source: "free" };

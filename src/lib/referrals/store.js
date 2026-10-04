@@ -1,4 +1,11 @@
 import { APP_SITE_URL } from "@/lib/branding";
+import {
+  appleOriginalId,
+  appStoreConfig,
+  fromAppleSubscription,
+  getAppleSubscription,
+  isAppleToken,
+} from "@/lib/app-store-api";
 import { getPlaySubscription, playBillingConfig } from "@/lib/play-developer-api";
 import { indianMobileDigits } from "@/lib/supabase/phone";
 import {
@@ -271,8 +278,27 @@ export async function onSubscriptionSaved(admin, { userId, purchaseToken, play }
   await qualifyReferral(admin, { userId, purchaseToken, play });
 }
 
-/** true paid, false refunded, null when Google can't tell us right now. */
-async function stillPaid(purchaseToken) {
+async function appleStillPaid(admin, purchaseToken) {
+  if (!appStoreConfig().configured) return true;
+  const { data: row } = await admin
+    .from("site_subscriptions")
+    .select("store_environment")
+    .eq("purchase_token", purchaseToken)
+    .maybeSingle();
+  try {
+    const apple = await getAppleSubscription(
+      appleOriginalId(purchaseToken),
+      row?.store_environment
+    );
+    return !REFUNDED_STATES.has(fromAppleSubscription(apple).state);
+  } catch {
+    return null;
+  }
+}
+
+/** true paid, false refunded, null when the store can't tell us right now. */
+async function stillPaid(admin, purchaseToken) {
+  if (isAppleToken(purchaseToken)) return appleStillPaid(admin, purchaseToken);
   if (!playBillingConfig().configured) return true;
   try {
     const play = await getPlaySubscription(purchaseToken);
@@ -299,7 +325,7 @@ export async function unlockDueRewards(admin, { userId, affiliateId } = {}) {
     byToken.set(row.purchase_token, [...(byToken.get(row.purchase_token) || []), row.id]);
   }
   const counts = await mapInBatches([...byToken], 8, async ([token, ids]) => {
-    const paid = await stillPaid(token);
+    const paid = await stillPaid(admin, token);
     if (paid === false) {
       await voidRewardsForToken(admin, token, "refunded");
       return 0;

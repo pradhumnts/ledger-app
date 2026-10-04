@@ -14,8 +14,9 @@ export const dynamic = "force-dynamic";
 export async function GET(request, { params }) {
   const { tag: parts } = await params;
   const tag = cleanAppLinkTag(parts?.[0]);
+  const userAgent = request.headers.get("user-agent") || "";
 
-  if (!isLinkPreviewBot(request.headers.get("user-agent"))) {
+  if (!isLinkPreviewBot(userAgent)) {
     const admin = getSupabaseAdmin();
     if (admin) {
       after(async () => {
@@ -24,8 +25,12 @@ export async function GET(request, { params }) {
     }
   }
 
+  // iPhone visitors go to the App Store listing once APP_STORE_URL is set.
+  const appStoreUrl = process.env.APP_STORE_URL || "";
+  const location =
+    appStoreUrl && /iPhone|iPad|iPod/i.test(userAgent) ? appStoreUrl : appLinkPlayUrl(tag);
   return new Response(null, {
     status: 302,
-    headers: { Location: appLinkPlayUrl(tag), "Cache-Control": "private, no-store" },
+    headers: { Location: location, "Cache-Control": "private, no-store" },
   });
 }

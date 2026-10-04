@@ -1,3 +1,5 @@
+import { appleSitePlan } from "../sites/apple-plans.js";
+
 export const HOLD_DAYS = 14;
 export const AFFILIATE_REWARD_PAISE = 30_000;
 export const SHOP_REWARD_PAISE = 10_000;
@@ -56,11 +58,16 @@ export function referralOfferId() {
   return String(process.env.REFERRAL_OFFER_ID || "referral-10").trim();
 }
 
-/** Yearly base plan: listed in SITES_YEARLY_BASE_PLAN_IDS, else named like one. */
+/**
+ * Yearly base plan: listed in SITES_YEARLY_BASE_PLAN_IDS, else named like one.
+ * App Store rows store the product id as their base plan.
+ */
 export function isYearlyPlan({ basePlanId, offerId } = {}) {
   if (offerId && offerId === referralOfferId()) return true;
   const id = String(basePlanId || "");
   if (!id) return false;
+  const apple = appleSitePlan(id);
+  if (apple) return apple.yearly;
   const listed = yearlyPlanIds();
   if (listed.length) return listed.includes(id);
   return /year|annual|p1y|12m/i.test(id);

@@ -54,6 +54,14 @@ test("yearly plans by base plan name or referral offer", () => {
   delete process.env.SITES_YEARLY_BASE_PLAN_IDS;
 });
 
+test("App Store products count by their own period, whatever the Play list says", () => {
+  process.env.SITES_YEARLY_BASE_PLAN_IDS = "plan-12";
+  assert.equal(isYearlyPlan({ basePlanId: "website_yearly" }), true);
+  assert.equal(isYearlyPlan({ basePlanId: "website_yearly_referral" }), true);
+  assert.equal(isYearlyPlan({ basePlanId: "website_monthly" }), false);
+  delete process.env.SITES_YEARLY_BASE_PLAN_IDS;
+});
+
 test("hold is 14 days from purchase", () => {
   assert.equal(holdUntil("2026-09-01T10:00:00.000Z"), "2026-09-15T10:00:00.000Z");
 });
