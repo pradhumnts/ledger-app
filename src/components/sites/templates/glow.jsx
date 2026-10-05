@@ -9,6 +9,7 @@ import {
   YouTubeIcon,
 } from "@/components/sites/icons";
 import { GoogleReviews } from "@/components/sites/google-reviews";
+import { InstagramFeed } from "@/components/sites/instagram-feed";
 import { MobileMenu } from "@/components/sites/mobile-menu";
 import { ScrollHeader } from "@/components/sites/scroll-header";
 import { playStoreUrl } from "@/lib/branding";
@@ -714,7 +715,7 @@ function Footer({ business, links, socials, whatsapp, intro }) {
   );
 }
 
-export function GlowTemplate({ doc, isShown, reviews }) {
+export function GlowTemplate({ doc, isShown, reviews, instagram }) {
   const business = doc?.business || {};
   const sections = doc?.sections || {};
   const hero = sections.hero || {};
@@ -748,6 +749,7 @@ export function GlowTemplate({ doc, isShown, reviews }) {
     showAbout && { href: "#about", label: "About" },
     showServices && { href: "#services", label: "Services" },
     showGallery && { href: "#gallery", label: "Gallery" },
+    instagram && { href: "#instagram", label: "Instagram" },
     reviews && { href: "#reviews", label: "Reviews" },
     { href: "#contact", label: "Contact" },
   ].filter(Boolean);
@@ -780,6 +782,7 @@ export function GlowTemplate({ doc, isShown, reviews }) {
             socials={socials}
           />
         ) : null}
+        <InstagramFeed feed={instagram} headingClassName="font-semibold tracking-tight" />
         <GoogleReviews reviews={reviews} headingClassName="font-semibold tracking-tight" />
         <Contact
           contact={contact}

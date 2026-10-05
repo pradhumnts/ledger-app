@@ -14,6 +14,7 @@ import {
   YouTubeIcon,
 } from "@/components/sites/icons";
 import { GoogleReviews } from "@/components/sites/google-reviews";
+import { InstagramFeed } from "@/components/sites/instagram-feed";
 import { MobileMenu } from "@/components/sites/mobile-menu";
 import { playStoreUrl } from "@/lib/branding";
 import { photoProps } from "@/lib/sites/photo";
@@ -819,7 +820,7 @@ function FloatingWhatsApp({ href }) {
   );
 }
 
-export function StudioTemplate({ doc, isShown, reviews }) {
+export function StudioTemplate({ doc, isShown, reviews, instagram }) {
   const business = doc?.business || {};
   const sections = doc?.sections || {};
   const hero = sections.hero || {};
@@ -844,6 +845,7 @@ export function StudioTemplate({ doc, isShown, reviews }) {
     show.about && { href: "#about", label: "About" },
     show.services && { href: "#services", label: "Services" },
     show.gallery && { href: "#gallery", label: "Gallery" },
+    instagram && { href: "#instagram", label: "Instagram" },
     reviews && { href: "#reviews", label: "Reviews" },
     { href: "#contact", label: "Contact" },
   ].filter(Boolean);
@@ -892,6 +894,7 @@ export function StudioTemplate({ doc, isShown, reviews }) {
         {show.gallery ? (
           <Gallery gallery={gallery} ui={ui} socials={socials} cta={cta} />
         ) : null}
+        <InstagramFeed feed={instagram} headingClassName="s-serif" />
         <GoogleReviews reviews={reviews} headingClassName="s-serif" />
         <Contact
           contact={contact}

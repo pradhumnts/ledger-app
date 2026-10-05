@@ -4,7 +4,7 @@ import { APP_NAME, APP_SITE_URL, SUPPORT_EMAIL } from "@/lib/branding";
 
 /** @type {{ effectiveDate: string, intro: string[], sections: LegalSection[] }} */
 export const PRIVACY_POLICY = {
-  effectiveDate: "22 August 2026",
+  effectiveDate: "5 October 2026",
   intro: [
     `${APP_NAME} ("we", "us", "our") operates the ${APP_NAME} mobile web app and related services at ${APP_SITE_URL}. This Privacy Policy explains what information we collect, how we use it, and the choices you have.`,
     "By using the app, you agree to the collection and use of information as described here.",
@@ -19,6 +19,8 @@ export const PRIVACY_POLICY = {
         "Ledger data: bills, payment entries, amounts, dates, and notes you create in the app.",
         "App preferences: language, appearance (light/dark), and theme selections.",
         "Purchase records: when you buy paid bill or QR themes, we record the purchase through Razorpay or Google Play so your unlocks can be restored.",
+        "Connected Instagram account (optional, website plan): if you connect your Instagram professional account to your shop website, we store your Instagram username, account ID, and an access token issued by Instagram. We use them only to show your latest posts (images, captions, and links) on your shop website. We do not post, comment, message, or read anything else on your account.",
+        "Google listing (optional, website plan): if you pick your Google Business listing, we store its Google place ID, name, and address to show your Google rating and reviews on your website and add a review link to your messages.",
         "Device and usage: basic technical data such as browser type and app errors may be collected by our hosting and analytics providers to keep the service running. Product analytics (PostHog) records feature usage such as creating a bill or sharing a QR, plus page views. Event data does not include customer names, customer phone numbers, UPI IDs, or exact amounts. The shop's own name and login phone are attached to the analytics profile so we can tell which business a session belongs to. Session replay may record the app screen as you use it (taps, navigation, layout, and on-screen text) so we can fix confusing steps. Typed OTP codes and payment QR codes are masked. Password-style fields stay masked. On-screen shop details that are already visible in the app, such as a customer name on a bill, may appear in a recording.",
       ],
     },
@@ -46,6 +48,7 @@ export const PRIVACY_POLICY = {
       body: [
         "You choose to share: when you send a bill or statement via WhatsApp, SMS, PDF, or UPI link, that content goes through the apps and services on your phone — not through our servers.",
         "Service providers: we use trusted processors to operate the app, including Supabase (database and auth), MSG91 (SMS OTP), Razorpay (web payments), Google Play Billing (Android app purchases), and PostHog (product analytics and session replay). They handle data only to provide their service to us.",
+        "Instagram and Google: when you connect them, we request your posts from Instagram (Meta) and your listing's rating and reviews from Google Maps. Their own terms and privacy policies apply to that content.",
         "Legal requirements: we may disclose information if required by law or to protect the rights and safety of users and the public.",
       ],
     },
@@ -63,6 +66,7 @@ export const PRIVACY_POLICY = {
         "You can use the app without cloud login; in that case data stays on your device only.",
         "You can update or delete business and customer information inside the app.",
         "You can log out to remove local data from the current device.",
+        "You can disconnect Instagram at any time from Website → Instagram in the app, or by removing MoneyKit under Instagram → Settings → Website permissions → Apps and websites. Either way we delete the stored token and account details right away, and your posts stop showing on your website.",
         `To delete your entire ${APP_NAME} account and cloud data, follow the steps at ${APP_SITE_URL}/account-deletion or email ${SUPPORT_EMAIL}.`,
       ],
     },

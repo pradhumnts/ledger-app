@@ -5,8 +5,10 @@ import { SiteRenderer } from "@/components/sites/site-renderer";
 import { SHARE_IMAGE_SIZE, siteUrl } from "@/lib/sites/config";
 import { siteDescription, withSiteDefaults } from "@/lib/sites/document";
 import { placeReviews } from "@/lib/sites/google-places";
+import { latestPosts, loadConnection, profileUrl } from "@/lib/sites/instagram";
 import { tierAtLeast } from "@/lib/sites/plan-tiers";
 import { loadLiveSite } from "@/lib/sites/store";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export const revalidate = 300;
 
@@ -24,6 +26,18 @@ async function siteReviews(site) {
   }
   const reviews = await placeReviews(google.placeId).catch(() => null);
   return reviews && (reviews.count || reviews.reviews.length) ? reviews : null;
+}
+
+/** Latest posts from the shop's connected Instagram when it is on Standard; null otherwise. */
+async function siteInstagram(site) {
+  const admin = getSupabaseAdmin();
+  if (!admin || !tierAtLeast(site.tier, "standard")) return null;
+  const connection = await loadConnection(admin, site.user_id).catch(() => null);
+  if (!connection) return null;
+  const posts = await latestPosts(connection.access_token).catch(() => []);
+  return posts.length
+    ? { username: connection.username, profileUrl: profileUrl(connection.username), posts }
+    : null;
 }
 
 export async function generateMetadata({ params }) {
@@ -71,10 +85,10 @@ export default async function SitePage({ params }) {
   const { slug } = await params;
   const site = await getSite(slug);
   if (!site) notFound();
-  const reviews = await siteReviews(site);
+  const [reviews, instagram] = await Promise.all([siteReviews(site), siteInstagram(site)]);
   return (
     <>
-      <SiteRenderer doc={site.published} reviews={reviews} />
+      <SiteRenderer doc={site.published} reviews={reviews} instagram={instagram} />
       <RevealOnScroll />
     </>
   );
