@@ -4,7 +4,7 @@ import {
   getPublishableTemplate,
   getTemplate,
 } from "@/lib/sites/catalog";
-import { cleanSocial, phoneDigits } from "@/lib/sites/links";
+import { cleanPlaceId, cleanSocial, phoneDigits } from "@/lib/sites/links";
 import { getPack } from "@/lib/sites/packs";
 
 /**
@@ -190,6 +190,22 @@ function isUntouched(field, value, candidates, legacy) {
   return false;
 }
 
+/**
+ * The shop's own Google listing (Standard plan): `reviews` shows its Google
+ * reviews on the site, `reviewLink` adds "rate us" to WhatsApp messages.
+ */
+function cleanGoogle(input) {
+  const placeId = cleanPlaceId(input?.placeId);
+  if (!placeId) return null;
+  return {
+    placeId,
+    name: clip(input.name, 120),
+    address: clip(input.address, 200),
+    reviews: input.reviews !== false,
+    reviewLink: input.reviewLink !== false,
+  };
+}
+
 /** Validate a document from the app. Unknown keys are dropped. */
 export function sanitizeSiteDocument(input, { userId } = {}) {
   const source = input && typeof input === "object" ? input : {};
@@ -237,6 +253,7 @@ export function sanitizeSiteDocument(input, { userId } = {}) {
     business,
     sections,
     hidden: [...new Set(hidden)],
+    google: cleanGoogle(source.google),
   };
 }
 

@@ -16,6 +16,12 @@ function standardPlanIds() {
   );
 }
 
+/** Whether `tier` includes `min`'s features (a higher tier includes lower ones). */
+export function tierAtLeast(tier, min) {
+  const have = SITE_TIERS.indexOf(tier);
+  return have >= 0 && have >= SITE_TIERS.indexOf(min);
+}
+
 /** Tier of a Play base plan id, or of an App Store product id. */
 export function planTier(basePlanId) {
   const id = String(basePlanId || "");

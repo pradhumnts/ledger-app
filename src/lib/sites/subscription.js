@@ -366,15 +366,20 @@ export async function siteAccess(admin, user) {
   return { active: false, source: "", tier: "" };
 }
 
-/** Same check for a live site visit, where we only know the owner's id. */
-export async function ownerHasSiteAccess(admin, userId) {
-  if (isFreePublish()) return true;
+/**
+ * Same check for a live site visit, where we only know the owner's id:
+ * the owner's tier, or "" when the site shouldn't be shown.
+ */
+export async function ownerSiteTier(admin, userId) {
   const [row, grant] = await Promise.all([
     activeSubscription(admin, userId),
     activeGrant(admin, userId),
   ]);
-  if (row || grant) return true;
-  if (!freePhones().size) return false;
-  const { data } = await admin.auth.admin.getUserById(userId);
-  return hasFreeAccess(data?.user);
+  if (row) return planTier(row.base_plan_id || row.product_id);
+  if (freePhones().size) {
+    const { data } = await admin.auth.admin.getUserById(userId);
+    if (hasFreeAccess(data?.user)) return "standard";
+  }
+  if (grant || isFreePublish()) return "basic";
+  return "";
 }

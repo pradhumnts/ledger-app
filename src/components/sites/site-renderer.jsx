@@ -24,8 +24,11 @@ export function paletteStyle(colors) {
   };
 }
 
-/** Renders a site document. Shared by live sites and the in-app preview. */
-export function SiteRenderer({ doc: input }) {
+/**
+ * Renders a site document. Shared by live sites and the in-app preview.
+ * `reviews`: the shop's Google rating and reviews (live Standard sites only).
+ */
+export function SiteRenderer({ doc: input, reviews = null }) {
   const doc = withSiteDefaults(input);
   const template = getTemplate(doc?.templateId);
   const palette = getPalette(template, doc?.paletteId);
@@ -37,7 +40,7 @@ export function SiteRenderer({ doc: input }) {
       style={paletteStyle(palette.colors)}
       className="min-h-dvh bg-s-bg text-s-ink"
     >
-      <Template doc={doc} isShown={(id) => !hidden.has(id)} />
+      <Template doc={doc} isShown={(id) => !hidden.has(id)} reviews={reviews} />
     </div>
   );
 }

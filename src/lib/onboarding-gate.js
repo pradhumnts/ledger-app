@@ -35,9 +35,13 @@ export function isReferralPath(pathname) {
   return pathname === "/partner" || Boolean(pathname?.startsWith("/r/"));
 }
 
-/** Short install links (`/get`, `/get/bill`). */
+/** Short install links (`/get`, `/get/bill`) and shops' review links (`/review/<place id>`). */
 export function isAppLinkPath(pathname) {
-  return pathname === "/get" || Boolean(pathname?.startsWith("/get/"));
+  return (
+    pathname === "/get" ||
+    Boolean(pathname?.startsWith("/get/")) ||
+    Boolean(pathname?.startsWith("/review/"))
+  );
 }
 
 /**

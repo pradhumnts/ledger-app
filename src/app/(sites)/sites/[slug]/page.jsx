@@ -4,6 +4,8 @@ import { RevealOnScroll } from "@/components/sites/reveal";
 import { SiteRenderer } from "@/components/sites/site-renderer";
 import { SHARE_IMAGE_SIZE, siteUrl } from "@/lib/sites/config";
 import { siteDescription, withSiteDefaults } from "@/lib/sites/document";
+import { placeReviews } from "@/lib/sites/google-places";
+import { tierAtLeast } from "@/lib/sites/plan-tiers";
 import { loadLiveSite } from "@/lib/sites/store";
 
 export const revalidate = 300;
@@ -13,6 +15,16 @@ export async function generateStaticParams() {
 }
 
 const getSite = cache(loadLiveSite);
+
+/** Google rating and reviews when the shop is on Standard and shows them; null otherwise. */
+async function siteReviews(site) {
+  const google = site.published?.google;
+  if (!google?.placeId || google.reviews === false || !tierAtLeast(site.tier, "standard")) {
+    return null;
+  }
+  const reviews = await placeReviews(google.placeId).catch(() => null);
+  return reviews && (reviews.count || reviews.reviews.length) ? reviews : null;
+}
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
@@ -59,9 +71,10 @@ export default async function SitePage({ params }) {
   const { slug } = await params;
   const site = await getSite(slug);
   if (!site) notFound();
+  const reviews = await siteReviews(site);
   return (
     <>
-      <SiteRenderer doc={site.published} />
+      <SiteRenderer doc={site.published} reviews={reviews} />
       <RevealOnScroll />
     </>
   );

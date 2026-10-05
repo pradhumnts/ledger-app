@@ -8,6 +8,7 @@ import {
   WhatsAppIcon,
   YouTubeIcon,
 } from "@/components/sites/icons";
+import { GoogleReviews } from "@/components/sites/google-reviews";
 import { MobileMenu } from "@/components/sites/mobile-menu";
 import { ScrollHeader } from "@/components/sites/scroll-header";
 import { playStoreUrl } from "@/lib/branding";
@@ -713,7 +714,7 @@ function Footer({ business, links, socials, whatsapp, intro }) {
   );
 }
 
-export function GlowTemplate({ doc, isShown }) {
+export function GlowTemplate({ doc, isShown, reviews }) {
   const business = doc?.business || {};
   const sections = doc?.sections || {};
   const hero = sections.hero || {};
@@ -747,6 +748,7 @@ export function GlowTemplate({ doc, isShown }) {
     showAbout && { href: "#about", label: "About" },
     showServices && { href: "#services", label: "Services" },
     showGallery && { href: "#gallery", label: "Gallery" },
+    reviews && { href: "#reviews", label: "Reviews" },
     { href: "#contact", label: "Contact" },
   ].filter(Boolean);
   const cta = {
@@ -778,6 +780,7 @@ export function GlowTemplate({ doc, isShown }) {
             socials={socials}
           />
         ) : null}
+        <GoogleReviews reviews={reviews} headingClassName="font-semibold tracking-tight" />
         <Contact
           contact={contact}
           ui={ui}

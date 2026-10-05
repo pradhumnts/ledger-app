@@ -42,6 +42,14 @@ export function splitTitle(title) {
   return [words.slice(0, -take).join(" "), words.slice(-take).join(" "), ""];
 }
 
+const PLACE_ID = /^[A-Za-z0-9_-]{10,256}$/;
+
+/** A Google Places id as the API returns it, or "". */
+export function cleanPlaceId(value) {
+  const id = String(value || "").trim();
+  return PLACE_ID.test(id) ? id : "";
+}
+
 export function mapsUrl(address) {
   const query = String(address || "").trim();
   if (!query) return "";
