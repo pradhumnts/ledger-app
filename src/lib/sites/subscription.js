@@ -13,6 +13,7 @@ import {
 } from "@/lib/play-developer-api";
 import { activeGrant } from "@/lib/referrals/grants";
 import { appleSitePlan } from "@/lib/sites/apple-plans";
+import { planTier } from "@/lib/sites/plan-tiers";
 import { onSubscriptionSaved } from "@/lib/referrals/store";
 import { indianMobileDigits } from "@/lib/supabase/phone";
 import { isFreePublish } from "@/lib/sites/config";
@@ -312,8 +313,10 @@ export async function activeSubscription(admin, userId) {
     .select("*")
     .eq("user_id", userId)
     .order("expires_at", { ascending: false, nullsFirst: false })
-    .limit(3);
-  const rows = data || [];
+    .limit(5);
+  // A plan switch leaves the old token's row looking active until Google expires it.
+  const replaced = new Set((data || []).map((row) => row.linked_purchase_token).filter(Boolean));
+  const rows = (data || []).filter((row) => !replaced.has(row.purchase_token));
   const active = rows.find((row) => isActiveRow(row));
   if (active) return active;
 
@@ -329,6 +332,7 @@ function planSummary(row) {
     store: row.provider === "apple" ? "apple" : "play",
     productId: row.product_id,
     basePlanId: row.base_plan_id,
+    tier: planTier(row.base_plan_id || row.product_id),
     expiresAt: row.expires_at,
     autoRenewing: Boolean(row.auto_renewing),
     state: row.state,
@@ -339,20 +343,26 @@ function planSummary(row) {
  * Whether this signed-in shop may publish, and why:
  * `free` (launch test mode), `owner` (allowlisted number), `play` (a paid
  * plan from either store; `store` says which) or `grant` (a free month,
- * e.g. from the bill challenge).
+ * e.g. from the bill challenge). `tier` is "website" or "pro".
  */
 export async function siteAccess(admin, user) {
-  if (isFreePublish()) return { active: true, source: "free" };
-  if (hasFreeAccess(user)) return { active: true, source: "owner" };
+  if (isFreePublish()) return { active: true, source: "free", tier: "website" };
+  if (hasFreeAccess(user)) return { active: true, source: "owner", tier: "pro" };
   const [row, grant] = await Promise.all([
     activeSubscription(admin, user.id),
     activeGrant(admin, user.id),
   ]);
   if (row) return { active: true, source: "play", ...planSummary(row) };
   if (grant) {
-    return { active: true, source: "grant", expiresAt: grant.endsAt, autoRenewing: false };
+    return {
+      active: true,
+      source: "grant",
+      tier: "website",
+      expiresAt: grant.endsAt,
+      autoRenewing: false,
+    };
   }
-  return { active: false, source: "" };
+  return { active: false, source: "", tier: "" };
 }
 
 /** Same check for a live site visit, where we only know the owner's id. */
