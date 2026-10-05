@@ -3,25 +3,25 @@ import test from "node:test";
 import { planTier } from "./plan-tiers.js";
 
 test("Play base plans map to their tier", () => {
-  assert.equal(planTier("monthly"), "website");
-  assert.equal(planTier("yearly"), "website");
-  assert.equal(planTier("pro-monthly"), "pro");
-  assert.equal(planTier("pro-yearly"), "pro");
-  assert.equal(planTier(null), "website");
+  assert.equal(planTier("monthly"), "basic");
+  assert.equal(planTier("yearly"), "basic");
+  assert.equal(planTier("standard-monthly"), "standard");
+  assert.equal(planTier("standard-yearly"), "standard");
+  assert.equal(planTier(null), "basic");
 });
 
 test("App Store products carry their tier", () => {
-  assert.equal(planTier("website_yearly_referral"), "website");
-  assert.equal(planTier("website_pro_monthly"), "pro");
-  assert.equal(planTier("website_pro_yearly_referral"), "pro");
+  assert.equal(planTier("website_yearly_referral"), "basic");
+  assert.equal(planTier("website_standard_monthly"), "standard");
+  assert.equal(planTier("website_standard_yearly_referral"), "standard");
 });
 
-test("SITES_PRO_BASE_PLAN_IDS overrides the default ids", () => {
-  process.env.SITES_PRO_BASE_PLAN_IDS = "plus-month, plus-year";
+test("SITES_STANDARD_BASE_PLAN_IDS overrides the default ids", () => {
+  process.env.SITES_STANDARD_BASE_PLAN_IDS = "std-month, std-year";
   try {
-    assert.equal(planTier("plus-year"), "pro");
-    assert.equal(planTier("pro-yearly"), "website");
+    assert.equal(planTier("std-year"), "standard");
+    assert.equal(planTier("standard-yearly"), "basic");
   } finally {
-    delete process.env.SITES_PRO_BASE_PLAN_IDS;
+    delete process.env.SITES_STANDARD_BASE_PLAN_IDS;
   }
 });

@@ -343,11 +343,12 @@ function planSummary(row) {
  * Whether this signed-in shop may publish, and why:
  * `free` (launch test mode), `owner` (allowlisted number), `play` (a paid
  * plan from either store; `store` says which) or `grant` (a free month,
- * e.g. from the bill challenge). `tier` is "website" or "pro".
+ * e.g. from the bill challenge). `tier` is "basic" or "standard";
+ * allowlisted numbers get the top tier.
  */
 export async function siteAccess(admin, user) {
-  if (isFreePublish()) return { active: true, source: "free", tier: "website" };
-  if (hasFreeAccess(user)) return { active: true, source: "owner", tier: "pro" };
+  if (isFreePublish()) return { active: true, source: "free", tier: "basic" };
+  if (hasFreeAccess(user)) return { active: true, source: "owner", tier: "standard" };
   const [row, grant] = await Promise.all([
     activeSubscription(admin, user.id),
     activeGrant(admin, user.id),
@@ -357,7 +358,7 @@ export async function siteAccess(admin, user) {
     return {
       active: true,
       source: "grant",
-      tier: "website",
+      tier: "basic",
       expiresAt: grant.endsAt,
       autoRenewing: false,
     };

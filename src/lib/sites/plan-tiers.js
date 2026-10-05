@@ -1,15 +1,15 @@
 import { appleSitePlan } from "./apple-plans.js";
 
 /**
- * Website plan tiers. "website" is ₹149 / ₹1,499; "pro" is ₹249 / ₹2,499 and
- * unlocks the extra features. Both are base plans of the one Play `website`
- * subscription, so a shop can move between them.
+ * Plan tiers, lowest first: "basic" is ₹149 / ₹1,499 and "standard" is
+ * ₹249 / ₹2,499 (a bigger "premium" may follow). All are base plans of the
+ * one Play `website` subscription, so a shop can move between them.
  */
-export const SITE_TIERS = ["website", "pro"];
+export const SITE_TIERS = ["basic", "standard"];
 
-function proPlanIds() {
+function standardPlanIds() {
   return new Set(
-    String(process.env.SITES_PRO_BASE_PLAN_IDS || "pro-monthly,pro-yearly")
+    String(process.env.SITES_STANDARD_BASE_PLAN_IDS || "standard-monthly,standard-yearly")
       .split(",")
       .map((id) => id.trim())
       .filter(Boolean)
@@ -21,5 +21,5 @@ export function planTier(basePlanId) {
   const id = String(basePlanId || "");
   const apple = appleSitePlan(id);
   if (apple) return apple.tier;
-  return proPlanIds().has(id) ? "pro" : "website";
+  return standardPlanIds().has(id) ? "standard" : "basic";
 }
