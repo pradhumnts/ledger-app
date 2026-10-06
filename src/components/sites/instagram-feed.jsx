@@ -29,13 +29,20 @@ function PostTile({ post }) {
   );
 }
 
-/** The shop's latest Instagram posts as a 3-column grid (Standard plan, connected account). */
-export function InstagramFeed({ feed, headingClassName = "" }) {
+/**
+ * The shop's latest Instagram posts as a 3-column grid (Standard plan, connected account).
+ * `flushTop` when the section above has the same background and already ends in padding.
+ */
+export function InstagramFeed({ feed, headingClassName = "", flushTop = false }) {
   const all = feed?.posts || [];
   const posts = all.length >= 3 ? all.slice(0, all.length - (all.length % 3)) : all;
   if (!posts.length) return null;
   return (
-    <section id="instagram" data-section="instagram" className="py-20 md:py-28">
+    <section
+      id="instagram"
+      data-section="instagram"
+      className={`pb-16 md:pb-24 ${flushTop ? "" : "pt-16 md:pt-24"}`}
+    >
       <div className="s-wrap">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between" data-reveal>
           <div>
@@ -57,7 +64,7 @@ export function InstagramFeed({ feed, headingClassName = "" }) {
             </a>
           ) : null}
         </div>
-        <div className="mt-10 grid grid-cols-3 gap-1 overflow-hidden rounded-[1.25rem] md:gap-2" data-reveal>
+        <div className="mt-8 grid grid-cols-3 gap-1 overflow-hidden rounded-[1.25rem] md:gap-2" data-reveal>
           {posts.map((post) => (
             <PostTile key={post.id} post={post} />
           ))}

@@ -745,6 +745,8 @@ export function GlowTemplate({ doc, isShown, reviews, instagram }) {
   const showAbout = isShown("about") && Boolean(about.heading || about.text);
   const showServices = isShown("services") && services.items.length > 0;
   const showGallery = isShown("gallery") && gallery.images.length > 0;
+  // Gallery and About share the page background; Services has its own.
+  const plainAbove = showGallery || (showAbout && !showServices);
   const links = [
     showAbout && { href: "#about", label: "About" },
     showServices && { href: "#services", label: "Services" },
@@ -782,8 +784,16 @@ export function GlowTemplate({ doc, isShown, reviews, instagram }) {
             socials={socials}
           />
         ) : null}
-        <InstagramFeed feed={instagram} headingClassName="font-semibold tracking-tight" />
-        <GoogleReviews reviews={reviews} headingClassName="font-semibold tracking-tight" />
+        <InstagramFeed
+          feed={instagram}
+          headingClassName="font-semibold tracking-tight"
+          flushTop={plainAbove}
+        />
+        <GoogleReviews
+          reviews={reviews}
+          headingClassName="font-semibold tracking-tight"
+          flushTop={plainAbove || Boolean(instagram)}
+        />
         <Contact
           contact={contact}
           ui={ui}

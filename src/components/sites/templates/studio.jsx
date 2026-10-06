@@ -841,6 +841,8 @@ export function StudioTemplate({ doc, isShown, reviews, instagram }) {
     gallery: isShown("gallery") && gallery.images.length > 0,
   };
 
+  // Only About shares the page background; Services and Gallery have their own.
+  const plainAbove = show.about && !show.services && !show.gallery;
   const links = [
     show.about && { href: "#about", label: "About" },
     show.services && { href: "#services", label: "Services" },
@@ -894,8 +896,12 @@ export function StudioTemplate({ doc, isShown, reviews, instagram }) {
         {show.gallery ? (
           <Gallery gallery={gallery} ui={ui} socials={socials} cta={cta} />
         ) : null}
-        <InstagramFeed feed={instagram} headingClassName="s-serif" />
-        <GoogleReviews reviews={reviews} headingClassName="s-serif" />
+        <InstagramFeed feed={instagram} headingClassName="s-serif" flushTop={plainAbove} />
+        <GoogleReviews
+          reviews={reviews}
+          headingClassName="s-serif"
+          flushTop={plainAbove || Boolean(instagram)}
+        />
         <Contact
           contact={contact}
           ui={ui}

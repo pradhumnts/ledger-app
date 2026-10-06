@@ -59,13 +59,18 @@ function ReviewCard({ review }) {
 /**
  * The shop's Google rating and the reviews Google returns for its listing
  * (Standard plan). Shown with Google attribution, unedited, as the Places
- * API terms require.
+ * API terms require. `flushTop` when the section above has the same
+ * background and already ends in padding.
  */
-export function GoogleReviews({ reviews, headingClassName = "" }) {
+export function GoogleReviews({ reviews, headingClassName = "", flushTop = false }) {
   if (!reviews || (!reviews.count && !reviews.reviews?.length)) return null;
   const rating = Math.round(reviews.rating * 10) / 10;
   return (
-    <section id="reviews" data-section="reviews" className="py-20 md:py-28">
+    <section
+      id="reviews"
+      data-section="reviews"
+      className={`pb-16 md:pb-24 ${flushTop ? "" : "pt-16 md:pt-24"}`}
+    >
       <div className="s-wrap">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between" data-reveal>
           <div>
@@ -107,7 +112,7 @@ export function GoogleReviews({ reviews, headingClassName = "" }) {
           </div>
         </div>
         {reviews.reviews?.length ? (
-          <div className="sa-rail -mx-5 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 scroll-px-5 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
+          <div className="sa-rail -mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 scroll-px-5 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
             {reviews.reviews.map((review, index) => (
               <ReviewCard key={`${review.author}-${index}`} review={review} />
             ))}
