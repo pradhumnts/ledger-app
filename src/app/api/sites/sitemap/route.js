@@ -7,7 +7,10 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** Google's per-file sitemap limit. */
 const MAX_URLS = 50_000;
+/** Supabase caps each select at 1000 rows by default. */
+const PAGE = 1000;
 
 function xml(body) {
   return new NextResponse(body, {
@@ -35,14 +38,20 @@ export async function GET(request) {
 
   const admin = getSupabaseAdmin();
   if (!admin) return new NextResponse("Not configured", { status: 503 });
-  const { data, error } = await admin
-    .from("sites")
-    .select("slug, published_at")
-    .eq("status", "live")
-    .not("slug", "is", null)
-    .not("published", "is", null)
-    .order("published_at", { ascending: false })
-    .limit(MAX_URLS);
-  if (error) return new NextResponse("Sitemap failed", { status: 500 });
-  return xml(sitemapXml((data || []).map((row) => ({ loc: siteUrl(row.slug), lastmod: row.published_at }))));
+  const rows = [];
+  while (rows.length < MAX_URLS) {
+    const { data, error } = await admin
+      .from("sites")
+      .select("slug, published_at")
+      .eq("status", "live")
+      .not("slug", "is", null)
+      .not("published", "is", null)
+      .order("published_at", { ascending: false })
+      .order("slug")
+      .range(rows.length, Math.min(rows.length + PAGE, MAX_URLS) - 1);
+    if (error) return new NextResponse("Sitemap failed", { status: 500 });
+    rows.push(...(data || []));
+    if (!data || data.length < PAGE) break;
+  }
+  return xml(sitemapXml(rows.map((row) => ({ loc: siteUrl(row.slug), lastmod: row.published_at }))));
 }
