@@ -1,0 +1,48 @@
+import { NextResponse } from "next/server";
+import { siteUrl, sitesDomain, slugProblem } from "@/lib/sites/config";
+import { sitemapXml } from "@/lib/sites/seo";
+import { loadLiveSite } from "@/lib/sites/store";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const MAX_URLS = 50_000;
+
+function xml(body) {
+  return new NextResponse(body, {
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
+    },
+  });
+}
+
+/**
+ * Served as `{SITES_DOMAIN}/sitemap.xml` (every live shop site, for Search
+ * Console's domain property) and `{slug}.{SITES_DOMAIN}/sitemap.xml` (`?site=`,
+ * that one site); the proxy rewrites both here.
+ */
+export async function GET(request) {
+  if (!sitesDomain()) return new NextResponse("Not found", { status: 404 });
+  const slug = request.nextUrl.searchParams.get("site");
+
+  if (slug !== null) {
+    const site = slugProblem(slug) ? null : await loadLiveSite(slug);
+    if (!site) return new NextResponse("Not found", { status: 404 });
+    return xml(sitemapXml([{ loc: siteUrl(site.slug), lastmod: site.published_at }]));
+  }
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return new NextResponse("Not configured", { status: 503 });
+  const { data, error } = await admin
+    .from("sites")
+    .select("slug, published_at")
+    .eq("status", "live")
+    .not("slug", "is", null)
+    .not("published", "is", null)
+    .order("published_at", { ascending: false })
+    .limit(MAX_URLS);
+  if (error) return new NextResponse("Sitemap failed", { status: 500 });
+  return xml(sitemapXml((data || []).map((row) => ({ loc: siteUrl(row.slug), lastmod: row.published_at }))));
+}

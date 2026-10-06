@@ -7,6 +7,7 @@ import { siteDescription, withSiteDefaults } from "@/lib/sites/document";
 import { placeReviews } from "@/lib/sites/google-places";
 import { latestPosts, loadConnection, profileUrl } from "@/lib/sites/instagram";
 import { tierAtLeast } from "@/lib/sites/plan-tiers";
+import { jsonLdScript, localBusinessJsonLd, siteTitle } from "@/lib/sites/seo";
 import { loadLiveSite } from "@/lib/sites/store";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
@@ -48,6 +49,12 @@ export async function generateMetadata({ params }) {
   const doc = withSiteDefaults(site.published);
   const url = siteUrl(site.slug);
   const title = doc.business?.name || site.slug;
+  const searchTitle =
+    siteTitle({
+      name: doc.business?.name,
+      packId: site.published.packId,
+      address: doc.business?.address,
+    }) || title;
   const description = siteDescription(doc);
   const version = Date.parse(site.published_at || "") || 0;
   const image = {
@@ -60,7 +67,7 @@ export async function generateMetadata({ params }) {
 
   return {
     metadataBase: new URL(url),
-    title: { absolute: title },
+    title: { absolute: searchTitle },
     description,
     alternates: { canonical: url },
     openGraph: {
@@ -86,8 +93,22 @@ export default async function SitePage({ params }) {
   const site = await getSite(slug);
   if (!site) notFound();
   const [reviews, instagram] = await Promise.all([siteReviews(site), siteInstagram(site)]);
+  const doc = withSiteDefaults(site.published);
+  const business = localBusinessJsonLd({
+    doc,
+    packId: site.published.packId,
+    url: siteUrl(site.slug),
+    description: siteDescription(doc),
+    instagramUsername: instagram?.username,
+  });
   return (
     <>
+      {business ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(business) }}
+        />
+      ) : null}
       <SiteRenderer doc={site.published} reviews={reviews} instagram={instagram} />
       <RevealOnScroll />
     </>

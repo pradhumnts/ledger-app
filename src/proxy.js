@@ -14,6 +14,22 @@ import {
 
 const STATIC_FILE = /\.[a-z0-9]+$/i;
 
+function robotsTxt(sitemap) {
+  return new NextResponse(`User-agent: *\nAllow: /\n\nSitemap: ${sitemap}\n`, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "public, max-age=3600",
+    },
+  });
+}
+
+function rewriteToSitemap(request, slug) {
+  const url = request.nextUrl.clone();
+  url.pathname = "/api/sites/sitemap";
+  url.search = slug ? `?site=${slug}` : "";
+  return NextResponse.rewrite(url);
+}
+
 /** `{slug}.{SITES_DOMAIN}` serves /sites/{slug}; nothing else of the app is reachable there. */
 function routeSiteHost(request, pathname) {
   const host = request.headers.get("host");
@@ -22,11 +38,15 @@ function routeSiteHost(request, pathname) {
     if (pathname.startsWith("/_next/") || pathname.startsWith("/site-packs/")) {
       return NextResponse.next();
     }
+    if (pathname === "/robots.txt") return robotsTxt(`${siteUrl(slug)}/sitemap.xml`);
+    if (pathname === "/sitemap.xml") return rewriteToSitemap(request, slug);
     const url = request.nextUrl.clone();
     url.pathname = `/sites/${slug}${pathname === "/" ? "" : pathname}`;
     return NextResponse.rewrite(url);
   }
   if (isRootSitesHost(host)) {
+    if (pathname === "/robots.txt") return robotsTxt(`https://${sitesDomain()}/sitemap.xml`);
+    if (pathname === "/sitemap.xml") return rewriteToSitemap(request, "");
     return NextResponse.redirect(APP_SITE_URL);
   }
   if (sitesDomain() && pathname.startsWith("/sites/")) {
