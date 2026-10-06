@@ -101,7 +101,7 @@ export const PRIVACY_POLICY = {
 
 /** @type {{ effectiveDate: string, intro: string[], sections: LegalSection[] }} */
 export const ACCOUNT_DELETION = {
-  effectiveDate: "18 August 2026",
+  effectiveDate: "6 October 2026",
   intro: [
     `${APP_NAME} is a billing app for Indian shops. If you created an account with your mobile number, you can ask us to delete that account and the shop data stored with it. This page explains how.`,
   ],
@@ -123,6 +123,14 @@ export const ACCOUNT_DELETION = {
         "Customers you added, including names and phone numbers.",
         "Bills, leftover due, and related ledger entries.",
         `Theme purchase records stored in ${APP_NAME}.`,
+        "Your shop website, and a connected Instagram account's username, account ID, and access token.",
+      ],
+    },
+    {
+      title: "Only remove Instagram",
+      body: [
+        `To stop ${APP_NAME} using your Instagram without deleting your account, open Website → Instagram in the app and tap Disconnect, or remove ${APP_NAME} in Instagram under Settings → Website permissions → Apps and websites.`,
+        "We delete the stored Instagram token and account details right away, and your posts stop showing on your website.",
       ],
     },
     {
