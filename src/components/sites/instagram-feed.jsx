@@ -41,7 +41,7 @@ export function InstagramFeed({ feed, headingClassName = "", flushTop = false })
     <section
       id="instagram"
       data-section="instagram"
-      className={`pb-16 md:pb-24 ${flushTop ? "" : "pt-16 md:pt-24"}`}
+      className={`pb-24 md:pb-32 ${flushTop ? "" : "pt-16 md:pt-24"}`}
     >
       <div className="s-wrap">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between" data-reveal>
