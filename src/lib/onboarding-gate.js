@@ -44,6 +44,11 @@ export function isAppLinkPath(pathname) {
   );
 }
 
+/** Printed QR stickers (`/q/CODE`) that open a shop's UPI payment or website. */
+export function isStickerPath(pathname) {
+  return Boolean(pathname?.startsWith("/q/"));
+}
+
 /**
  * Everything the website still serves. The shop app lives in the React Native
  * app now, so any other page (onboarding, customers, bills…) redirects to `/`.
@@ -54,7 +59,8 @@ export function isWebAccessiblePath(pathname) {
     isPublicSharePath(pathname) ||
     isShopSitePath(pathname) ||
     isReferralPath(pathname) ||
-    isAppLinkPath(pathname)
+    isAppLinkPath(pathname) ||
+    isStickerPath(pathname)
   );
 }
 
