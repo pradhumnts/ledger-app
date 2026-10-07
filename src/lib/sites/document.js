@@ -6,6 +6,7 @@ import {
 } from "@/lib/sites/catalog";
 import { cleanPlaceId, cleanSocial, phoneDigits } from "@/lib/sites/links";
 import { getPack } from "@/lib/sites/packs";
+import { SERVICE_PAGE_IDS, isServicePageId } from "@/lib/sites/service-pages";
 
 /**
  * v2 stores only what the shop changed: empty fields (and a missing gallery)
@@ -157,6 +158,10 @@ export function withSiteDefaults(doc) {
     }
     sections[id] = out;
   }
+  // Service pages have no sample content: they show only what the shop wrote.
+  for (const id of SERVICE_PAGE_IDS) {
+    if (doc.sections?.[id]) sections[id] = doc.sections[id];
+  }
   return {
     ...doc,
     packId: defaults.packId,
@@ -237,9 +242,19 @@ export function sanitizeSiteDocument(input, { userId } = {}) {
       sections.socials[kind] = cleanSocial(kind, sections.socials[kind]);
     }
   }
+  // Kept on any plan (the live site shows them only on Standard), so a lapsed
+  // Standard shop gets its pages back when it renews.
+  for (const id of SERVICE_PAGE_IDS) {
+    if (!sectionsIn[id] || typeof sectionsIn[id] !== "object") continue;
+    const page = cleanFields(SITE_SECTIONS[id].fields, sectionsIn[id], prefix);
+    const filled = Object.values(page).some((value) =>
+      Array.isArray(value) ? value.length > 0 : value !== "" && value !== null
+    );
+    if (filled) sections[id] = page;
+  }
 
-  const hidden = (Array.isArray(source.hidden) ? source.hidden : []).filter((id) =>
-    template.optionalSections.includes(id)
+  const hidden = (Array.isArray(source.hidden) ? source.hidden : []).filter(
+    (id) => template.optionalSections.includes(id) || isServicePageId(id)
   );
   const message = clip(source.whatsappMessage, 200);
 

@@ -281,6 +281,37 @@ body {
     transform: none;
   }
 
+  /* Preview page switches. Only the renderer's children move, so the palette
+     background stays put; only <main> is transformed, as it holds nothing fixed. */
+  .s-page[data-phase="leave"] > div > * {
+    opacity: 0;
+    transition: opacity 0.22s ease;
+  }
+  .s-page[data-phase="leave"] main {
+    transform: translateY(-14px);
+    transition:
+      opacity 0.22s ease,
+      transform 0.22s ease-in;
+  }
+  .s-page[data-phase="enter"] > div > * {
+    animation: s-page-in 0.45s ease backwards;
+  }
+  .s-page[data-phase="enter"] main {
+    animation:
+      s-page-in 0.45s ease backwards,
+      s-page-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  }
+  @keyframes s-page-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes s-page-rise {
+    from {
+      transform: translateY(28px);
+    }
+  }
+
   /* Studio borrows Glow's intro classes (sa-intro, sa-line, sa-in, …). */
   .s-btn.sa-sheen {
     position: relative;
@@ -388,6 +419,13 @@ body {
       opacity: 1;
       transform: none;
       transition: none;
+    }
+    .s-page[data-phase] > div > *,
+    .s-page[data-phase] main {
+      opacity: 1;
+      transform: none;
+      transition: none;
+      animation: none;
     }
     .st-pop {
       animation: none;

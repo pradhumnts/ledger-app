@@ -2,16 +2,98 @@
  * Website building blocks. The app renders its pickers and edit forms from
  * `publicCatalog()`, so adding a template, palette or section here needs no
  * app update as long as it only uses existing field types:
- *   text, textarea, phone, image, images, list (with text/price item fields).
+ *   text, textarea, phone, image, images, price, list (with text/price item fields).
  *
  * `fixed` fields are not editable in the app: business ones come from the shop
  * profile, section ones from the business-type content pack. A `fixed` section
  * is left out of the app menu entirely.
  */
 
+import { SERVICE_PAGE_IDS, SERVICE_PAGES_TIER } from "@/lib/sites/service-pages";
+
 function label(en, hi, hinglish = en) {
   return { en, hi, hinglish };
 }
+
+/** Fields of each Standard service page (`page1`…`page4`). */
+const SERVICE_PAGE_FIELDS = [
+  {
+    key: "title",
+    type: "text",
+    max: 60,
+    label: label("Service name", "सर्विस का नाम", "Service ka naam"),
+  },
+  {
+    key: "summary",
+    type: "textarea",
+    max: 200,
+    label: label("Short intro", "छोटा परिचय", "Short intro"),
+  },
+  {
+    key: "image",
+    type: "image",
+    label: label("Cover photo", "कवर फ़ोटो", "Cover photo"),
+  },
+  {
+    key: "price",
+    type: "price",
+    label: label("Starting price (₹)", "शुरुआती दाम (₹)", "Starting price (₹)"),
+  },
+  {
+    key: "duration",
+    type: "text",
+    max: 40,
+    placeholder: "2–3 hours",
+    label: label("Time it takes", "कितना समय लगता है", "Kitna time lagta hai"),
+  },
+  {
+    key: "details",
+    type: "textarea",
+    max: 1500,
+    label: label("Full details", "पूरी जानकारी", "Poori jaankari"),
+  },
+  {
+    key: "highlights",
+    type: "list",
+    max: 6,
+    label: label("What's included", "क्या-क्या शामिल है", "Kya kya included hai"),
+    itemFields: [
+      {
+        key: "name",
+        type: "text",
+        max: 60,
+        label: label("Point", "पॉइंट", "Point"),
+      },
+      {
+        key: "note",
+        type: "text",
+        max: 140,
+        label: label("Details", "जानकारी", "Details"),
+      },
+    ],
+  },
+  {
+    key: "images",
+    type: "images",
+    max: 8,
+    label: label("Photos", "फ़ोटो", "Photos"),
+  },
+];
+
+const SERVICE_PAGE_SECTIONS = Object.fromEntries(
+  SERVICE_PAGE_IDS.map((id, index) => [
+    id,
+    {
+      id,
+      label: label(
+        `Service page ${index + 1}`,
+        `सर्विस पेज ${index + 1}`,
+        `Service page ${index + 1}`,
+      ),
+      fields: SERVICE_PAGE_FIELDS,
+    },
+  ]),
+);
 
 export const SITE_SECTIONS = {
   business: {
@@ -223,6 +305,7 @@ export const SITE_SECTIONS = {
       },
     ],
   },
+  ...SERVICE_PAGE_SECTIONS,
 };
 
 export const TEMPLATES = {
@@ -433,5 +516,8 @@ export function publicCatalog() {
       })),
     })),
     sections: SITE_SECTIONS,
+    // Same for every template; not in `templates[].sections`, so app versions
+    // that predate service pages never list them.
+    servicePages: { ids: SERVICE_PAGE_IDS, tier: SERVICE_PAGES_TIER },
   };
 }

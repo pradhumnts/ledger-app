@@ -1,8 +1,10 @@
 /* eslint-disable @next/next/no-img-element -- plain <img> keeps customer sites off Vercel image optimisation billing */
 import {
+  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   Camera,
+  Check,
   Clock,
   MapPin,
   Phone,
@@ -28,6 +30,18 @@ import {
   whatsappUrl,
 } from "@/lib/sites/links";
 import { getPack } from "@/lib/sites/packs";
+import {
+  homeLink,
+  pageForService,
+  pageLink,
+  paragraphs,
+  servicePageCover,
+  servicePageMessage,
+} from "@/lib/sites/service-pages";
+
+function pad(number) {
+  return String(number).padStart(2, "0");
+}
 
 /** Headline → [plain line, italic line]: split after the first comma, else the last word or two. */
 function splitTitle(title) {
@@ -121,11 +135,11 @@ function Wordmark({ business, ui, light = false }) {
   );
 }
 
-function Header({ business, ui, links, cta }) {
+function Header({ business, ui, links, cta, homeHref = "#top" }) {
   return (
     <header className="s-header sa-intro sticky top-0 z-40">
       <div className="s-wrap flex h-[4.75rem] items-center justify-between gap-4">
-        <a href="#top" className="flex min-w-0 items-center gap-3 text-s-brand">
+        <a href={homeHref} className="flex min-w-0 items-center gap-3 text-s-brand">
           <Wordmark business={business} ui={ui} />
         </a>
         <nav className="s-nav hidden items-center gap-9 text-s-ink/75 md:flex">
@@ -382,7 +396,7 @@ function About({ about, image, ui, business }) {
   );
 }
 
-function Services({ services, ui, business, whatsappPhone, cta }) {
+function Services({ services, ui, business, whatsappPhone, cta, pages, nav }) {
   return (
     <section
       id="services"
@@ -427,13 +441,15 @@ function Services({ services, ui, business, whatsappPhone, cta }) {
         <ol className="mt-14 grid border-t border-s-paper/15 md:mt-20 md:grid-cols-2 md:gap-x-14">
           {services.items.map((item, index) => {
             const price = formatRupees(item.price);
-            const href =
-              whatsappUrl(
-                whatsappPhone,
-                item.name
-                  ? `Hi ${business.name}! I'm interested in ${item.name}.`
-                  : "",
-              ) || cta.href;
+            const page = pageForService(pages, item.name);
+            const href = page
+              ? pageLink(nav, page)
+              : whatsappUrl(
+                  whatsappPhone,
+                  item.name
+                    ? `Hi ${business.name}! I'm interested in ${item.name}.`
+                    : "",
+                ) || cta.href;
             return (
               <li
                 key={`${item.name}-${index}`}
@@ -479,7 +495,7 @@ function Services({ services, ui, business, whatsappPhone, cta }) {
                       </>
                     ) : null}
                     <span className="mt-4 inline-flex items-center gap-1 text-[0.82rem] font-medium text-s-paper/40 transition-colors group-hover:text-s-accent">
-                      {ui.enquire}
+                      {page ? "Details" : ui.enquire}
                       <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </span>
                   </div>
@@ -528,14 +544,23 @@ function galleryTiles(count) {
   return tiles;
 }
 
-function Gallery({ gallery, ui, socials, cta }) {
+/** The site gallery, or a service page's own (`id`, `label`, no sample tags). */
+function Gallery({
+  gallery,
+  ui,
+  socials,
+  cta,
+  id = "gallery",
+  section = "gallery",
+  label = ui.galleryLabel,
+  tags = ui.galleryTags || [],
+}) {
   const tiles = galleryTiles(gallery.images.length);
-  const tags = ui.galleryTags || [];
   const instagram = socialUrl("instagram", socials.instagram);
   return (
     <section
-      id="gallery"
-      data-section="gallery"
+      id={id}
+      data-section={section || undefined}
       className="bg-s-paper py-24 md:py-36"
     >
       <div className="s-wrap">
@@ -544,8 +569,8 @@ function Gallery({ gallery, ui, socials, cta }) {
           data-reveal
         >
           <div className="max-w-3xl">
-            {ui.galleryLabel ? (
-              <p className="s-eyebrow text-s-brand/70">{ui.galleryLabel}</p>
+            {label ? (
+              <p className="s-eyebrow text-s-brand/70">{label}</p>
             ) : null}
             {gallery.heading ? (
               <h2 className="s-serif s-h2 mt-5 text-s-ink">
@@ -713,7 +738,7 @@ function Contact({ contact, ui, business, whatsapp }) {
   );
 }
 
-function Footer({ business, ui, links, socials, whatsapp, intro }) {
+function Footer({ business, ui, links, socials, whatsapp, intro, homeHref = "#top" }) {
   const socialLinks = [
     {
       label: "Instagram",
@@ -742,7 +767,7 @@ function Footer({ business, ui, links, socials, whatsapp, intro }) {
         <div className="grid gap-12 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr] md:gap-16">
           <div className="sm:col-span-2 md:col-span-1">
             <a
-              href="#top"
+              href={homeHref}
               className="inline-flex max-w-full items-center gap-3 text-s-paper"
             >
               <Wordmark business={business} ui={ui} light />
@@ -805,6 +830,340 @@ function Footer({ business, ui, links, socials, whatsapp, intro }) {
   );
 }
 
+function SplitHeading({ text, className }) {
+  const [first, second] = splitTitle(text);
+  return (
+    <h2 className={`s-serif s-h2 ${className}`}>
+      {first}
+      {second ? (
+        <>
+          {" "}
+          <span className="s-italic text-s-brand">{second}</span>
+        </>
+      ) : null}
+    </h2>
+  );
+}
+
+const CARD_GRID = {
+  1: "max-w-2xl",
+  2: "sm:grid-cols-2",
+  3: "md:grid-cols-3",
+  4: "sm:grid-cols-2 lg:grid-cols-4",
+};
+
+/** Service page cards: on the home page, and as "more services" on each page. */
+function ServiceCards({
+  pages,
+  ui,
+  nav,
+  id,
+  section,
+  label,
+  heading,
+  flushTop = false,
+}) {
+  const wide = pages.length <= 2;
+  return (
+    <section
+      id={id}
+      data-section={section || undefined}
+      className={flushTop ? "pb-24 md:pb-36" : "py-24 md:py-36"}
+    >
+      <div className="s-wrap">
+        <div data-reveal className="max-w-3xl">
+          <p className="s-eyebrow text-s-brand/70">{label}</p>
+          <SplitHeading text={heading} className="mt-5 text-s-ink" />
+        </div>
+        <ul
+          className={`mt-12 grid gap-x-5 gap-y-12 md:mt-16 ${CARD_GRID[pages.length] || CARD_GRID[4]}`}
+        >
+          {pages.map((page, index) => {
+            const cover = servicePageCover(page);
+            const price = formatRupees(page.price);
+            return (
+              <li
+                key={page.id}
+                data-reveal
+                style={{ "--d": `${(index % 4) * 0.08}s` }}
+              >
+                <a href={pageLink(nav, page)} className="group block">
+                  <div
+                    className={`relative overflow-hidden rounded-[1.25rem] bg-s-brand ${
+                      wide ? "aspect-4/3" : "aspect-5/4 sm:aspect-4/5"
+                    }`}
+                  >
+                    {cover ? (
+                      <img
+                        {...photoProps(
+                          cover,
+                          wide
+                            ? "(min-width: 620px) 50vw, 100vw"
+                            : "(min-width: 1024px) 25vw, (min-width: 620px) 50vw, 100vw",
+                        )}
+                        alt=""
+                        loading="lazy"
+                        className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
+                      />
+                    ) : (
+                      <span className="s-serif grid size-full place-items-center text-[5rem] leading-none text-s-accent/70">
+                        {initialOf(page.title)}
+                      </span>
+                    )}
+                    <span className="s-eyebrow absolute top-4 left-4 rounded-full bg-s-paper/90 px-3 py-1.5 text-[0.64rem] text-s-brand backdrop-blur-sm">
+                      No. {pad(page.position)}
+                    </span>
+                  </div>
+                  <div className="mt-5 flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <h3 className="s-serif s-service-title text-s-ink">
+                        {page.title}
+                      </h3>
+                      {page.summary ? (
+                        <p className="mt-2.5 line-clamp-2 text-[0.95rem] leading-relaxed text-s-muted">
+                          {page.summary}
+                        </p>
+                      ) : null}
+                      {price ? (
+                        <p className="mt-3 text-sm text-s-muted">
+                          {ui.priceFrom || "From"}{" "}
+                          <span className="s-serif text-xl text-s-brand">
+                            {price}
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className="grid size-11 shrink-0 place-items-center rounded-full border border-s-brand/25 text-s-brand transition duration-300 group-hover:border-s-brand group-hover:bg-s-brand group-hover:text-s-accent">
+                      <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:rotate-45" />
+                    </span>
+                  </div>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function ServiceHero({ page, ui, cta, backHref }) {
+  const [first, second] = splitTitle(page.title);
+  const cover = servicePageCover(page);
+  const price = formatRupees(page.price);
+  const hasDetails = Boolean(page.details || page.highlights.length);
+  return (
+    <section
+      id="top"
+      data-section={page.id}
+      className="relative pt-6 pb-20 sm:pt-10 md:pt-14 md:pb-28"
+    >
+      <div className="s-wrap grid items-center gap-12 md:grid-cols-[1.08fr_0.92fr] md:gap-16">
+        <div className="relative md:order-last">
+          <div
+            aria-hidden
+            className="st-pop absolute top-10 -right-3 z-10 grid size-24 place-items-center rounded-full bg-s-accent text-s-on-accent shadow-[0_18px_40px_-20px_rgba(0,0,0,0.45)] sm:-right-6 md:top-14 md:-right-10 md:size-32"
+            style={{ "--d": "0.55s" }}
+          >
+            <span className="s-serif s-italic text-[2.4rem] leading-none md:text-[3.2rem]">
+              {pad(page.position)}
+            </span>
+          </div>
+          <div
+            className="s-arch sa-in relative h-[min(112vw,31rem)] overflow-hidden bg-s-brand md:h-[min(76svh,40rem)]"
+            style={{ "--d": "0.1s" }}
+          >
+            {cover ? (
+              <img
+                {...photoProps(cover, "(min-width: 768px) 46vw, 100vw")}
+                alt={page.title}
+                fetchPriority="high"
+                className="sa-hero-img size-full object-cover"
+              />
+            ) : (
+              <div className="grid size-full place-items-center text-s-accent/60">
+                <Camera className="size-14" strokeWidth={1} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <p
+            className="s-eyebrow sa-in flex items-center gap-3 text-s-brand"
+            style={{ "--d": "0.3s" }}
+          >
+            <a
+              href={backHref}
+              className="inline-flex items-center gap-2 transition-opacity hover:opacity-70"
+            >
+              <ArrowLeft className="size-3.5" strokeWidth={2} />
+              {ui.servicesLabel || "Services"}
+            </a>
+            <span className="sa-rule h-px w-10 bg-s-brand/50" />
+          </p>
+          <h1
+            data-size={titleSize(page.title)}
+            className="s-serif s-hero-title mt-6 text-s-ink md:mt-8"
+          >
+            <span className="sa-line block" style={{ "--d": "0.4s" }}>
+              {first}
+            </span>
+            {second ? (
+              <span
+                className="sa-line s-italic block text-s-brand"
+                style={{ "--d": "0.6s" }}
+              >
+                {second}
+              </span>
+            ) : null}
+          </h1>
+          {page.summary ? (
+            <p
+              className="sa-in mt-8 max-w-[34rem] text-[1.06rem] leading-[1.75] text-s-muted sm:text-lg"
+              style={{ "--d": "0.8s" }}
+            >
+              {page.summary}
+            </p>
+          ) : null}
+          {price || page.duration ? (
+            <dl
+              className="sa-in mt-9 flex max-w-[34rem] flex-wrap gap-x-12 gap-y-5 border-t border-s-line pt-6"
+              style={{ "--d": "0.9s" }}
+            >
+              {price ? (
+                <div>
+                  <dt className="s-eyebrow text-[0.66rem] text-s-muted">
+                    {ui.priceFrom || "From"}
+                  </dt>
+                  <dd className="s-serif mt-2 text-[2.1rem] leading-none text-s-brand">
+                    {price}
+                  </dd>
+                </div>
+              ) : null}
+              {page.duration ? (
+                <div>
+                  <dt className="s-eyebrow text-[0.66rem] text-s-muted">
+                    Duration
+                  </dt>
+                  <dd className="mt-2.5 flex items-center gap-2 text-[1.05rem] font-medium text-s-ink">
+                    <Clock className="size-4 text-s-brand" strokeWidth={1.75} />
+                    {page.duration}
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+          ) : null}
+          <div className="mt-10 flex flex-wrap gap-3">
+            <a
+              href={cta.href}
+              {...linkProps(cta.href)}
+              className="s-btn s-btn-primary sa-sheen sa-in flex-1 sm:flex-none"
+              style={{ "--d": "1s" }}
+            >
+              <CtaIcon cta={cta} className="size-5" />
+              {cta.label}
+              <ArrowRight className="s-arrow size-4" />
+            </a>
+            {hasDetails ? (
+              <a
+                href="#details"
+                className="s-btn s-btn-secondary sa-in flex-1 sm:flex-none"
+                style={{ "--d": "1.1s" }}
+              >
+                See details
+              </a>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Long text and "what's included", on the dark band Services uses at home. */
+function ServiceDetails({ page }) {
+  const text = paragraphs(page.details);
+  if (!text.length && !page.highlights.length) return null;
+  const [lead, ...rest] = text;
+  const shortLead = lead && lead.length <= 260;
+  return (
+    <section
+      id="details"
+      className="relative overflow-hidden bg-s-brand py-24 text-s-paper md:py-36"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-48 -left-48 size-[32rem] rounded-full bg-s-brand-2"
+      />
+      <div className="s-wrap relative grid gap-12 md:grid-cols-[0.8fr_1.2fr] md:gap-24">
+        <div data-reveal className="md:sticky md:top-28 md:self-start">
+          <p className="s-eyebrow text-s-accent">About this service</p>
+          <h2 className="s-serif s-h2 mt-5">
+            What to <span className="s-italic text-s-accent">expect.</span>
+          </h2>
+        </div>
+        <div>
+          {lead ? (
+            <p
+              data-reveal
+              className={
+                shortLead
+                  ? "s-serif text-[1.65rem] leading-[1.3] md:text-[2.1rem]"
+                  : "text-[1.15rem] leading-[1.8] whitespace-pre-line text-s-paper/90"
+              }
+            >
+              {lead}
+            </p>
+          ) : null}
+          {rest.map((part, index) => (
+            <p
+              key={index}
+              data-reveal
+              className="mt-6 max-w-2xl text-[1.05rem] leading-[1.8] whitespace-pre-line text-s-paper/65"
+            >
+              {part}
+            </p>
+          ))}
+          {page.highlights.length ? (
+            <div className={text.length ? "mt-16" : ""}>
+              <p data-reveal className="s-eyebrow text-s-accent">
+                What&apos;s included
+              </p>
+              <ul className="mt-6 border-t border-s-paper/15">
+                {page.highlights.map((item, index) => (
+                  <li
+                    key={`${item.name}-${index}`}
+                    data-reveal
+                    style={{ "--d": `${Math.min(index, 5) * 0.06}s` }}
+                    className="sa-row flex gap-5 py-6 [--row-line:color-mix(in_srgb,var(--s-paper)_15%,transparent)]"
+                  >
+                    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-s-accent text-s-on-accent">
+                      <Check className="size-4" strokeWidth={2.25} />
+                    </span>
+                    <div className="min-w-0 pt-1.5">
+                      {item.name ? (
+                        <h3 className="text-[1.1rem] leading-snug font-semibold">
+                          {item.name}
+                        </h3>
+                      ) : null}
+                      {item.note ? (
+                        <p className="mt-1.5 text-[0.98rem] leading-relaxed text-s-paper/60">
+                          {item.note}
+                        </p>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FloatingWhatsApp({ href }) {
   if (!href) return null;
   return (
@@ -820,7 +1179,90 @@ function FloatingWhatsApp({ href }) {
   );
 }
 
-export function StudioTemplate({ doc, isShown, reviews, instagram }) {
+const PAGES_LABEL = "Take a closer look";
+const PAGES_HEADING = "Our signature services.";
+
+/** One Standard service page: its own hero, details and gallery, then the shop's contact. */
+function StudioServicePage({ page, pages, ui, business, sections, nav, links, whatsappPhone }) {
+  const whatsapp = whatsappUrl(whatsappPhone, servicePageMessage(business.name, page.title));
+  const cta = {
+    href: whatsapp || telUrl(business.phone) || "#contact",
+    label: ui.availability || "Contact us",
+    whatsapp: Boolean(whatsapp),
+  };
+  const home = homeLink(nav);
+  const pageLinks = [
+    { href: home, label: "Home" },
+    ...links
+      .filter((link) => link.href !== "#contact")
+      .map((link) => ({ ...link, href: homeLink(nav, link.href) })),
+    { href: "#contact", label: "Contact" },
+  ];
+  const others = pages.filter((item) => item.id !== page.id);
+
+  return (
+    <>
+      <Header business={business} ui={ui} links={pageLinks} cta={cta} homeHref={home} />
+      <main className="overflow-x-clip">
+        <ServiceHero
+          page={page}
+          ui={ui}
+          cta={cta}
+          backHref={homeLink(nav, "#explore")}
+        />
+        <ServiceDetails page={page} />
+        {page.images.length ? (
+          <Gallery
+            gallery={{ heading: "In pictures.", images: page.images }}
+            ui={ui}
+            socials={{}}
+            cta={cta}
+            id="photos"
+            section={null}
+            label={page.title}
+            tags={[]}
+          />
+        ) : null}
+        {others.length ? (
+          <ServiceCards
+            pages={others}
+            ui={ui}
+            nav={nav}
+            id="more"
+            label="More services"
+            heading="Explore what else we do."
+          />
+        ) : null}
+        <Contact
+          contact={sections.contact || {}}
+          ui={ui}
+          business={business}
+          whatsapp={whatsapp}
+        />
+      </main>
+      <Footer
+        business={business}
+        ui={ui}
+        links={pageLinks}
+        socials={sections.socials || {}}
+        whatsapp={whatsapp}
+        intro={page.summary || sections.hero?.subtitle}
+        homeHref={home}
+      />
+      <FloatingWhatsApp href={whatsapp} />
+    </>
+  );
+}
+
+export function StudioTemplate({
+  doc,
+  isShown,
+  reviews,
+  instagram,
+  pages = [],
+  page = null,
+  nav,
+}) {
   const business = doc?.business || {};
   const sections = doc?.sections || {};
   const hero = sections.hero || {};
@@ -841,16 +1283,35 @@ export function StudioTemplate({ doc, isShown, reviews, instagram }) {
     gallery: isShown("gallery") && gallery.images.length > 0,
   };
 
-  // Only About shares the page background; Services and Gallery have their own.
-  const plainAbove = show.about && !show.services && !show.gallery;
+  const showPages = pages.length > 0;
+
+  // About and the service page cards share the page background; Services and Gallery have their own.
+  const plainAbove = !show.gallery && !show.services && (showPages || show.about);
   const links = [
     show.about && { href: "#about", label: "About" },
-    show.services && { href: "#services", label: "Services" },
+    show.services
+      ? { href: "#services", label: "Services" }
+      : showPages && { href: "#explore", label: "Services" },
     show.gallery && { href: "#gallery", label: "Gallery" },
     instagram && { href: "#instagram", label: "Instagram" },
     reviews && { href: "#reviews", label: "Reviews" },
     { href: "#contact", label: "Contact" },
   ].filter(Boolean);
+
+  if (page) {
+    return (
+      <StudioServicePage
+        page={page}
+        pages={pages}
+        ui={ui}
+        business={business}
+        sections={sections}
+        nav={nav}
+        links={links}
+        whatsappPhone={whatsappPhone}
+      />
+    );
+  }
 
   const cta = {
     href: contactHref,
@@ -884,6 +1345,18 @@ export function StudioTemplate({ doc, isShown, reviews, instagram }) {
             business={business}
           />
         ) : null}
+        {showPages ? (
+          <ServiceCards
+            pages={pages}
+            ui={ui}
+            nav={nav}
+            id="explore"
+            section="service-pages"
+            label={PAGES_LABEL}
+            heading={PAGES_HEADING}
+            flushTop={show.about}
+          />
+        ) : null}
         {show.services ? (
           <Services
             services={services}
@@ -891,6 +1364,8 @@ export function StudioTemplate({ doc, isShown, reviews, instagram }) {
             business={business}
             whatsappPhone={whatsappPhone}
             cta={cta}
+            pages={pages}
+            nav={nav}
           />
         ) : null}
         {show.gallery ? (

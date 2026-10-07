@@ -73,6 +73,12 @@ export function siteUrl(slug) {
   return `${isLocalDomain(domain) ? "http" : "https"}://${slug}.${domain}`;
 }
 
+/** Relative links between a live site's home page and its service pages. */
+export function siteNav(slug) {
+  if (sitesDomain()) return { home: "/", pagePrefix: "/" };
+  return { home: `/sites/${slug}`, pagePrefix: `/sites/${slug}/` };
+}
+
 /** Site slug for a request host, or "" when the host is not a shop site. */
 export function slugFromHost(host) {
   const domain = sitesDomain();

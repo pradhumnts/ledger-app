@@ -2,12 +2,13 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import { RevealOnScroll } from "@/components/sites/reveal";
 import { SiteRenderer } from "@/components/sites/site-renderer";
-import { SHARE_IMAGE_SIZE, siteUrl } from "@/lib/sites/config";
+import { SHARE_IMAGE_SIZE, siteNav, siteUrl } from "@/lib/sites/config";
 import { siteDescription, withSiteDefaults } from "@/lib/sites/document";
 import { placeReviews } from "@/lib/sites/google-places";
 import { latestPosts, loadConnection, profileUrl } from "@/lib/sites/instagram";
 import { tierAtLeast } from "@/lib/sites/plan-tiers";
 import { jsonLdScript, localBusinessJsonLd, siteTitle } from "@/lib/sites/seo";
+import { SERVICE_PAGES_TIER } from "@/lib/sites/service-pages";
 import { loadLiveSite } from "@/lib/sites/store";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
@@ -109,7 +110,13 @@ export default async function SitePage({ params }) {
           dangerouslySetInnerHTML={{ __html: jsonLdScript(business) }}
         />
       ) : null}
-      <SiteRenderer doc={site.published} reviews={reviews} instagram={instagram} />
+      <SiteRenderer
+        doc={site.published}
+        reviews={reviews}
+        instagram={instagram}
+        withPages={tierAtLeast(site.tier, SERVICE_PAGES_TIER)}
+        nav={siteNav(site.slug)}
+      />
       <RevealOnScroll />
     </>
   );

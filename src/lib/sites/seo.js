@@ -134,6 +134,50 @@ export function localBusinessJsonLd({ doc, packId, url, description, instagramUs
   return data;
 }
 
+/** "Bridal Makeup in Indore – Shadow Beauty" for a service page. */
+export function servicePageTitle({ title, name, address }) {
+  const service = String(title || "").trim();
+  const shop = String(name || "").trim();
+  const { city } = addressParts(address);
+  const where = city && !service.toLowerCase().includes(city.toLowerCase()) ? ` in ${city}` : "";
+  return [`${service}${where}`, shop].filter(Boolean).join(" – ");
+}
+
+/**
+ * schema.org Service for a service page, offered by the shop's LocalBusiness
+ * (`siteUrl` is the home page URL its `@id` is built from).
+ */
+export function serviceJsonLd({ page, url, siteUrl, description, address }) {
+  const name = String(page?.title || "").trim();
+  if (!name || !url || !siteUrl) return null;
+  const images = [page.image, ...(Array.isArray(page.images) ? page.images : [])]
+    .map(realImage)
+    .filter(Boolean);
+  const price = Math.round(Number(page.price));
+  const { city } = addressParts(address);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${url}#service`,
+    name,
+    url,
+    ...(description ? { description } : {}),
+    provider: { "@id": `${siteUrl}/#business` },
+    ...(images.length ? { image: [...new Set(images)].slice(0, 6) } : {}),
+    ...(city ? { areaServed: city } : {}),
+    ...(price > 0
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: String(price),
+            priceCurrency: "INR",
+            url,
+          },
+        }
+      : {}),
+  };
+}
+
 /** JSON for a <script type="application/ld+json">, safe to inline in HTML. */
 export function jsonLdScript(data) {
   return JSON.stringify(data).replace(/</g, "\\u003c");

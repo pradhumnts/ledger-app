@@ -1,6 +1,51 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { addressParts, jsonLdScript, localBusinessJsonLd, siteTitle, sitemapXml } from "./seo.js";
+import {
+  addressParts,
+  jsonLdScript,
+  localBusinessJsonLd,
+  serviceJsonLd,
+  servicePageTitle,
+  siteTitle,
+  sitemapXml,
+} from "./seo.js";
+
+test("service page titles say what and where", () => {
+  const address = "Hill Road, Bandra West, Mumbai 400050";
+  assert.equal(
+    servicePageTitle({ title: "Bridal Makeup", name: "Aarohi Beauty", address }),
+    "Bridal Makeup in Mumbai – Aarohi Beauty"
+  );
+  assert.equal(
+    servicePageTitle({ title: "Mumbai Bridal Makeup", name: "Aarohi Beauty", address }),
+    "Mumbai Bridal Makeup – Aarohi Beauty"
+  );
+  assert.equal(servicePageTitle({ title: "Facials", name: "", address: "" }), "Facials");
+});
+
+test("service structured data points at the shop and only real photos", () => {
+  const data = serviceJsonLd({
+    page: {
+      title: "Bridal Makeup",
+      price: 21000,
+      image: "/site-packs/beauty/bridal.webp",
+      images: ["https://x.supabase.co/a.webp", "https://x.supabase.co/a.webp"],
+    },
+    url: "https://aarohi.moneykit.site/bridal-makeup",
+    siteUrl: "https://aarohi.moneykit.site",
+    description: "HD makeup",
+    address: "Bandra West, Mumbai",
+  });
+  assert.equal(data["@type"], "Service");
+  assert.deepEqual(data.provider, { "@id": "https://aarohi.moneykit.site/#business" });
+  assert.deepEqual(data.image, ["https://x.supabase.co/a.webp"]);
+  assert.equal(data.offers.price, "21000");
+  assert.equal(data.areaServed, "Mumbai");
+  assert.equal(serviceJsonLd({ page: { title: "" }, url: "u", siteUrl: "s" }), null);
+  const free = serviceJsonLd({ page: { title: "Consult" }, url: "u", siteUrl: "s" });
+  assert.equal(free.offers, undefined);
+  assert.equal(free.image, undefined);
+});
 
 test("city, state and PIN from Indian addresses", () => {
   assert.deepEqual(addressParts("12 MG Road, Vijay Nagar, Indore, Madhya Pradesh 452010"), {
