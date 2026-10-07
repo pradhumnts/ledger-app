@@ -18,6 +18,7 @@ import {
 import { GoogleReviews } from "@/components/sites/google-reviews";
 import { InstagramFeed } from "@/components/sites/instagram-feed";
 import { MobileMenu } from "@/components/sites/mobile-menu";
+import { OfferBanners } from "@/components/sites/offer-banners";
 import { playStoreUrl } from "@/lib/branding";
 import { photoProps } from "@/lib/sites/photo";
 import {
@@ -1337,6 +1338,7 @@ export function StudioTemplate({
           primary={primary}
           secondaryHref={secondaryHref}
         />
+        <OfferBanners doc={doc} phone={business.phone} headingClassName="s-serif" />
         {show.about ? (
           <About
             about={about}

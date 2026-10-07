@@ -19,6 +19,7 @@ import {
 import { GoogleReviews } from "@/components/sites/google-reviews";
 import { InstagramFeed } from "@/components/sites/instagram-feed";
 import { MobileMenu } from "@/components/sites/mobile-menu";
+import { OfferBanners } from "@/components/sites/offer-banners";
 import { ScrollHeader } from "@/components/sites/scroll-header";
 import { playStoreUrl } from "@/lib/branding";
 import { photoProps } from "@/lib/sites/photo";
@@ -1194,6 +1195,11 @@ export function GlowTemplate({
       <Header business={business} links={links} cta={cta} />
       <main className="overflow-x-clip">
         <Hero hero={hero} primary={primary} directions={directions} />
+        <OfferBanners
+          doc={doc}
+          phone={business.phone}
+          headingClassName="font-semibold tracking-tight"
+        />
         {showAbout ? <About about={about} ui={ui} business={business} /> : null}
         {showPages ? (
           <ServiceCards
