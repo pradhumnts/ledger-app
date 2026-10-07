@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test src/lib/ledger-math.test.mjs src/lib/reminders.test.mjs src/lib/web-manifests.test.mjs src/lib/referrals/rules.test.mjs src/lib/app-links.test.mjs src/lib/sites/plan-tiers.test.mjs src/lib/sites/instagram.test.mjs src/lib/qr-stickers.test.mjs src/lib/sites/seo.test.mjs src/lib/sites/service-pages.test.mjs"
+    "test": "node --test src/lib/ledger-math.test.mjs src/lib/reminders.test.mjs src/lib/web-manifests.test.mjs src/lib/referrals/rules.test.mjs src/lib/app-links.test.mjs src/lib/sites/plan-tiers.test.mjs src/lib/sites/instagram.test.mjs src/lib/qr-stickers.test.mjs src/lib/sites/seo.test.mjs src/lib/sites/service-pages.test.mjs src/lib/sites/offers.test.mjs"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",

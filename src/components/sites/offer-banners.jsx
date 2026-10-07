@@ -1,7 +1,7 @@
 import { Phone, Tag } from "lucide-react";
 import { WhatsAppIcon } from "@/components/sites/icons";
 import { telUrl, whatsappUrl } from "@/lib/sites/links";
-import { formatOfferDate, offerTheme, visibleOffers } from "@/lib/sites/offers";
+import { formatOfferDate, offerTheme } from "@/lib/sites/offers";
 
 function OfferCard({ offer, phone, headingClassName }) {
   const theme = offerTheme(offer.theme);
@@ -73,11 +73,10 @@ function OfferCard({ offer, phone, headingClassName }) {
 }
 
 /**
- * The shop's offers right under the hero: one full-width card, or a swipeable
- * row (two columns on wide screens) when several are on.
+ * The shop's visible offers right under the hero: one full-width card, or a
+ * swipeable row (two columns on wide screens) when several are on.
  */
-export function OfferBanners({ doc, phone, headingClassName = "font-bold tracking-tight" }) {
-  const offers = visibleOffers(doc);
+export function OfferBanners({ offers = [], phone, headingClassName = "font-bold tracking-tight" }) {
   if (!offers.length) return null;
   const single = offers.length === 1;
   return (

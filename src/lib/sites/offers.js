@@ -1,8 +1,13 @@
 /**
  * Offer banners (Standard plan), `doc.offers` from the app:
  * `[{ id, theme, badge, title, text, ends: "YYYY-MM-DD" | "", button, hidden }]`.
- * Themes mirror the app's src/lib/offer-banners.js.
+ * Themes and limits mirror the app's src/lib/offer-banners.js.
  */
+
+export const OFFERS_TIER = "standard";
+export const OFFER_MAX = 3;
+export const OFFER_BUTTONS = ["whatsapp", "call", "none"];
+const LIMITS = { badge: 14, title: 40, text: 120 };
 
 export const OFFER_THEMES = {
   forest: { bg: "#0b301f", ink: "#ffffff", accent: "#c8e86a", accentInk: "#0b301f" },
@@ -16,26 +21,61 @@ export const OFFER_THEMES = {
 };
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+const ID = /^[a-z0-9-]{1,40}$/;
 
 export function offerTheme(id) {
   return OFFER_THEMES[id] || OFFER_THEMES.forest;
 }
 
-function text(value) {
-  return typeof value === "string" ? value.trim() : "";
+function clip(value, max) {
+  return typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, max).trim() : "";
 }
 
-function today() {
-  const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${now.getFullYear()}-${month}-${day}`;
+function validDate(value) {
+  const match = typeof value === "string" ? value.match(DATE) : null;
+  if (!match) return "";
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return date.toISOString().slice(0, 10) === value ? value : "";
+}
+
+/** Today's date in India, where every shop is, so offers end at the shop's midnight. */
+export function indiaToday(now = new Date()) {
+  return new Date(now.getTime() + 330 * 60_000).toISOString().slice(0, 10);
 }
 
 /** "2026-10-15" → "15 Oct" */
 export function formatOfferDate(value) {
-  const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const match = String(value || "").match(DATE);
   return match ? `${Number(match[3])} ${MONTHS[Number(match[2]) - 1]}` : "";
+}
+
+/** Validate the app's offers: known themes and buttons, clipped text, no blank banners. */
+export function cleanOffers(input) {
+  if (!Array.isArray(input)) return [];
+  const ids = new Set();
+  const offers = [];
+  for (const item of input) {
+    if (offers.length >= OFFER_MAX) break;
+    if (!item || typeof item !== "object") continue;
+    const offer = {
+      id: "",
+      theme: OFFER_THEMES[item.theme] ? item.theme : "forest",
+      badge: clip(item.badge, LIMITS.badge),
+      title: clip(item.title, LIMITS.title),
+      text: clip(item.text, LIMITS.text),
+      ends: validDate(item.ends),
+      button: OFFER_BUTTONS.includes(item.button) ? item.button : "whatsapp",
+      hidden: item.hidden === true,
+    };
+    if (!offer.badge && !offer.title && !offer.text) continue;
+    let id = typeof item.id === "string" && ID.test(item.id) ? item.id : `offer-${offers.length + 1}`;
+    for (let n = 2; ids.has(id); n += 1) id = `offer-${offers.length + n}`;
+    ids.add(id);
+    offer.id = id;
+    offers.push(offer);
+  }
+  return offers;
 }
 
 /** Sample offers for the demo preview; `theme` recolours the first one. */
@@ -63,13 +103,8 @@ export function demoOffers(theme) {
 }
 
 /** Offers that are on, have words and haven't ended. */
-export function visibleOffers(doc, now = today()) {
-  const offers = Array.isArray(doc?.offers) ? doc.offers : [];
-  return offers.filter(
-    (offer) =>
-      offer &&
-      !offer.hidden &&
-      (text(offer.badge) || text(offer.title) || text(offer.text)) &&
-      !(offer.ends && offer.ends < now)
+export function visibleOffers(doc, today = indiaToday()) {
+  return cleanOffers(doc?.offers).filter(
+    (offer) => !offer.hidden && !(offer.ends && offer.ends < today)
   );
 }

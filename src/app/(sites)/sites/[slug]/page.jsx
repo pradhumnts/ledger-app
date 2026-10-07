@@ -6,6 +6,7 @@ import { SHARE_IMAGE_SIZE, siteNav, siteUrl } from "@/lib/sites/config";
 import { siteDescription, withSiteDefaults } from "@/lib/sites/document";
 import { placeReviews } from "@/lib/sites/google-places";
 import { latestPosts, loadConnection, profileUrl } from "@/lib/sites/instagram";
+import { OFFERS_TIER } from "@/lib/sites/offers";
 import { tierAtLeast } from "@/lib/sites/plan-tiers";
 import { jsonLdScript, localBusinessJsonLd, siteTitle } from "@/lib/sites/seo";
 import { SERVICE_PAGES_TIER } from "@/lib/sites/service-pages";
@@ -115,6 +116,7 @@ export default async function SitePage({ params }) {
         reviews={reviews}
         instagram={instagram}
         withPages={tierAtLeast(site.tier, SERVICE_PAGES_TIER)}
+        withOffers={tierAtLeast(site.tier, OFFERS_TIER)}
         nav={siteNav(site.slug)}
       />
       <RevealOnScroll />

@@ -5,6 +5,7 @@ import {
   getTemplate,
 } from "@/lib/sites/catalog";
 import { cleanPlaceId, cleanSocial, phoneDigits } from "@/lib/sites/links";
+import { cleanOffers } from "@/lib/sites/offers";
 import { getPack } from "@/lib/sites/packs";
 import { SERVICE_PAGE_IDS, isServicePageId } from "@/lib/sites/service-pages";
 
@@ -257,6 +258,7 @@ export function sanitizeSiteDocument(input, { userId } = {}) {
     (id) => template.optionalSections.includes(id) || isServicePageId(id)
   );
   const message = clip(source.whatsappMessage, 200);
+  const offers = cleanOffers(source.offers);
 
   return {
     v: SITE_DOCUMENT_VERSION,
@@ -269,6 +271,9 @@ export function sanitizeSiteDocument(input, { userId } = {}) {
     sections,
     hidden: [...new Set(hidden)],
     google: cleanGoogle(source.google),
+    // Kept on any plan like service pages; live sites show them only on Standard.
+    // Left out when empty so drafts of shops without offers still match what's published.
+    ...(offers.length ? { offers } : {}),
   };
 }
 

@@ -1262,6 +1262,7 @@ export function StudioTemplate({
   instagram,
   pages = [],
   page = null,
+  offers = [],
   nav,
 }) {
   const business = doc?.business || {};
@@ -1338,7 +1339,7 @@ export function StudioTemplate({
           primary={primary}
           secondaryHref={secondaryHref}
         />
-        <OfferBanners doc={doc} phone={business.phone} headingClassName="s-serif" />
+        <OfferBanners offers={offers} phone={business.phone} headingClassName="s-serif" />
         {show.about ? (
           <About
             about={about}

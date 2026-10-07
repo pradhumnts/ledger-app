@@ -206,7 +206,7 @@ export function PreviewClient() {
   return (
     <>
       <div className="s-page" data-phase={phase || undefined}>
-        <SiteRenderer doc={doc} withPages page={page} />
+        <SiteRenderer doc={doc} withPages withOffers page={page} />
       </div>
       {/* Only the static demo: the app swaps sections in later, which the one-time observer would miss.
           Keyed by page so switching pages scans the new view. */}

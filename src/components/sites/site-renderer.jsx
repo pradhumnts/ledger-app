@@ -1,5 +1,6 @@
 import { getPalette, getTemplate } from "@/lib/sites/catalog";
 import { withSiteDefaults } from "@/lib/sites/document";
+import { visibleOffers } from "@/lib/sites/offers";
 import { PREVIEW_NAV, servicePages } from "@/lib/sites/service-pages";
 import { GlowTemplate } from "@/components/sites/templates/glow";
 import { StudioTemplate } from "@/components/sites/templates/studio";
@@ -30,13 +31,15 @@ export function paletteStyle(colors) {
  * `reviews`: the shop's Google rating and reviews, `instagram`: its latest
  * Instagram posts (live Standard sites only). `withPages` turns on service
  * pages (Standard); `page` is the id of the one to show instead of the home
- * page, and `nav` says how the two link to each other.
+ * page, and `nav` says how the two link to each other. `withOffers` shows the
+ * shop's offer banners on the home page (Standard).
  */
 export function SiteRenderer({
   doc: input,
   reviews = null,
   instagram = null,
   withPages = false,
+  withOffers = false,
   page: pageId = null,
   nav = PREVIEW_NAV,
 }) {
@@ -47,6 +50,7 @@ export function SiteRenderer({
   const hidden = new Set(doc?.hidden || []);
   const pages = withPages ? servicePages(doc) : [];
   const page = pageId ? pages.find((item) => item.id === pageId) || null : null;
+  const offers = withOffers && !page ? visibleOffers(doc) : [];
 
   return (
     <div
@@ -60,6 +64,7 @@ export function SiteRenderer({
         instagram={page ? null : instagram}
         pages={pages}
         page={page}
+        offers={offers}
         nav={nav}
       />
     </div>

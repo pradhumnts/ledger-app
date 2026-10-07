@@ -1124,6 +1124,7 @@ export function GlowTemplate({
   instagram,
   pages = [],
   page = null,
+  offers = [],
   nav,
 }) {
   const business = doc?.business || {};
@@ -1196,7 +1197,7 @@ export function GlowTemplate({
       <main className="overflow-x-clip">
         <Hero hero={hero} primary={primary} directions={directions} />
         <OfferBanners
-          doc={doc}
+          offers={offers}
           phone={business.phone}
           headingClassName="font-semibold tracking-tight"
         />
