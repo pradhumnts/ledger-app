@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { RevealOnScroll } from "@/components/sites/reveal";
 import { SiteRenderer } from "@/components/sites/site-renderer";
 import { buildStarterSite, withSiteDefaults } from "@/lib/sites/document";
+import { demoOffers } from "@/lib/sites/offers";
 import { getPack } from "@/lib/sites/packs";
 import {
   PREVIEW_NAV,
@@ -64,6 +65,9 @@ function demoSite(params) {
     // Sample content comes from the pack the site actually shows (the template's, for "general").
     Object.assign(doc.sections, demoServicePages(getPack(withSiteDefaults(doc).packId)));
   }
+  if (params.get("offers") !== "0") {
+    doc.offers = demoOffers(params.get("offer"));
+  }
   return doc;
 }
 
@@ -71,7 +75,8 @@ function demoSite(params) {
  * In-app live preview. The app loads `/site-preview?embed=1` in a WebView and
  * pushes the draft with `window.__mkSite.setDoc(doc)` (or a postMessage of
  * `{ type: "doc", doc }`). Without `embed`, `?template=&pack=&palette=` shows a
- * demo with sample service pages (`&pages=0` hides them, `&page=page1` opens one).
+ * demo with sample service pages (`&pages=0` hides them, `&page=page1` opens one)
+ * and sample offer banners (`&offers=0` hides them, `&offer=sunset` picks the first one's theme).
  *
  * Service pages switch in place: `#page=slug` links open one, `#home…` links go
  * back, and `__mkSite.showPage(id)` / a `scroll` to a page id opens it from the app.

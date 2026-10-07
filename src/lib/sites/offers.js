@@ -38,6 +38,30 @@ export function formatOfferDate(value) {
   return match ? `${Number(match[3])} ${MONTHS[Number(match[2]) - 1]}` : "";
 }
 
+/** Sample offers for the demo preview; `theme` recolours the first one. */
+export function demoOffers(theme) {
+  return [
+    {
+      id: "demo-1",
+      theme: OFFER_THEMES[theme] ? theme : "festive",
+      badge: "20% OFF",
+      title: "Festival sale",
+      text: "On all services this week",
+      ends: "",
+      button: "whatsapp",
+    },
+    {
+      id: "demo-2",
+      theme: "night",
+      badge: "₹100 OFF",
+      title: "First visit offer",
+      text: "For new customers, on any service",
+      ends: "",
+      button: "call",
+    },
+  ];
+}
+
 /** Offers that are on, have words and haven't ended. */
 export function visibleOffers(doc, now = today()) {
   const offers = Array.isArray(doc?.offers) ? doc.offers : [];
