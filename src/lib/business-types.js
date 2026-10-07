@@ -6,6 +6,7 @@ import {
   GraduationCap,
   MoreHorizontal,
   Scissors,
+  Shirt,
   ShoppingBag,
   Smartphone,
   Sparkles,
@@ -26,6 +27,7 @@ export const BUSINESS_TYPES = [
   { id: "jewellery", labelKey: "onboarding.types.jewellery", Icon: Gem },
   { id: "eyeglasses", labelKey: "onboarding.types.eyeglasses", Icon: Glasses },
   { id: "mobiles", labelKey: "onboarding.types.mobiles", Icon: Smartphone },
+  { id: "fashion", labelKey: "onboarding.types.fashion", Icon: Shirt },
   { id: "other", labelKey: "onboarding.types.other", Icon: MoreHorizontal },
 ];
 

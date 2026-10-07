@@ -13,6 +13,7 @@ const TYPE_LABELS = {
   jewellery: "Jewellery",
   eyeglasses: "Eyeglasses",
   mobiles: "Mobile & accessories",
+  fashion: "Fashion",
   other: "Other",
 };
 

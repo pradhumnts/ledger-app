@@ -1,6 +1,7 @@
 import architecture from "./architecture.js";
 import beauty from "./beauty.js";
 import eyeglasses from "./eyeglasses.js";
+import fashion from "./fashion.js";
 import fitness from "./fitness.js";
 import general from "./general.js";
 import jewellery from "./jewellery.js";
@@ -22,6 +23,7 @@ const PACKS = {
   eyeglasses,
   mobiles,
   restaurant,
+  fashion,
   architecture,
 };
 
