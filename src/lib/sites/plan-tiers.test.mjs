@@ -9,6 +9,8 @@ test("Play base plans map to their tier", () => {
   assert.equal(planTier("standard-yearly"), "standard");
   assert.equal(planTier("standard4-monthly"), "standard");
   assert.equal(planTier("standard8-yearly"), "standard");
+  assert.equal(planTier("standard4-annual"), "standard");
+  assert.equal(planTier("standards-monthly"), "basic");
   assert.equal(planTier(null), "basic");
 });
 
@@ -28,6 +30,7 @@ test("Plans include 0, 1, 4 or 8 service pages", () => {
   assert.equal(planPages("standard4-monthly"), 4);
   assert.equal(planPages("website_standard4_yearly"), 4);
   assert.equal(planPages("standard8-yearly"), 8);
+  assert.equal(planPages("standard4-annual"), 4);
   assert.equal(planPages("website_standard8_monthly"), 8);
   assert.equal(planPages(null), 0);
 });
