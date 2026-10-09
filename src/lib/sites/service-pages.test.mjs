@@ -4,6 +4,7 @@ import {
   PREVIEW_NAV,
   demoServicePages,
   homeLink,
+  includedServicePageIds,
   pageForService,
   pageLink,
   paragraphs,
@@ -27,7 +28,7 @@ test("only named, visible pages are listed, in order, with unique slugs", () => 
       page3: { title: "Bridal makeup!" },
       page4: { title: "  " },
     },
-  });
+  }, 4);
   assert.deepEqual(
     pages.map((page) => [page.id, page.slug, page.position]),
     [
@@ -42,7 +43,7 @@ test("only named, visible pages are listed, in order, with unique slugs", () => 
 test("names that don't slugify, and reserved paths, still get a usable slug", () => {
   const pages = servicePages({
     sections: { page2: { title: "मेहंदी" }, page3: { title: "Share image" } },
-  });
+  }, 4);
   assert.deepEqual(
     pages.map((page) => page.slug),
     ["service-2", "share-image-3"],
@@ -76,9 +77,19 @@ test("demo pages come from the pack's services and gallery", () => {
       gallery: { images: ["/1.webp", "/2.webp", "/3.webp"] },
     },
   };
-  const pages = demoServicePages(pack);
+  const pages = demoServicePages(pack, 3);
   assert.deepEqual(Object.keys(pages), ["page1", "page2"]);
   assert.equal(pages.page2.image, "/2.webp");
   assert.deepEqual(pages.page2.images, ["/3.webp", "/1.webp"]);
-  assert.equal(servicePages({ sections: pages }).length, 2);
+  assert.equal(servicePages({ sections: pages }, 4).length, 2);
+});
+
+test("Standard shows only its included pages; later slots stay saved but unlisted", () => {
+  const doc = { sections: { page1: { title: "Bridal" }, page2: { title: "Party" } } };
+  assert.deepEqual(includedServicePageIds(), ["page1"]);
+  assert.deepEqual(
+    servicePages(doc).map((page) => page.id),
+    ["page1"],
+  );
+  assert.deepEqual(Object.keys(demoServicePages({ sections: { services: { items: [{ name: "A" }, { name: "B" }] } } })), ["page1"]);
 });

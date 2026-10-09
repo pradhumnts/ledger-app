@@ -1,11 +1,18 @@
 /**
- * Service pages: Standard sites get up to four extra pages, one per service,
- * each stored as a `page1`…`page4` section of the site document and served at
- * `{site}/{service-name}`. Pure helpers, shared by the renderer, routes and tests.
+ * Service pages: extra pages, one per service, each stored as a `page1`…`page4`
+ * section of the site document and served at `{site}/{service-name}`. Standard
+ * includes the first `STANDARD_SERVICE_PAGES`; drafts keep every slot so paid
+ * page packs can unlock more later. Pure helpers, shared by the renderer, routes and tests.
  */
 
 export const SERVICE_PAGE_IDS = ["page1", "page2", "page3", "page4"];
 export const SERVICE_PAGES_TIER = "standard";
+export const STANDARD_SERVICE_PAGES = 1;
+
+/** Slots a site may show, first ones first. */
+export function includedServicePageIds(count = STANDARD_SERVICE_PAGES) {
+  return SERVICE_PAGE_IDS.slice(0, count);
+}
 
 const SLUG_MAX = 48;
 /** Paths the site itself serves under `/sites/{slug}/`. */
@@ -34,13 +41,14 @@ function list(value) {
 
 /**
  * The site's service pages in order: only ones with a name that aren't hidden,
- * each with a unique `slug` (names that don't slugify, e.g. Hindi, get "service-N").
+ * within the first `count` slots, each with a unique `slug` (names that don't
+ * slugify, e.g. Hindi, get "service-N").
  */
-export function servicePages(doc) {
+export function servicePages(doc, count = STANDARD_SERVICE_PAGES) {
   const hidden = new Set(list(doc?.hidden));
   const used = new Set();
   const pages = [];
-  SERVICE_PAGE_IDS.forEach((id, index) => {
+  includedServicePageIds(count).forEach((id, index) => {
     const section = doc?.sections?.[id];
     const title = String(section?.title || "").trim();
     if (!title || hidden.has(id)) return;
@@ -108,7 +116,7 @@ const DEMO_HIGHLIGHTS = [
 ];
 
 /** Sample service pages for the /site-preview demo, built from a content pack. */
-export function demoServicePages(pack, count = 3) {
+export function demoServicePages(pack, count = STANDARD_SERVICE_PAGES) {
   const items = list(pack?.sections?.services?.items);
   const photos = list(pack?.sections?.gallery?.images);
   const about = String(pack?.sections?.about?.text || "").trim();

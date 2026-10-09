@@ -9,7 +9,11 @@
  * is left out of the app menu entirely.
  */
 
-import { SERVICE_PAGE_IDS, SERVICE_PAGES_TIER } from "@/lib/sites/service-pages";
+import {
+  SERVICE_PAGE_IDS,
+  SERVICE_PAGES_TIER,
+  includedServicePageIds,
+} from "@/lib/sites/service-pages";
 
 function label(en, hi, hinglish = en) {
   return { en, hi, hinglish };
@@ -518,6 +522,6 @@ export function publicCatalog() {
     sections: SITE_SECTIONS,
     // Same for every template; not in `templates[].sections`, so app versions
     // that predate service pages never list them.
-    servicePages: { ids: SERVICE_PAGE_IDS, tier: SERVICE_PAGES_TIER },
+    servicePages: { ids: includedServicePageIds(), tier: SERVICE_PAGES_TIER },
   };
 }
