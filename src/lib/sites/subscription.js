@@ -13,7 +13,8 @@ import {
 } from "@/lib/play-developer-api";
 import { activeGrant } from "@/lib/referrals/grants";
 import { appleSitePlan } from "@/lib/sites/apple-plans";
-import { planTier } from "@/lib/sites/plan-tiers";
+import { planPages, planTier } from "@/lib/sites/plan-tiers";
+import { SERVICE_PAGE_IDS } from "@/lib/sites/service-pages";
 import { onSubscriptionSaved } from "@/lib/referrals/store";
 import { indianMobileDigits } from "@/lib/supabase/phone";
 import { isFreePublish } from "@/lib/sites/config";
@@ -45,9 +46,12 @@ export function sitePlanIds() {
   return new Set(ids);
 }
 
+/**
+ * Numbers that publish without paying. Not the store review login: reviewers
+ * must see the plans and buy them (with sandbox / test accounts).
+ */
 function freePhones() {
   const list = String(process.env.SITES_FREE_PHONES || "").split(",");
-  list.push(process.env.PLAY_REVIEW_PHONE || "");
   return new Set(
     list.map((value) => indianMobileDigits(value)).filter((digits) => digits.length === 10)
   );
@@ -333,6 +337,7 @@ function planSummary(row) {
     productId: row.product_id,
     basePlanId: row.base_plan_id,
     tier: planTier(row.base_plan_id || row.product_id),
+    pages: planPages(row.base_plan_id || row.product_id),
     expiresAt: row.expires_at,
     autoRenewing: Boolean(row.auto_renewing),
     state: row.state,
@@ -344,11 +349,13 @@ function planSummary(row) {
  * `free` (launch test mode), `owner` (allowlisted number), `play` (a paid
  * plan from either store; `store` says which) or `grant` (a free month,
  * e.g. from the bill challenge). `tier` is "basic" or "standard";
- * allowlisted numbers get the top tier.
+ * allowlisted numbers get the top tier. `pages`: service pages the site may show.
  */
 export async function siteAccess(admin, user) {
-  if (isFreePublish()) return { active: true, source: "free", tier: "basic" };
-  if (hasFreeAccess(user)) return { active: true, source: "owner", tier: "standard" };
+  if (isFreePublish()) return { active: true, source: "free", tier: "basic", pages: 0 };
+  if (hasFreeAccess(user)) {
+    return { active: true, source: "owner", tier: "standard", pages: SERVICE_PAGE_IDS.length };
+  }
   const [row, grant] = await Promise.all([
     activeSubscription(admin, user.id),
     activeGrant(admin, user.id),
@@ -359,27 +366,35 @@ export async function siteAccess(admin, user) {
       active: true,
       source: "grant",
       tier: "basic",
+      pages: 0,
       expiresAt: grant.endsAt,
       autoRenewing: false,
     };
   }
-  return { active: false, source: "", tier: "" };
+  return { active: false, source: "", tier: "", pages: 0 };
 }
 
 /**
  * Same check for a live site visit, where we only know the owner's id:
- * the owner's tier, or "" when the site shouldn't be shown.
+ * `{ tier, pages }`, with tier "" when the site shouldn't be shown.
  */
-export async function ownerSiteTier(admin, userId) {
+export async function ownerSitePlan(admin, userId) {
   const [row, grant] = await Promise.all([
     activeSubscription(admin, userId),
     activeGrant(admin, userId),
   ]);
-  if (row) return planTier(row.base_plan_id || row.product_id);
+  if (row) {
+    const planId = row.base_plan_id || row.product_id;
+    return { tier: planTier(planId), pages: planPages(planId) };
+  }
   if (freePhones().size) {
     const { data } = await admin.auth.admin.getUserById(userId);
-    if (hasFreeAccess(data?.user)) return "standard";
+    if (hasFreeAccess(data?.user)) return { tier: "standard", pages: SERVICE_PAGE_IDS.length };
   }
-  if (grant || isFreePublish()) return "basic";
-  return "";
+  if (grant || isFreePublish()) return { tier: "basic", pages: 0 };
+  return { tier: "", pages: 0 };
+}
+
+export async function ownerSiteTier(admin, userId) {
+  return (await ownerSitePlan(admin, userId)).tier;
 }

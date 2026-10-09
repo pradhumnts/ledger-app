@@ -1,11 +1,21 @@
 /**
- * Service pages: extra pages, one per service, each stored as a `page1`…`page4`
+ * Service pages: extra pages, one per service, each stored as a `page1`…`page8`
  * section of the site document and served at `{site}/{service-name}`. Standard
- * includes the first `STANDARD_SERVICE_PAGES`; drafts keep every slot so paid
- * page packs can unlock more later. Pure helpers, shared by the renderer, routes and tests.
+ * includes the first `STANDARD_SERVICE_PAGES`; the bigger Standard plans show 4
+ * or 8 (see planPages). Drafts keep every slot, so pages come back when a shop
+ * moves up again. Pure helpers, shared by the renderer, routes and tests.
  */
 
-export const SERVICE_PAGE_IDS = ["page1", "page2", "page3", "page4"];
+export const SERVICE_PAGE_IDS = [
+  "page1",
+  "page2",
+  "page3",
+  "page4",
+  "page5",
+  "page6",
+  "page7",
+  "page8",
+];
 export const SERVICE_PAGES_TIER = "standard";
 export const STANDARD_SERVICE_PAGES = 1;
 

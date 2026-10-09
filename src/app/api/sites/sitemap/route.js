@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { siteUrl, sitesDomain, slugProblem } from "@/lib/sites/config";
-import { tierAtLeast } from "@/lib/sites/plan-tiers";
 import { sitemapXml } from "@/lib/sites/seo";
-import { SERVICE_PAGES_TIER, servicePages } from "@/lib/sites/service-pages";
+import { servicePages } from "@/lib/sites/service-pages";
 import { loadLiveSite } from "@/lib/sites/store";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
@@ -36,7 +35,7 @@ export async function GET(request) {
     const site = slugProblem(slug) ? null : await loadLiveSite(slug);
     if (!site) return new NextResponse("Not found", { status: 404 });
     const home = siteUrl(site.slug);
-    const pages = tierAtLeast(site.tier, SERVICE_PAGES_TIER) ? servicePages(site.published) : [];
+    const pages = servicePages(site.published, site.pages);
     return xml(
       sitemapXml([
         { loc: home, lastmod: site.published_at },

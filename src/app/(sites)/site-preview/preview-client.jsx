@@ -10,10 +10,14 @@ import { demoOffers } from "@/lib/sites/offers";
 import { getPack } from "@/lib/sites/packs";
 import {
   PREVIEW_NAV,
+  SERVICE_PAGE_IDS,
   demoServicePages,
   isServicePageId,
   servicePages,
 } from "@/lib/sites/service-pages";
+
+/** The app sends only the pages the shop's plan shows, so the preview renders every one it gets. */
+const PREVIEW_PAGES = SERVICE_PAGE_IDS.length;
 
 function postToApp(message) {
   window.ReactNativeWebView?.postMessage(JSON.stringify(message));
@@ -97,7 +101,9 @@ export function PreviewClient() {
 
   useEffect(() => {
     const pageIdForSlug = (slug) =>
-      servicePages(withSiteDefaults(docRef.current)).find((item) => item.slug === slug)?.id ||
+      servicePages(withSiteDefaults(docRef.current), PREVIEW_PAGES).find(
+        (item) => item.slug === slug,
+      )?.id ||
       null;
 
     // Fades the current view out, swaps it at the top while hidden, then brings
@@ -206,7 +212,7 @@ export function PreviewClient() {
   return (
     <>
       <div className="s-page" data-phase={phase || undefined}>
-        <SiteRenderer doc={doc} withPages withOffers page={page} />
+        <SiteRenderer doc={doc} withPages pageCount={PREVIEW_PAGES} withOffers page={page} />
       </div>
       {/* Only the static demo: the app swaps sections in later, which the one-time observer would miss.
           Keyed by page so switching pages scans the new view. */}

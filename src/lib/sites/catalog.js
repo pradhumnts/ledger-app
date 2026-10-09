@@ -521,7 +521,13 @@ export function publicCatalog() {
     })),
     sections: SITE_SECTIONS,
     // Same for every template; not in `templates[].sections`, so app versions
-    // that predate service pages never list them.
-    servicePages: { ids: includedServicePageIds(), tier: SERVICE_PAGES_TIER },
+    // that predate service pages never list them. `ids` is what Standard
+    // includes (for app versions that predate the bigger plans); `all` is every
+    // slot, of which the app offers the first `access.pages`.
+    servicePages: {
+      ids: includedServicePageIds(),
+      all: SERVICE_PAGE_IDS,
+      tier: SERVICE_PAGES_TIER,
+    },
   };
 }

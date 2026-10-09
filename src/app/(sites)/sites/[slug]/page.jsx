@@ -9,7 +9,6 @@ import { latestPosts, loadConnection, profileUrl } from "@/lib/sites/instagram";
 import { OFFERS_TIER } from "@/lib/sites/offers";
 import { tierAtLeast } from "@/lib/sites/plan-tiers";
 import { jsonLdScript, localBusinessJsonLd, siteTitle } from "@/lib/sites/seo";
-import { SERVICE_PAGES_TIER } from "@/lib/sites/service-pages";
 import { loadLiveSite } from "@/lib/sites/store";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
@@ -115,7 +114,8 @@ export default async function SitePage({ params }) {
         doc={site.published}
         reviews={reviews}
         instagram={instagram}
-        withPages={tierAtLeast(site.tier, SERVICE_PAGES_TIER)}
+        withPages={site.pages > 0}
+        pageCount={site.pages}
         withOffers={tierAtLeast(site.tier, OFFERS_TIER)}
         nav={siteNav(site.slug)}
       />

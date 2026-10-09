@@ -4,14 +4,13 @@ import { RevealOnScroll } from "@/components/sites/reveal";
 import { SiteRenderer } from "@/components/sites/site-renderer";
 import { SHARE_IMAGE_SIZE, siteNav, siteUrl } from "@/lib/sites/config";
 import { siteDescription, withSiteDefaults } from "@/lib/sites/document";
-import { tierAtLeast } from "@/lib/sites/plan-tiers";
 import {
   jsonLdScript,
   localBusinessJsonLd,
   serviceJsonLd,
   servicePageTitle,
 } from "@/lib/sites/seo";
-import { SERVICE_PAGES_TIER, paragraphs, servicePages } from "@/lib/sites/service-pages";
+import { paragraphs, servicePages } from "@/lib/sites/service-pages";
 import { loadLiveSite } from "@/lib/sites/store";
 
 export const revalidate = 300;
@@ -20,12 +19,12 @@ export async function generateStaticParams() {
   return [];
 }
 
-/** The live site and its service page at `pageSlug`; null unless the shop is on Standard. */
+/** The live site and its service page at `pageSlug`; null unless the shop's plan includes it. */
 const getServicePage = cache(async (slug, pageSlug) => {
   const site = await loadLiveSite(slug);
-  if (!site || !tierAtLeast(site.tier, SERVICE_PAGES_TIER)) return null;
+  if (!site?.pages) return null;
   const doc = withSiteDefaults(site.published);
-  const page = servicePages(doc).find((item) => item.slug === pageSlug);
+  const page = servicePages(doc, site.pages).find((item) => item.slug === pageSlug);
   return page ? { site, doc, page } : null;
 });
 
@@ -123,6 +122,7 @@ export default async function ServicePage({ params }) {
       <SiteRenderer
         doc={site.published}
         withPages
+        pageCount={site.pages}
         page={page.id}
         nav={siteNav(site.slug)}
       />

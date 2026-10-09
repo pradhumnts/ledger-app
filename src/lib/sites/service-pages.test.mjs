@@ -93,3 +93,12 @@ test("Standard shows only its included pages; later slots stay saved but unliste
   );
   assert.deepEqual(Object.keys(demoServicePages({ sections: { services: { items: [{ name: "A" }, { name: "B" }] } } })), ["page1"]);
 });
+
+test("the bigger plans list up to 8 pages; no plan lists none", () => {
+  const sections = Object.fromEntries(
+    Array.from({ length: 8 }, (_, index) => [`page${index + 1}`, { title: `Service ${index + 1}` }]),
+  );
+  assert.equal(servicePages({ sections }, 4).length, 4);
+  assert.equal(servicePages({ sections }, 8).length, 8);
+  assert.deepEqual(servicePages({ sections }, 0), []);
+});

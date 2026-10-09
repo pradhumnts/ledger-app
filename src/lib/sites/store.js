@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { siteUrl, slugProblem } from "@/lib/sites/config";
-import { ownerSiteTier } from "@/lib/sites/subscription";
+import { ownerSitePlan } from "@/lib/sites/subscription";
 
 const MEDIA_BUCKET = "site-media";
 
@@ -22,7 +22,10 @@ export function siteSummary(row) {
   };
 }
 
-/** A live site and its owner's plan `tier`, or null when it shouldn't be shown. */
+/**
+ * A live site with its owner's plan `tier` and the service `pages` it may show,
+ * or null when it shouldn't be shown.
+ */
 export async function loadLiveSite(slug) {
   if (slugProblem(slug)) return null;
   const admin = getSupabaseAdmin();
@@ -33,9 +36,9 @@ export async function loadLiveSite(slug) {
     .eq("slug", slug)
     .maybeSingle();
   if (!data || data.status !== "live" || !data.published) return null;
-  const tier = await ownerSiteTier(admin, data.user_id);
+  const { tier, pages } = await ownerSitePlan(admin, data.user_id);
   if (!tier) return null;
-  return { ...data, tier };
+  return { ...data, tier, pages };
 }
 
 export async function loadSiteForUser(admin, userId) {

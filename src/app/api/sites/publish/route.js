@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { corsJson, corsPreflight } from "@/lib/api-cors";
 import { siteRequest } from "@/lib/sites/api";
-import { servicePages } from "@/lib/sites/service-pages";
+import { SERVICE_PAGE_IDS, servicePages } from "@/lib/sites/service-pages";
 import { publishDraft, siteSummary } from "@/lib/sites/store";
 import { siteAccess } from "@/lib/sites/subscription";
 
@@ -28,7 +28,7 @@ export async function POST(request) {
   }
 
   revalidatePath(`/sites/${row.slug}`);
-  for (const page of servicePages(row.published)) {
+  for (const page of servicePages(row.published, SERVICE_PAGE_IDS.length)) {
     revalidatePath(`/sites/${row.slug}/${page.slug}`);
   }
   return corsJson(request, { site: siteSummary(row), access });
