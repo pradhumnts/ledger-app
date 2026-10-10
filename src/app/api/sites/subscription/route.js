@@ -45,8 +45,13 @@ export async function POST(request) {
         await recordPlaySubscription(admin, { userId: user.id, purchaseToken, move });
       }
     } catch (error) {
-      const code = error instanceof SubscriptionError ? error.code : "notVerified";
-      return corsJson(request, { error: code }, { status: ERROR_STATUS[code] || 400 });
+      const known = error instanceof SubscriptionError;
+      const code = known ? error.code : "notVerified";
+      return corsJson(
+        request,
+        { ...(known ? error.extra : {}), error: code },
+        { status: ERROR_STATUS[code] || 400 }
+      );
     }
   }
 

@@ -31,10 +31,29 @@ const FINAL_STATES = new Set([
 ]);
 
 export class SubscriptionError extends Error {
-  constructor(code) {
+  /** `extra`: fields sent to the app alongside the code. */
+  constructor(code, extra = {}) {
     super(code);
     this.code = code;
+    this.extra = extra;
   }
+}
+
+/**
+ * The purchase belongs to `ownerId`. Only the store account that paid holds the
+ * token, so it may see the last 4 digits of the MoneyKit number it's on
+ * ("deleted" when that account no longer exists).
+ */
+async function otherAccount(admin, ownerId) {
+  let account = "";
+  try {
+    const { data, error } = await admin.auth.admin.getUserById(String(ownerId));
+    if (data?.user) account = userMobile(data.user).slice(-4);
+    else if (error?.status === 404) account = "deleted";
+  } catch {
+    // The code alone still tells the app what happened.
+  }
+  return new SubscriptionError("otherAccount", account ? { account } : {});
 }
 
 /** Play subscription product ids that unlock publishing. */
@@ -165,7 +184,7 @@ export async function recordPlaySubscription(admin, { userId, purchaseToken, mov
     .eq("purchase_token", purchaseToken)
     .maybeSingle();
   if (!move && existing && existing.user_id !== userId) {
-    throw new SubscriptionError("otherAccount");
+    throw await otherAccount(admin, existing.user_id);
   }
 
   let play;
@@ -176,7 +195,7 @@ export async function recordPlaySubscription(admin, { userId, purchaseToken, mov
   }
   if (!sitePlanIds().has(play.productId)) throw new SubscriptionError("notSitePlan");
   if (!move && play.accountId && play.accountId !== userId) {
-    throw new SubscriptionError("otherAccount");
+    throw await otherAccount(admin, play.accountId);
   }
   if (play.state === "SUBSCRIPTION_STATE_PENDING") throw new SubscriptionError("pending");
 
@@ -258,7 +277,7 @@ export async function recordAppleSubscription(admin, { userId, signedTransaction
   }
   if (!appleSitePlan(signed.productId)) throw new SubscriptionError("notSitePlan");
   if (!move && signed.appAccountToken && !sameAccount(signed.appAccountToken, userId)) {
-    throw new SubscriptionError("otherAccount");
+    throw await otherAccount(admin, signed.appAccountToken.toLowerCase());
   }
 
   const purchaseToken = appleToken(signed.originalTransactionId);
@@ -268,7 +287,7 @@ export async function recordAppleSubscription(admin, { userId, signedTransaction
     .eq("purchase_token", purchaseToken)
     .maybeSingle();
   if (!move && existing && existing.user_id !== userId) {
-    throw new SubscriptionError("otherAccount");
+    throw await otherAccount(admin, existing.user_id);
   }
 
   let play;
@@ -280,7 +299,7 @@ export async function recordAppleSubscription(admin, { userId, signedTransaction
     throw new SubscriptionError("notVerified");
   }
   if (!move && play.accountId && !sameAccount(play.accountId, userId)) {
-    throw new SubscriptionError("otherAccount");
+    throw await otherAccount(admin, play.accountId.toLowerCase());
   }
   return saveVerified(admin, userId, purchaseToken, play, { environment: signed.environment });
 }
