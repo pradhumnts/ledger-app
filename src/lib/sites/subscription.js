@@ -151,8 +151,12 @@ async function saveVerified(admin, userId, purchaseToken, play, apple = null) {
   return row;
 }
 
-/** Check a purchase token with Google and store it for this shop. */
-export async function recordPlaySubscription(admin, { userId, purchaseToken }) {
+/**
+ * Check a purchase token with Google and store it for this shop. `move`: the
+ * shop asked to move a subscription bought on another MoneyKit account here
+ * (only the device's Google account holds the token), and that account loses it.
+ */
+export async function recordPlaySubscription(admin, { userId, purchaseToken, move = false }) {
   if (!playBillingConfig().configured) throw new SubscriptionError("notConfigured");
 
   const { data: existing } = await admin
@@ -160,7 +164,9 @@ export async function recordPlaySubscription(admin, { userId, purchaseToken }) {
     .select("user_id")
     .eq("purchase_token", purchaseToken)
     .maybeSingle();
-  if (existing && existing.user_id !== userId) throw new SubscriptionError("otherAccount");
+  if (!move && existing && existing.user_id !== userId) {
+    throw new SubscriptionError("otherAccount");
+  }
 
   let play;
   try {
@@ -169,7 +175,9 @@ export async function recordPlaySubscription(admin, { userId, purchaseToken }) {
     throw new SubscriptionError("notVerified");
   }
   if (!sitePlanIds().has(play.productId)) throw new SubscriptionError("notSitePlan");
-  if (play.accountId && play.accountId !== userId) throw new SubscriptionError("otherAccount");
+  if (!move && play.accountId && play.accountId !== userId) {
+    throw new SubscriptionError("otherAccount");
+  }
   if (play.state === "SUBSCRIPTION_STATE_PENDING") throw new SubscriptionError("pending");
 
   return saveVerified(admin, userId, purchaseToken, play);
@@ -237,8 +245,9 @@ function sameAccount(a, b) {
 /**
  * Check a signed App Store transaction from the iPhone app, read the
  * subscription's latest state from Apple and store it for this shop.
+ * `move` as for Play: only the device's Apple ID holds a signed transaction.
  */
-export async function recordAppleSubscription(admin, { userId, signedTransaction }) {
+export async function recordAppleSubscription(admin, { userId, signedTransaction, move = false }) {
   if (!appStoreConfig().configured) throw new SubscriptionError("notConfigured");
 
   let signed;
@@ -248,7 +257,7 @@ export async function recordAppleSubscription(admin, { userId, signedTransaction
     throw new SubscriptionError("notVerified");
   }
   if (!appleSitePlan(signed.productId)) throw new SubscriptionError("notSitePlan");
-  if (signed.appAccountToken && !sameAccount(signed.appAccountToken, userId)) {
+  if (!move && signed.appAccountToken && !sameAccount(signed.appAccountToken, userId)) {
     throw new SubscriptionError("otherAccount");
   }
 
@@ -258,7 +267,9 @@ export async function recordAppleSubscription(admin, { userId, signedTransaction
     .select("user_id")
     .eq("purchase_token", purchaseToken)
     .maybeSingle();
-  if (existing && existing.user_id !== userId) throw new SubscriptionError("otherAccount");
+  if (!move && existing && existing.user_id !== userId) {
+    throw new SubscriptionError("otherAccount");
+  }
 
   let play;
   try {
@@ -268,7 +279,7 @@ export async function recordAppleSubscription(admin, { userId, signedTransaction
   } catch {
     throw new SubscriptionError("notVerified");
   }
-  if (play.accountId && !sameAccount(play.accountId, userId)) {
+  if (!move && play.accountId && !sameAccount(play.accountId, userId)) {
     throw new SubscriptionError("otherAccount");
   }
   return saveVerified(admin, userId, purchaseToken, play, { environment: signed.environment });

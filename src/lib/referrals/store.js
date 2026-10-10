@@ -228,6 +228,14 @@ async function qualifyReferral(admin, { userId, purchaseToken, play }) {
 
   let locked = referral;
   if (referral.status === "joined") {
+    // A subscription moved between MoneyKit accounts qualifies one referral only.
+    const { data: used } = await admin
+      .from("referrals")
+      .select("referred_user_id")
+      .eq("purchase_token", purchaseToken)
+      .neq("referred_user_id", userId)
+      .limit(1);
+    if (used?.length) return;
     const { data } = await admin
       .from("referrals")
       .update({

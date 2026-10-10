@@ -24,6 +24,7 @@ export async function OPTIONS(request) {
 /**
  * Store a purchase (when sent) and return the shop's publish access:
  * a Play purchase token, or with `store: "apple"` a signed App Store transaction.
+ * `move: true` (the shop confirmed it) moves one bought on another MoneyKit account here.
  */
 export async function POST(request) {
   const ctx = await siteRequest(request);
@@ -31,15 +32,17 @@ export async function POST(request) {
   const { admin, user, body } = ctx;
 
   const purchaseToken = String(body.purchaseToken || "").trim();
+  const move = body.move === true;
   if (purchaseToken) {
     try {
       if (body.store === "apple") {
         await recordAppleSubscription(admin, {
           userId: user.id,
           signedTransaction: purchaseToken,
+          move,
         });
       } else {
-        await recordPlaySubscription(admin, { userId: user.id, purchaseToken });
+        await recordPlaySubscription(admin, { userId: user.id, purchaseToken, move });
       }
     } catch (error) {
       const code = error instanceof SubscriptionError ? error.code : "notVerified";
