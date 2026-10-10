@@ -69,6 +69,21 @@ export function hasFreeAccess(user) {
   return Boolean(mobile) && freePhones().has(mobile);
 }
 
+/**
+ * Whether the app offers Instagram connect to this shop. Until Meta approves
+ * the app only its Instagram testers can connect, so it is limited to
+ * INSTAGRAM_TESTER_PHONES (and owner numbers); INSTAGRAM_OPEN=true opens it to all.
+ */
+export function instagramAllowed(user) {
+  if (String(process.env.INSTAGRAM_OPEN || "").trim() === "true") return true;
+  const mobile = userMobile(user);
+  if (!mobile) return false;
+  const testers = String(process.env.INSTAGRAM_TESTER_PHONES || "")
+    .split(",")
+    .map((value) => indianMobileDigits(value));
+  return testers.includes(mobile) || freePhones().has(mobile);
+}
+
 function isActiveRow(row, now = Date.now()) {
   if (!row || !ACCESS_STATES.has(row.state) || !row.expires_at) return false;
   return new Date(row.expires_at).getTime() > now;
@@ -350,8 +365,13 @@ function planSummary(row) {
  * plan from either store; `store` says which) or `grant` (a free month,
  * e.g. from the bill challenge). `tier` is "basic" or "standard";
  * allowlisted numbers get the top tier. `pages`: service pages the site may show.
+ * `instagram`: whether the app offers Instagram connect (see `instagramAllowed`).
  */
 export async function siteAccess(admin, user) {
+  return { ...(await planAccess(admin, user)), instagram: instagramAllowed(user) };
+}
+
+async function planAccess(admin, user) {
   if (isFreePublish()) return { active: true, source: "free", tier: "basic", pages: 0 };
   if (hasFreeAccess(user)) {
     return { active: true, source: "owner", tier: "standard", pages: SERVICE_PAGE_IDS.length };

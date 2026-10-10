@@ -42,6 +42,7 @@ export async function POST(request) {
   }
 
   if (body.action === "start") {
+    if (!access.instagram) return corsJson(request, { error: "notConfigured" }, { status: 503 });
     return corsJson(request, { url: authorizeUrl(user.id, body.returnTo) });
   }
   if (body.action !== "status") {
