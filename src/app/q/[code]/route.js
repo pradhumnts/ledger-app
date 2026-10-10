@@ -1,6 +1,11 @@
 import { after } from "next/server";
 import { APP_SITE_URL } from "@/lib/branding";
-import { normalizeStickerCode, stickerKindFromCode, stickerPageHtml } from "@/lib/qr-stickers";
+import {
+  canOpenUpiApp,
+  normalizeStickerCode,
+  stickerKindFromCode,
+  stickerPageHtml,
+} from "@/lib/qr-stickers";
 import { isLinkPreviewBot } from "@/lib/referrals/link-preview";
 import { siteUrl } from "@/lib/sites/config";
 import { ownerSiteTier } from "@/lib/sites/subscription";
@@ -39,8 +44,9 @@ async function liveSiteSlug(admin, userId) {
 }
 
 /**
- * moneykitapp.com/q/P7Q4XK2M → a printed sticker. Payment stickers open the
- * shop's current UPI ID on the /p page; website stickers open its live site.
+ * moneykitapp.com/q/P7Q4XK2M → a printed sticker. Payment stickers on a phone
+ * redirect straight to upi://pay with the shop's current UPI ID (desktops and
+ * link previews get the /p page instead); website stickers open its live site.
  * Stickers that aren't linked (or whose shop isn't ready) show a short page.
  */
 export async function GET(request, { params }) {
@@ -62,7 +68,9 @@ export async function GET(request, { params }) {
     return page(404, { state: "unknown", kind: stickerKindFromCode(code), code });
   }
 
-  if (!isLinkPreviewBot(request.headers.get("user-agent"))) {
+  const userAgent = request.headers.get("user-agent");
+  const previewBot = isLinkPreviewBot(userAgent);
+  if (!previewBot) {
     after(async () => {
       await admin.rpc("record_qr_sticker_scan", { p_code: sticker.code });
     });
@@ -83,6 +91,7 @@ export async function GET(request, { params }) {
   if (kind === "payment") {
     const query = buildUpiPayQuery({ upiId: business?.upi_id, name: shopName });
     if (!query) return page(200, { state: "noUpi", kind, shopName, code: sticker.code });
+    if (!previewBot && canOpenUpiApp(userAgent)) return redirect(`upi://pay?${query}`);
     const origin =
       process.env.NODE_ENV === "production" ? APP_SITE_URL : new URL(request.url).origin;
     return redirect(`${origin}/p?${query}`);

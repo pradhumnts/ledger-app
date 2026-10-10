@@ -11,6 +11,11 @@ export function normalizeStickerCode(value) {
   return STICKER_CODE.test(code) ? code : "";
 }
 
+/** Phones can hand a upi:// link to an installed UPI app; desktops can't. */
+export function canOpenUpiApp(userAgent) {
+  return /Android|iPhone|iPad|iPod/i.test(String(userAgent || ""));
+}
+
 export function stickerKindFromCode(code) {
   if (code.startsWith("P")) return "payment";
   if (code.startsWith("W")) return "website";

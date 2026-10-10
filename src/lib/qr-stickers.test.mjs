@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { isWebAccessiblePath } from "./onboarding-gate.js";
 import {
+  canOpenUpiApp,
   normalizeStickerCode,
   stickerKindFromCode,
   stickerMessage,
@@ -24,6 +25,13 @@ test("the first letter says what the sticker does", () => {
   assert.equal(stickerKindFromCode("P7Q4XK2M"), "payment");
   assert.equal(stickerKindFromCode("W7Q4XK2M"), "website");
   assert.equal(stickerKindFromCode(""), "");
+});
+
+test("only phones are sent straight to a UPI app", () => {
+  assert.equal(canOpenUpiApp("Mozilla/5.0 (Linux; Android 14; SM-A146B) Chrome/129.0 Mobile"), true);
+  assert.equal(canOpenUpiApp("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)"), true);
+  assert.equal(canOpenUpiApp("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/129.0"), false);
+  assert.equal(canOpenUpiApp(null), false);
 });
 
 test("unready stickers explain themselves", () => {
