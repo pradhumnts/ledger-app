@@ -49,6 +49,11 @@ export function isStickerPath(pathname) {
   return Boolean(pathname?.startsWith("/q/"));
 }
 
+/** Digital business cards (`/c/SLUG`), a private preview for now. */
+export function isCardPath(pathname) {
+  return Boolean(pathname?.startsWith("/c/"));
+}
+
 /**
  * Everything the website still serves. The shop app lives in the React Native
  * app now, so any other page (onboarding, customers, bills…) redirects to `/`.
@@ -60,7 +65,8 @@ export function isWebAccessiblePath(pathname) {
     isShopSitePath(pathname) ||
     isReferralPath(pathname) ||
     isAppLinkPath(pathname) ||
-    isStickerPath(pathname)
+    isStickerPath(pathname) ||
+    isCardPath(pathname)
   );
 }
 

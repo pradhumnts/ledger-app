@@ -1,0 +1,57 @@
+@import "tailwindcss" source(none);
+@source "./";
+@source "../../components/cards";
+
+@theme inline {
+  --font-sans: var(--font-card-sans);
+  --font-serif: var(--font-card-serif);
+}
+
+body {
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer components {
+  .c-serif {
+    font-family: var(--font-card-serif), Georgia, serif;
+    font-weight: 400;
+  }
+
+  .c-in {
+    animation: c-in 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 70ms + 80ms) backwards;
+  }
+  @keyframes c-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+
+  .c-photo-in {
+    animation: c-photo-in 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s backwards;
+  }
+  @keyframes c-photo-in {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.92);
+    }
+  }
+
+  .c-drift {
+    animation: c-drift 14s ease-in-out infinite alternate;
+  }
+  @keyframes c-drift {
+    to {
+      transform: translate(-18%, 12%) scale(1.15);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .c-in,
+    .c-photo-in,
+    .c-drift {
+      animation: none;
+    }
+  }
+}
