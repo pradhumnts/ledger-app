@@ -5,7 +5,7 @@
 
 create table if not exists public.business_cards (
   slug text primary key,
-  user_id uuid not null unique references public.profiles (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
   card jsonb not null default '{}'::jsonb,
   view_count integer not null default 0,
   save_count integer not null default 0,
@@ -16,6 +16,11 @@ create table if not exists public.business_cards (
   constraint business_cards_card_object check (jsonb_typeof(card) = 'object'),
   constraint business_cards_card_size check (pg_column_size(card) <= 20000)
 );
+
+-- A business can have several cards (one per team member), so user_id isn't unique.
+alter table public.business_cards drop constraint if exists business_cards_user_id_key;
+create index if not exists business_cards_user
+  on public.business_cards (user_id, created_at);
 
 drop trigger if exists business_cards_set_updated_at on public.business_cards;
 create trigger business_cards_set_updated_at before update on public.business_cards
