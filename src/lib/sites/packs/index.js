@@ -1,6 +1,7 @@
 import architecture from "./architecture.js";
 import beauty from "./beauty.js";
 import education from "./education.js";
+import events from "./events.js";
 import eyeglasses from "./eyeglasses.js";
 import fashion from "./fashion.js";
 import fitness from "./fitness.js";
@@ -13,7 +14,8 @@ import salon from "./salon.js";
 
 /**
  * Content packs by business type (ids from `business-types.js`). `architecture`
- * is not offered in onboarding; a shop gets it only when its type is set to it directly.
+ * and `events` are not offered in onboarding; a shop gets them only when its type
+ * is set to one directly.
  */
 const PACKS = {
   photographer,
@@ -26,6 +28,7 @@ const PACKS = {
   restaurant,
   fashion,
   education,
+  events,
   architecture,
 };
 
