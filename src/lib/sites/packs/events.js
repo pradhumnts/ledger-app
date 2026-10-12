@@ -50,8 +50,8 @@ const events = {
       image: img("hero"),
     },
     about: {
-      heading: "Flowers, lights and every last detail.",
-      text: "We are a family-run decor team that has dressed hundreds of weddings, from small home functions to big lawn weddings. We visit your venue, plan the colours with you and use fresh flowers every time.\n\nOn the day, our team sets up early, stays till the last function and handles the lights and DJ, so your family can just enjoy it.",
+      heading: "Your family celebrates. We handle the rest.",
+      text: "A wedding has a hundred small things to manage, and decor shouldn't be one more worry. From haldi in the morning to the sangeet at night, we take care of flowers, lights, stage, seating and sound.\n\nParents tell us the best part is not having to check on anything. Everything is ready before the first guest arrives.",
       image: img("about"),
     },
     services: {
