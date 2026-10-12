@@ -16,6 +16,7 @@ const KINDS = {
   mobiles: { label: "Mobile Shop", type: "MobilePhoneStore" },
   restaurant: { label: "Cafe & Restaurant", type: "Restaurant" },
   fashion: { label: "Clothing Store", type: "ClothingStore" },
+  education: { label: "Coaching & Study Library", type: "LocalBusiness" },
   architecture: { label: "Architects", type: "ProfessionalService" },
 };
 
