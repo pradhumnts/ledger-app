@@ -18,6 +18,8 @@ import {
 
 /** The app sends only the pages the shop's plan shows, so the preview renders every one it gets. */
 const PREVIEW_PAGES = SERVICE_PAGE_IDS.length;
+/** Template demos showcase more service pages than a plan includes by default. */
+const DEMO_SERVICE_PAGES = 4;
 
 function postToApp(message) {
   window.ReactNativeWebView?.postMessage(JSON.stringify(message));
@@ -67,7 +69,7 @@ function demoSite(params) {
   }
   if (params.get("pages") !== "0") {
     // Sample content comes from the pack the site actually shows (the template's, for "general").
-    Object.assign(doc.sections, demoServicePages(getPack(withSiteDefaults(doc).packId)));
+    Object.assign(doc.sections, demoServicePages(getPack(withSiteDefaults(doc).packId), DEMO_SERVICE_PAGES));
   }
   if (params.get("offers") !== "0") {
     doc.offers = demoOffers(params.get("offer"));
