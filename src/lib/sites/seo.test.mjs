@@ -9,6 +9,7 @@ import {
   siteTitle,
   sitemapXml,
 } from "./seo.js";
+import { mapsUrl } from "./links.js";
 
 test("service page titles say what and where", () => {
   const address = "Hill Road, Bandra West, Mumbai 400050";
@@ -106,4 +107,23 @@ test("LocalBusiness data uses the shop's type, phone, address and links", () => 
 test("sitemap escapes URLs", () => {
   const xml = sitemapXml([{ loc: "https://a.moneykit.site", lastmod: "2026-10-06T10:00:00Z" }]);
   assert.match(xml, /<loc>https:\/\/a\.moneykit\.site<\/loc><lastmod>2026-10-06T10:00:00\.000Z<\/lastmod>/);
+});
+
+test("a pinned website location gives exact directions and coordinates", () => {
+  const location = { label: "Sharma Salon, MG Road, Jaipur", lat: 26.912434, lng: 75.787271, placeId: "ChIJabcdefghij" };
+  assert.equal(
+    mapsUrl("MG Road, Jaipur", location),
+    "https://www.google.com/maps/search/?api=1&query=26.912434%2C75.787271&query_place_id=ChIJabcdefghij"
+  );
+  assert.equal(
+    mapsUrl("MG Road, Jaipur", { label: "x", lat: null, lng: null }),
+    "https://www.google.com/maps/search/?api=1&query=MG%20Road%2C%20Jaipur"
+  );
+  const data = localBusinessJsonLd({
+    doc: { business: { name: "Sharma Salon", address: location.label }, location },
+    packId: "salon",
+    url: "https://sharma.moneykit.site",
+  });
+  assert.deepEqual(data.geo, { "@type": "GeoCoordinates", latitude: 26.912434, longitude: 75.787271 });
+  assert.ok(data.hasMap.includes("26.912434"));
 });

@@ -4,7 +4,7 @@ import {
   getPublishableTemplate,
   getTemplate,
 } from "@/lib/sites/catalog";
-import { cleanPlaceId, cleanSocial, phoneDigits } from "@/lib/sites/links";
+import { cleanPlaceId, cleanSocial, mapsUrl, phoneDigits } from "@/lib/sites/links";
 import { cleanOffers } from "@/lib/sites/offers";
 import { getPack } from "@/lib/sites/packs";
 import { SERVICE_PAGE_IDS, isServicePageId } from "@/lib/sites/service-pages";
@@ -163,11 +163,18 @@ export function withSiteDefaults(doc) {
   for (const id of SERVICE_PAGE_IDS) {
     if (doc.sections?.[id]) sections[id] = doc.sections[id];
   }
+  // The website's own location replaces the profile address on the site.
+  const address = doc.location?.label || doc.business?.address || "";
   return {
     ...doc,
     packId: defaults.packId,
     whatsappMessage: doc.whatsappMessage || defaults.whatsappMessage,
-    business: { ...doc.business, hours: doc.business?.hours || defaults.hours },
+    business: {
+      ...doc.business,
+      address,
+      mapsUrl: mapsUrl(address, doc.location),
+      hours: doc.business?.hours || defaults.hours,
+    },
     sections,
   };
 }
@@ -210,6 +217,32 @@ function cleanGoogle(input) {
     reviews: input.reviews !== false,
     reviewLink: input.reviewLink !== false,
   };
+}
+
+function cleanCoordinate(value, limit) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  if (!Number.isFinite(number) || Math.abs(number) > limit) return null;
+  return Math.round(number * 1e6) / 1e6;
+}
+
+/**
+ * Where the website says the shop is, kept apart from the business profile
+ * address (which the app pre-fills it from). `label` is shown on the site;
+ * `lat`/`lng` pin the exact spot for directions; `placeId` when picked from search.
+ */
+export function cleanLocation(input) {
+  if (!input || typeof input !== "object") return null;
+  const label = clip(input.label, 200);
+  let lat = cleanCoordinate(input.lat, 90);
+  let lng = cleanCoordinate(input.lng, 180);
+  if (lat === null || lng === null || (lat === 0 && lng === 0)) {
+    lat = null;
+    lng = null;
+  }
+  const placeId = cleanPlaceId(input.placeId);
+  if (!label && lat === null) return null;
+  return { label, lat, lng, ...(placeId ? { placeId } : {}) };
 }
 
 /** Validate a document from the app. Unknown keys are dropped. */
@@ -259,6 +292,7 @@ export function sanitizeSiteDocument(input, { userId } = {}) {
   );
   const message = clip(source.whatsappMessage, 200);
   const offers = cleanOffers(source.offers);
+  const location = cleanLocation(source.location);
 
   return {
     v: SITE_DOCUMENT_VERSION,
@@ -271,6 +305,8 @@ export function sanitizeSiteDocument(input, { userId } = {}) {
     sections,
     hidden: [...new Set(hidden)],
     google: cleanGoogle(source.google),
+    // Left out when unset, like offers, so existing drafts still match what's published.
+    ...(location ? { location } : {}),
     // Kept on any plan like service pages; live sites show them only on Standard.
     // Left out when empty so drafts of shops without offers still match what's published.
     ...(offers.length ? { offers } : {}),

@@ -50,10 +50,22 @@ export function cleanPlaceId(value) {
   return PLACE_ID.test(id) ? id : "";
 }
 
-export function mapsUrl(address) {
-  const query = String(address || "").trim();
+/** The website's pinned spot as "lat,lng", or "" when it has no coordinates. */
+export function pinQuery(location) {
+  if (location?.lat == null || location?.lng == null) return "";
+  const lat = Number(location.lat);
+  const lng = Number(location.lng);
+  return Number.isFinite(lat) && Number.isFinite(lng) ? `${lat},${lng}` : "";
+}
+
+/** Google Maps for the shop: the exact pin (and listing) when the website has one, else an address search. */
+export function mapsUrl(address, location) {
+  const query = pinQuery(location) || String(address || "").trim();
   if (!query) return "";
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  const placeId = cleanPlaceId(location?.placeId);
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}${
+    placeId ? `&query_place_id=${placeId}` : ""
+  }`;
 }
 
 export function instagramHandle(value) {

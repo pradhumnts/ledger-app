@@ -4,7 +4,7 @@
  * Pure helpers; keyed by the shop's own pack id (its business type), never the
  * template's showcase pack, so a clinic on the Glow template isn't called a parlour.
  */
-import { cleanPlaceId, phoneDigits, socialUrl } from "./links.js";
+import { cleanPlaceId, mapsUrl, phoneDigits, pinQuery, socialUrl } from "./links.js";
 
 const KINDS = {
   photographer: { label: "Photographer", type: "ProfessionalService" },
@@ -97,7 +97,12 @@ export function localBusinessJsonLd({ doc, packId, url, description, instagramUs
   const phone = phoneDigits(business.phone);
   const { city, region, postalCode } = addressParts(business.address);
   const placeId = cleanPlaceId(doc?.google?.placeId);
-  const mapsLink = placeId ? `https://www.google.com/maps/place/?q=place_id:${placeId}` : "";
+  const pin = pinQuery(doc?.location);
+  const mapsLink = placeId
+    ? `https://www.google.com/maps/place/?q=place_id:${placeId}`
+    : pin
+      ? mapsUrl("", doc.location)
+      : "";
   const sameAs = [
     socialUrl("instagram", socials.instagram) ||
       (instagramUsername ? `https://www.instagram.com/${instagramUsername}/` : ""),
@@ -129,6 +134,9 @@ export function localBusinessJsonLd({ doc, packId, url, description, instagramUs
             addressCountry: "IN",
           },
         }
+      : {}),
+    ...(pin
+      ? { geo: { "@type": "GeoCoordinates", latitude: doc.location.lat, longitude: doc.location.lng } }
       : {}),
     ...(mapsLink ? { hasMap: mapsLink } : {}),
     ...(sameAs.length ? { sameAs } : {}),

@@ -1,6 +1,7 @@
 /**
- * Google Places API (New) for the Standard plan: shops find their own listing,
- * and their live site shows its rating plus the (at most 5) reviews Google returns.
+ * Google Places API (New). Standard plan: shops find their own listing, and
+ * their live site shows its rating plus the (at most 5) reviews Google returns.
+ * Any plan: live search to pin the website's location.
  * Needs GOOGLE_PLACES_API_KEY with "Places API (New)" enabled.
  */
 import { cleanPlaceId } from "./links.js";
@@ -64,6 +65,60 @@ export async function searchPlaces(query) {
       address: String(place.formattedAddress || "").slice(0, 200),
     }))
     .filter((place) => place.id && place.name);
+}
+
+const SESSION_TOKEN = /^[A-Za-z0-9_-]{8,36}$/;
+
+/** Google bills one typing session (suggestions + the pick) as a single lookup when the app sends the same token. */
+function sessionToken(value) {
+  const token = String(value || "");
+  return SESSION_TOKEN.test(token) ? token : "";
+}
+
+/** As-you-type suggestions for the website's location, in India. */
+export async function suggestPlaces(input, token) {
+  const text = String(input || "").trim().slice(0, 120);
+  if (text.length < 3) return [];
+  const session = sessionToken(token);
+  const data = await call("/places:autocomplete", {
+    method: "POST",
+    fields:
+      "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat",
+    body: {
+      input: text,
+      includedRegionCodes: ["in"],
+      languageCode: "en",
+      ...(session ? { sessionToken: session } : {}),
+    },
+  });
+  return (data.suggestions || [])
+    .map((suggestion) => suggestion.placePrediction)
+    .filter(Boolean)
+    .map((place) => ({
+      id: cleanPlaceId(place.placeId),
+      name: String(place.structuredFormat?.mainText?.text || place.text?.text || "").slice(0, 120),
+      address: String(place.structuredFormat?.secondaryText?.text || "").slice(0, 200),
+    }))
+    .filter((place) => place.id && place.name)
+    .slice(0, 6);
+}
+
+/** A picked suggestion as `{ placeId, label, lat, lng }`; ends the typing session. */
+export async function placeLocation(placeId, token) {
+  const id = cleanPlaceId(placeId);
+  if (!id) throw new PlacesError("notFound");
+  const session = sessionToken(token);
+  const data = await call(`/places/${id}${session ? `?sessionToken=${session}` : ""}`, {
+    fields: "id,displayName,formattedAddress,location",
+  });
+  const lat = Number(data.location?.latitude);
+  const lng = Number(data.location?.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new PlacesError("notFound");
+  const name = String(data.displayName?.text || "").trim();
+  const address = String(data.formattedAddress || "").trim();
+  const repeatsName = address.toLowerCase().startsWith(`${name.toLowerCase()},`);
+  const label = !name || !address || repeatsName ? address || name : `${name}, ${address}`;
+  return { placeId: id, label: label.slice(0, 200), lat, lng };
 }
 
 function fromReview(review) {
