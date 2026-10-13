@@ -6,9 +6,7 @@ import {
   Languages,
   Mic,
   QrCode,
-  Send,
   ShieldCheck,
-  UserPlus,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { cn } from "@/lib/utils";
@@ -314,12 +312,6 @@ function LanguagesMock() {
   );
 }
 
-const STEPS = [
-  { icon: UserPlus, title: "Add a customer", body: "Just a name and phone, or pick from your contacts." },
-  { icon: FileText, title: "Create the bill", body: "Amount, what's still due and a note. That's it." },
-  { icon: Send, title: "Share and get paid", body: "Send it on WhatsApp with your UPI QR to pay." },
-];
-
 export function Features() {
   return (
     <section id="features" className="bg-paper py-24 sm:py-32">
@@ -381,27 +373,6 @@ export function Features() {
             <LanguagesMock />
           </Card>
         </div>
-
-        <ol className="mt-16 grid gap-4 sm:grid-cols-3">
-          {STEPS.map(({ icon: Icon, title, body }, index) => (
-            <li
-              key={title}
-              data-reveal
-              style={{ "--reveal-delay": `${index * 100}ms` }}
-              className="flex gap-4 rounded-3xl border border-black/[0.05] bg-white/60 p-5"
-            >
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-forest font-display text-xl text-lime italic">
-                {index + 1}
-              </span>
-              <div>
-                <p className="flex items-center gap-2 font-semibold text-zinc-950">
-                  <Icon className="size-4 text-mint" /> {title}
-                </p>
-                <p className="mt-1 text-sm leading-relaxed text-zinc-600">{body}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
       </div>
     </section>
   );

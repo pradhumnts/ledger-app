@@ -4,21 +4,22 @@ import { getPack } from "@/lib/sites/packs";
 import { splitTitle } from "@/lib/sites/links";
 import { PhoneFrame, SectionHeading } from "./primitives";
 
+// 7 Glow to 3 Studio, with the Studio demos spread evenly around the loop.
 const DEMOS = [
   { pack: "beauty", template: "glow" },
   { pack: "events", template: "studio" },
-  { pack: "photographer", template: "studio" },
   { pack: "education", template: "glow" },
-  { pack: "restaurant", template: "studio" },
   { pack: "jewellery", template: "glow" },
-  { pack: "fitness", template: "studio" },
+  { pack: "photographer", template: "studio" },
   { pack: "salon", template: "glow" },
-  { pack: "fashion", template: "studio" },
+  { pack: "fashion", template: "glow" },
+  { pack: "restaurant", template: "studio" },
   { pack: "eyeglasses", template: "glow" },
+  { pack: "fitness", template: "glow" },
 ];
 
 const POINTS = [
-  { icon: Globe, title: "Your own link", body: "Like yourshop.moneykit.site. Share it on WhatsApp, Instagram or a poster." },
+  { icon: Globe, title: "Your business website", body: "Like yourshop.moneykit.site. Share it on WhatsApp, Instagram or a poster." },
   { icon: LayoutTemplate, title: "Ready for your business", body: "Pick a design and it comes filled with sample text and photos for your kind of business." },
   { icon: MessageCircle, title: "Customers reach you in one tap", body: "WhatsApp, call and directions buttons on every page." },
   { icon: Star, title: "Google reviews", body: "Show your rating and best reviews right on your site." },

@@ -161,16 +161,19 @@ export function Pricing() {
           </p>
           <h2 className="mt-4 text-[2.1rem] leading-[1.05] font-semibold tracking-[-0.03em] text-balance text-zinc-950 sm:text-5xl">
             Billing is free.{" "}
-            <span className="inline-block font-display font-normal tracking-normal text-mint italic">
-              Websites from less than a{" "}
-              <span className="relative isolate inline-block whitespace-nowrap px-[0.08em] text-forest">
-                <span
-                  aria-hidden
-                  className="lp-mark absolute inset-x-[-0.12em] bottom-[0.06em] -z-10 h-[0.5em] -rotate-[1.5deg] rounded-[0.2em] bg-lime"
-                />
-                cold coffee
-              </span>{" "}
-              a day.
+            <span className="mt-1 inline-block font-display leading-[1.15] font-normal tracking-normal text-wrap text-mint italic sm:mt-0 sm:leading-[1.05]">
+              Websites from less than{" "}
+              <span className="whitespace-nowrap">
+                a{" "}
+                <span className="relative isolate inline-block px-[0.08em] text-forest">
+                  <span
+                    aria-hidden
+                    className="lp-mark absolute inset-x-[-0.12em] bottom-[0.06em] -z-10 h-[0.5em] -rotate-[1.5deg] rounded-[0.2em] bg-lime"
+                  />
+                  cold coffee
+                </span>
+                <span className="ml-[0.12em]">.</span>
+              </span>
             </span>
           </h2>
           <p className="mt-4 text-base leading-relaxed text-pretty text-zinc-600 sm:text-lg">

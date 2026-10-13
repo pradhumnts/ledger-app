@@ -74,7 +74,7 @@ export function ThemesShowcase() {
         </div>
       </div>
 
-      <div className="mx-auto mt-4 grid max-w-6xl gap-5 px-5 md:grid-cols-2">
+      <div className="mx-auto mt-10 grid max-w-6xl gap-5 px-5 sm:mt-14 md:grid-cols-2">
         {CARDS.map((card, index) => (
           <div
             key={card.title}
