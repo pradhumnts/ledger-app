@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { FaqItem } from "./faq-item";
 import { SectionHeading } from "./primitives";
 
 export const FAQS = [
@@ -39,20 +39,12 @@ export function Faq() {
         <SectionHeading eyebrow="Questions" title="Good to" accent="know." />
         <div className="mt-12 space-y-3">
           {FAQS.map((item, index) => (
-            <details
+            <FaqItem
               key={item.q}
-              data-reveal
+              question={item.q}
+              answer={item.a}
               style={{ "--reveal-delay": `${index * 50}ms` }}
-              className="group rounded-3xl border border-black/[0.06] bg-white px-6 shadow-[0_10px_40px_-25px_rgba(11,48,31,0.25)] open:shadow-[0_20px_50px_-25px_rgba(11,48,31,0.35)]"
-            >
-              <summary className="flex cursor-pointer items-center justify-between gap-4 py-5 text-left text-[17px] font-semibold text-zinc-950">
-                {item.q}
-                <span className="lp-faq-icon flex size-8 shrink-0 items-center justify-center rounded-full bg-paper text-forest transition-transform duration-300">
-                  <Plus className="size-4" strokeWidth={2.4} />
-                </span>
-              </summary>
-              <p className="pb-6 text-[15px] leading-relaxed text-zinc-600">{item.a}</p>
-            </details>
+            />
           ))}
         </div>
       </div>

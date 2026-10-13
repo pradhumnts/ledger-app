@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Gift, Sparkles, Users } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import {
-  ADD_ONS,
   FREE_FEATURES,
-  SERVICE_PAGE_PLANS,
   WEBSITE_PLANS,
   formatRupees,
   monthsFree,
@@ -23,8 +21,8 @@ function PeriodToggle({ yearly, onChange }) {
       className="relative inline-flex rounded-full bg-white p-1.5 shadow-[0_10px_30px_-12px_rgba(11,48,31,0.25)] ring-1 ring-black/5"
     >
       {[
-        { value: true, label: "Yearly" },
         { value: false, label: "Monthly" },
+        { value: true, label: "Yearly" },
       ].map((option) => (
         <button
           key={option.label}
@@ -95,7 +93,7 @@ function CardButton({ children, dark }) {
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "mt-8 inline-flex h-12 w-full items-center justify-center rounded-2xl text-[15px] font-semibold transition-[transform,background-color] duration-200 hover:-translate-y-0.5",
+        "mt-8 inline-flex h-12 w-full items-center justify-center rounded-2xl text-[15px] font-semibold transition-[translate,background-color] duration-200 hover:-translate-y-0.5",
         dark ? "bg-lime text-forest" : "bg-zinc-950 text-white hover:bg-black",
       )}
     >
@@ -148,7 +146,7 @@ function PlanCard({ plan, yearly }) {
 }
 
 export function Pricing() {
-  const [yearly, setYearly] = useState(true);
+  const [yearly, setYearly] = useState(false);
 
   return (
     <section id="pricing" className="relative overflow-hidden bg-paper py-24 sm:py-32">
@@ -163,7 +161,17 @@ export function Pricing() {
           </p>
           <h2 className="mt-4 text-[2.1rem] leading-[1.05] font-semibold tracking-[-0.03em] text-balance text-zinc-950 sm:text-5xl">
             Billing is free.{" "}
-            <span className="inline-block font-display font-normal tracking-normal text-mint italic">Websites from less than a chai a day.</span>
+            <span className="inline-block font-display font-normal tracking-normal text-mint italic">
+              Websites from less than a{" "}
+              <span className="relative isolate inline-block whitespace-nowrap px-[0.08em] text-forest">
+                <span
+                  aria-hidden
+                  className="lp-mark absolute inset-x-[-0.12em] bottom-[0.06em] -z-10 h-[0.5em] -rotate-[1.5deg] rounded-[0.2em] bg-lime"
+                />
+                cold coffee
+              </span>{" "}
+              a day.
+            </span>
           </h2>
           <p className="mt-4 text-base leading-relaxed text-pretty text-zinc-600 sm:text-lg">
             Use MoneyKit for bills, dues and UPI at no cost. Add a website when you’re ready to grow.
@@ -189,66 +197,7 @@ export function Pricing() {
           ))}
         </div>
 
-        <div data-reveal className="mt-10 grid gap-4 md:grid-cols-3">
-          <div className="rounded-3xl border border-black/[0.06] bg-white p-6 md:col-span-2">
-            <p className="text-sm font-semibold text-zinc-950">Need more service pages?</p>
-            <p className="mt-1 text-sm text-zinc-500">
-              Standard includes a page for 1 service. Give more of your services a page of their own.
-            </p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {SERVICE_PAGE_PLANS.map((plan) => (
-                <div key={plan.pages} className="flex items-center justify-between rounded-2xl bg-paper px-4 py-3">
-                  <span className="text-sm font-semibold text-zinc-900">Standard · {plan.pages} pages</span>
-                  <span className="text-sm text-zinc-600 tabular-nums">
-                    <span className="font-semibold text-zinc-950">
-                      {formatRupees(yearly ? plan.yearly : plan.monthly)}
-                    </span>
-                    {yearly ? "/yr" : "/mo"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-3xl border border-black/[0.06] bg-white p-6">
-            <p className="text-sm font-semibold text-zinc-950">Designs, yours for life</p>
-            <ul className="mt-3 space-y-2.5">
-              {ADD_ONS.map((item) => (
-                <li key={item.name} className="text-sm text-zinc-600">
-                  <span className="font-semibold text-zinc-950">{item.name}</span> ·{" "}
-                  <span className="font-semibold text-zinc-950">{formatRupees(item.price)}</span> {item.note}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div data-reveal className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="flex items-start gap-4 rounded-3xl bg-forest p-6 text-white">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-lime text-forest">
-              <Gift className="size-5" />
-            </span>
-            <div>
-              <p className="font-semibold">Get your website free for 1 month</p>
-              <p className="mt-1 text-sm leading-relaxed text-white/70">
-                Bill 25 different customers in 7 days and your first month of the website is on us.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4 rounded-3xl border border-black/[0.06] bg-white p-6">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-lime-soft text-forest">
-              <Users className="size-5" />
-            </span>
-            <div>
-              <p className="font-semibold text-zinc-950">Have a referral code?</p>
-              <p className="mt-1 text-sm leading-relaxed text-zinc-600">
-                Get 10% off your first year on the yearly website plan. Share your own code and earn ₹100,
-                sent to your UPI, every time a business you invite buys a yearly plan.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <p className="mt-8 text-center text-xs text-zinc-500">
+        <p className="mt-10 text-center text-xs text-zinc-500">
           Website plans are subscriptions paid inside the app through Google Play. Cancel anytime from Google Play.
         </p>
       </div>

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ADD_ONS, formatRupees } from "@/lib/landing-pricing";
+import { Sparkles } from "lucide-react";
 import { PhoneFrame, SectionHeading } from "./primitives";
 
 const POSTERS = [
@@ -16,22 +16,18 @@ const POSTERS = [
   { id: "toys-store", label: "Toy Store" },
 ];
 
-const [billDesigns, qrPosters] = ADD_ONS;
-
 const CARDS = [
   {
     src: "/landing/app/bill-theme.webp",
     alt: "Picking a bill design in MoneyKit",
     title: "Bill designs",
     body: "Classic, minimal, movie ticket, paper receipt and more. Every bill you send carries your look.",
-    price: billDesigns,
   },
   {
     src: "/landing/app/qr-theme.webp",
     alt: "Picking a QR poster theme in MoneyKit",
     title: "QR posters",
     body: "Print a payment poster made for your business and put it on the counter.",
-    price: qrPosters,
   },
 ];
 
@@ -48,13 +44,13 @@ export function ThemesShowcase() {
       </div>
 
       <div
-        className="lp-marquee-paused mt-14 overflow-hidden"
+        className="mt-8 overflow-hidden"
         style={{
           maskImage: "linear-gradient(90deg, transparent, black 6%, black 94%, transparent)",
           WebkitMaskImage: "linear-gradient(90deg, transparent, black 6%, black 94%, transparent)",
         }}
       >
-        <div className="lp-marquee-reverse flex w-max py-4" style={{ "--lp-marquee-speed": "60s" }}>
+        <div className="lp-marquee-reverse flex w-max pt-8 pb-20" style={{ "--lp-marquee-speed": "60s" }}>
           {[0, 1].map((copy) => (
             <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 gap-5 pr-5">
               {POSTERS.map((poster, index) => (
@@ -62,7 +58,7 @@ export function ThemesShowcase() {
                   key={poster.id}
                   className={index % 2 ? "translate-y-4" : "-translate-y-2"}
                 >
-                  <div className="relative h-[19rem] w-[8.8rem] overflow-hidden rounded-[1.4rem] shadow-[0_24px_50px_-20px_rgba(11,48,31,0.45)] ring-1 ring-black/5 sm:h-[22rem] sm:w-[10.2rem]">
+                  <div className="relative h-[19rem] w-[8.8rem] overflow-hidden rounded-[1.4rem] shadow-[0_24px_50px_-20px_rgba(11,48,31,0.45)] ring-1 ring-black/5 transition-[translate,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-4 hover:shadow-[0_36px_60px_-20px_rgba(11,48,31,0.55)] motion-reduce:transition-none sm:h-[22rem] sm:w-[10.2rem]">
                     <Image
                       src={`/landing/qr/${poster.id}.webp`}
                       alt={`${poster.label} QR poster`}
@@ -78,7 +74,7 @@ export function ThemesShowcase() {
         </div>
       </div>
 
-      <div className="mx-auto mt-16 grid max-w-6xl gap-5 px-5 md:grid-cols-2">
+      <div className="mx-auto mt-4 grid max-w-6xl gap-5 px-5 md:grid-cols-2">
         {CARDS.map((card, index) => (
           <div
             key={card.title}
@@ -90,10 +86,9 @@ export function ThemesShowcase() {
               <h3 className="text-2xl font-semibold tracking-tight text-zinc-950">{card.title}</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-zinc-600">{card.body}</p>
               <p className="mt-auto pt-6">
-                <span className="text-3xl font-semibold tracking-tight text-zinc-950">
-                  {formatRupees(card.price.price)}
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-lime-soft px-3 py-1.5 text-[13px] font-semibold text-forest">
+                  <Sparkles className="size-3.5" /> New designs added regularly
                 </span>
-                <span className="ml-1.5 text-sm text-zinc-500">{card.price.note}</span>
               </p>
             </div>
             <PhoneFrame

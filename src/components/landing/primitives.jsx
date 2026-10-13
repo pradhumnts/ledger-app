@@ -25,7 +25,7 @@ export function PlayButton({ tag, tone = "light", className, label = "Get it on 
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "group inline-flex h-14 items-center gap-3 rounded-2xl px-5 font-semibold transition-[transform,background-color,box-shadow] duration-200 hover:-translate-y-0.5 active:translate-y-0",
+        "group inline-flex h-14 items-center gap-3 rounded-2xl px-5 font-semibold transition-[translate,background-color,box-shadow] duration-200 hover:-translate-y-0.5 active:translate-y-0",
         tone === "light"
           ? "bg-white text-zinc-950 shadow-[0_10px_30px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_40px_rgba(0,0,0,0.24)]"
           : "bg-zinc-950 text-white shadow-[0_10px_30px_rgba(11,48,31,0.25)] hover:bg-black",
@@ -49,9 +49,10 @@ export function PlayButton({ tag, tone = "light", className, label = "Get it on 
 }
 
 /** A phone bezel around an app screenshot (screens are 1206×2622). */
-export function PhoneFrame({ src, alt, className, priority = false, sizes = "280px" }) {
+export function PhoneFrame({ src, alt, className, style, priority = false, sizes = "280px" }) {
   return (
     <div
+      style={style}
       className={cn(
         "relative aspect-[1206/2622] rounded-[2.6rem] bg-zinc-950 p-[0.55rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.45),inset_0_0_0_1px_rgba(255,255,255,0.08)]",
         className,

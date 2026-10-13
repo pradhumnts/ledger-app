@@ -47,17 +47,6 @@ export const WEBSITE_PLANS = [
   },
 ];
 
-/** Standard with more service pages is a plan of its own. */
-export const SERVICE_PAGE_PLANS = [
-  { pages: 4, monthly: 329, yearly: 3299 },
-  { pages: 8, monthly: 389, yearly: 3899 },
-];
-
-export const ADD_ONS = [
-  { name: "Bill designs", price: 20, note: "each, one-time · 2 are free" },
-  { name: "QR poster themes", price: 40, note: "each, one-time · 11 to pick from" },
-];
-
 /** Months saved by paying yearly instead of monthly, rounded like the app's badge. */
 export function monthsFree(plan) {
   return Math.max(0, Math.round((plan.monthly * 12 - plan.yearly) / plan.monthly));
