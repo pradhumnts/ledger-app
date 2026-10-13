@@ -26,6 +26,7 @@ export function isPublicSharePath(pathname) {
 export function isShopSitePath(pathname) {
   return (
     pathname === "/site-preview" ||
+    pathname === "/site-preview/share-image" ||
     Boolean(pathname?.startsWith("/sites/"))
   );
 }

@@ -5,21 +5,17 @@ import { flushSync } from "react-dom";
 import { useSearchParams } from "next/navigation";
 import { RevealOnScroll } from "@/components/sites/reveal";
 import { SiteRenderer } from "@/components/sites/site-renderer";
-import { buildStarterSite, withSiteDefaults } from "@/lib/sites/document";
-import { demoOffers } from "@/lib/sites/offers";
-import { getPack } from "@/lib/sites/packs";
+import { demoSite } from "@/lib/sites/demo-site";
+import { withSiteDefaults } from "@/lib/sites/document";
 import {
   PREVIEW_NAV,
   SERVICE_PAGE_IDS,
-  demoServicePages,
   isServicePageId,
   servicePages,
 } from "@/lib/sites/service-pages";
 
 /** The app sends only the pages the shop's plan shows, so the preview renders every one it gets. */
 const PREVIEW_PAGES = SERVICE_PAGE_IDS.length;
-/** Template demos showcase more service pages than a plan includes by default. */
-const DEMO_SERVICE_PAGES = 4;
 
 function postToApp(message) {
   window.ReactNativeWebView?.postMessage(JSON.stringify(message));
@@ -49,32 +45,6 @@ function jump(scroll) {
     scroll("auto");
     root.style.scrollBehavior = "";
   }
-}
-
-function demoSite(params) {
-  const packId = params.get("pack") || "photographer";
-  const demo = getPack(packId).demo || {};
-  const doc = buildStarterSite({
-    business: {
-      name: params.get("name") || demo.name || "Your Studio",
-      phone: demo.phone || "9876543210",
-      address: params.get("address") || demo.address || "Connaught Place, New Delhi",
-      business_type: packId,
-    },
-    templateId: params.get("template") || undefined,
-    paletteId: params.get("palette") || undefined,
-  });
-  if (demo.socials && doc.sections.socials) {
-    doc.sections.socials = { ...doc.sections.socials, ...demo.socials };
-  }
-  if (params.get("pages") !== "0") {
-    // Sample content comes from the pack the site actually shows (the template's, for "general").
-    Object.assign(doc.sections, demoServicePages(getPack(withSiteDefaults(doc).packId), DEMO_SERVICE_PAGES));
-  }
-  if (params.get("offers") !== "0") {
-    doc.offers = demoOffers(params.get("offer"));
-  }
-  return doc;
 }
 
 /**
