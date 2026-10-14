@@ -1,7 +1,8 @@
-import { APP_NAME, playStoreUrl } from "@/lib/branding";
+import { appLink } from "@/lib/app-links";
+import { APP_NAME } from "@/lib/branding";
 import { cn } from "@/lib/utils";
 
-export function CreatedWithMoneyKit({ className, href = playStoreUrl("bill_page", "badge") }) {
+export function CreatedWithMoneyKit({ className, href = appLink("bill-badge") }) {
   return (
     <a
       href={href}

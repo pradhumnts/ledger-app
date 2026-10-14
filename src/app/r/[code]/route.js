@@ -1,4 +1,5 @@
 import { after } from "next/server";
+import { appStoreUrlFor } from "@/lib/app-links";
 import { APP_SITE_URL, PLAY_STORE_URL } from "@/lib/branding";
 import { isLinkPreviewBot, referralPreviewHtml } from "@/lib/referrals/link-preview";
 import { findCode, logClick } from "@/lib/referrals/store";
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 /**
  * moneykitapp.com/r/RAHUL → the Play listing with `ref=RAHUL` in the install
  * referrer, which the app reads on first launch. Unknown codes still land on Play.
+ * iPhones go to the App Store once APP_STORE_URL is set (it has no install referrer).
  * WhatsApp and other preview bots get a page with a preview card instead.
  */
 export async function GET(request, { params }) {
@@ -46,5 +48,6 @@ export async function GET(request, { params }) {
   }
 
   if (found) after(() => logClick(admin, found.code).catch(() => {}));
-  return Response.redirect(playUrl, 302);
+  const userAgent = request.headers.get("user-agent");
+  return Response.redirect(appStoreUrlFor(userAgent, "referral") || playUrl, 302);
 }

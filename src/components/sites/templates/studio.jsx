@@ -19,7 +19,7 @@ import { GoogleReviews } from "@/components/sites/google-reviews";
 import { InstagramFeed } from "@/components/sites/instagram-feed";
 import { MobileMenu } from "@/components/sites/mobile-menu";
 import { OfferBanners } from "@/components/sites/offer-banners";
-import { playStoreUrl } from "@/lib/branding";
+import { appLink } from "@/lib/app-links";
 import { photoProps } from "@/lib/sites/photo";
 import {
   formatRupees,
@@ -817,7 +817,7 @@ function Footer({ business, ui, links, socials, whatsapp, intro, homeHref = "#to
             © {new Date().getFullYear()} {business.name}. All rights reserved.
           </p>
           <a
-            href={playStoreUrl("shop_site", "footer")}
+            href={appLink("site")}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 transition-colors hover:text-s-paper"

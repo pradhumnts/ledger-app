@@ -6,14 +6,13 @@ export const APP_TAGLINE = "Simple billing for India";
 export const APP_SITE_URL = "https://moneykitapp.com";
 export const SUPPORT_EMAIL = "support@moneykitapp.com";
 export const SUPPORT_WHATSAPP = "6350052979";
+/** The registered business behind MoneyKit (Meta business verification uses this name). */
+export const COMPANY_NAME = "Prad.dev";
+export const COMPANY_OWNER = "Pradyumn Vaishnav";
+export const COMPANY_URL = "https://prad.dev";
 export const PLAY_PACKAGE_NAME = "app.moneykit.android";
 export const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=app.moneykit.android";
-/** Play listing tagged for Play Console acquisition, which reports only utm_source and utm_campaign. */
-export function playStoreUrl(source, campaign) {
-  const referrer = `utm_source=${source}&utm_campaign=${campaign}`;
-  return `${PLAY_STORE_URL}&referrer=${encodeURIComponent(referrer)}`;
-}
 
 export const APP_ICON_SVG = "/moneykit-icon.svg";
 export const APP_LOGO_WEBP = "/moneykit-logo.webp";

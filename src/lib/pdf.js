@@ -5,8 +5,8 @@ import {
   APP_NAME,
   APP_SITE_URL,
   APP_TAGLINE,
-  playStoreUrl,
 } from "@/lib/branding";
+import { appLink } from "@/lib/app-links";
 import {
   formatBillNumber,
   formatEntryDate,
@@ -181,7 +181,7 @@ function drawFooter(doc, url, colors = resolveTheme(), logoDataUrl = null) {
   doc.setFontSize(9);
   doc.setTextColor(...(colors.forest || FOREST));
   const brand = `Created with ${APP_NAME}`;
-  const brandUrl = playStoreUrl("bill_pdf", "footer");
+  const brandUrl = appLink("pdf");
   if (brandUrl) {
     doc.textWithLink(brand, MARGIN + 9, y + 7.6, { url: brandUrl });
     const brandWidth = doc.getTextWidth(brand);

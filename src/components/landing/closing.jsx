@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { MoneyKitLogo } from "@/components/moneykit-logo";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
-import { APP_NAME, APP_TAGLINE, SUPPORT_EMAIL, SUPPORT_WHATSAPP } from "@/lib/branding";
+import {
+  APP_NAME,
+  APP_TAGLINE,
+  COMPANY_NAME,
+  COMPANY_OWNER,
+  COMPANY_URL,
+  SUPPORT_EMAIL,
+  SUPPORT_WHATSAPP,
+} from "@/lib/branding";
 import { PhoneFrame, PlayButton } from "./primitives";
 
 const WHATSAPP_URL = `https://wa.me/91${SUPPORT_WHATSAPP}?text=${encodeURIComponent(
@@ -69,6 +77,7 @@ const FOOTER_LINKS = [
   {
     title: "Company",
     links: [
+      { href: COMPANY_URL, label: `About ${COMPANY_NAME}`, external: true },
       { href: "/partner", label: "Partner program" },
       { href: WHATSAPP_URL, label: "WhatsApp support", external: true },
       { href: `mailto:${SUPPORT_EMAIL}`, label: SUPPORT_EMAIL },
@@ -117,7 +126,18 @@ export function SiteFooter() {
           ))}
         </div>
         <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} {APP_NAME}. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} {APP_NAME} is a product of{" "}
+            <a
+              href={COMPANY_URL}
+              target="_blank"
+              rel="noopener"
+              className="text-white/60 underline-offset-2 transition-colors hover:text-lime hover:underline"
+            >
+              {COMPANY_NAME}
+            </a>{" "}
+            ({COMPANY_OWNER}), India. All rights reserved.
+          </p>
           <p>Made in India, for India.</p>
         </div>
       </div>

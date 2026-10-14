@@ -21,7 +21,7 @@ import { InstagramFeed } from "@/components/sites/instagram-feed";
 import { MobileMenu } from "@/components/sites/mobile-menu";
 import { OfferBanners } from "@/components/sites/offer-banners";
 import { ScrollHeader } from "@/components/sites/scroll-header";
-import { playStoreUrl } from "@/lib/branding";
+import { appLink } from "@/lib/app-links";
 import { photoProps } from "@/lib/sites/photo";
 import {
   areaFrom,
@@ -735,7 +735,7 @@ function Footer({ business, links, socials, whatsapp, intro, homeHref = "#top" }
             © {new Date().getFullYear()} {business.name}. All rights reserved.
           </p>
           <a
-            href={playStoreUrl("shop_site", "footer")}
+            href={appLink("site")}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 transition-colors hover:text-white"

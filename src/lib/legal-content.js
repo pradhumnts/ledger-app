@@ -1,12 +1,21 @@
-import { APP_NAME, APP_SITE_URL, SUPPORT_EMAIL } from "@/lib/branding";
+import {
+  APP_NAME,
+  APP_SITE_URL,
+  COMPANY_NAME,
+  COMPANY_OWNER,
+  COMPANY_URL,
+  SUPPORT_EMAIL,
+} from "@/lib/branding";
+
+const OPERATOR = `${COMPANY_NAME} (${COMPANY_URL}), a sole proprietorship of ${COMPANY_OWNER} registered in India`;
 
 /** @typedef {{ title: string, body: string[] }} LegalSection */
 
 /** @type {{ effectiveDate: string, intro: string[], sections: LegalSection[] }} */
 export const PRIVACY_POLICY = {
-  effectiveDate: "5 October 2026",
+  effectiveDate: "14 October 2026",
   intro: [
-    `${APP_NAME} ("we", "us", "our") operates the ${APP_NAME} mobile web app and related services at ${APP_SITE_URL}. This Privacy Policy explains what information we collect, how we use it, and the choices you have.`,
+    `${APP_NAME} is operated by ${OPERATOR} ("we", "us", "our"). We run the ${APP_NAME} app and related services at ${APP_SITE_URL}. This Privacy Policy explains what information we collect, how we use it, and the choices you have.`,
     "By using the app, you agree to the collection and use of information as described here.",
   ],
   sections: [
@@ -94,6 +103,7 @@ export const PRIVACY_POLICY = {
       title: "Contact us",
       body: [
         `Questions about this Privacy Policy or your data? Email us at ${SUPPORT_EMAIL}.`,
+        `${APP_NAME} is a product of ${OPERATOR}.`,
       ],
     },
   ],
@@ -153,9 +163,9 @@ export const ACCOUNT_DELETION = {
 
 /** @type {{ effectiveDate: string, intro: string[], sections: LegalSection[] }} */
 export const TERMS_OF_SERVICE = {
-  effectiveDate: "17 August 2026",
+  effectiveDate: "14 October 2026",
   intro: [
-    `These Terms of Service ("Terms") govern your use of ${APP_NAME} ("Service") operated by us at ${APP_SITE_URL}.`,
+    `These Terms of Service ("Terms") govern your use of ${APP_NAME} ("Service") at ${APP_SITE_URL}, operated by ${OPERATOR} ("we", "us", "our").`,
     "By creating an account or using the Service, you agree to these Terms. If you do not agree, do not use the Service.",
   ],
   sections: [
@@ -243,6 +253,7 @@ export const TERMS_OF_SERVICE = {
       title: "Contact",
       body: [
         `For questions about these Terms, contact us at ${SUPPORT_EMAIL}.`,
+        `${APP_NAME} is a product of ${OPERATOR}.`,
       ],
     },
   ],
