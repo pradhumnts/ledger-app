@@ -129,6 +129,7 @@ export const QR_STYLE_DEFAULTS = {
     bg: "#ffffff",
     fg: "#18181b",
     style: "square",
+    glass: false,
     shadow: "0 10px 28px rgba(0,0,0,0.12)",
   },
   amount: {
@@ -857,6 +858,43 @@ export function preloadQrFontHrefs(hrefs = []) {
 
 export function getFontHref(fontKey) {
   return QR_FONTS[fontKey]?.href;
+}
+
+/** Pad behind the QR: solid, or frosted glass over the poster art. */
+export function qrPadLook(qr = {}) {
+  const glass = qr.glass === true;
+  const borderRadius = Number(qr.borderRadius ?? 18);
+  const requested = Number(qr.padding ?? 10);
+  /** Keep finder eyes clear of the rounded glass corner. */
+  const padding = glass ? Math.max(requested, Math.ceil(borderRadius * 0.65), 16) : requested;
+  const shadow = qr.shadow || "0 10px 28px rgba(0,0,0,0.12)";
+  if (!glass) {
+    return {
+      glass: false,
+      padding,
+      borderRadius,
+      background: qr.bg || "#ffffff",
+      boxShadow: shadow,
+      border: undefined,
+      backdropFilter: undefined,
+      moduleBg: qr.bg || "#ffffff",
+    };
+  }
+  const tint = String(qr.bg || "").trim();
+  const background =
+    tint && tint !== "#ffffff" && !/^rgba?\(\s*255\s*,\s*255\s*,\s*255/i.test(tint)
+      ? tint
+      : "rgba(255,255,255,0.48)";
+  return {
+    glass: true,
+    padding,
+    borderRadius,
+    background,
+    boxShadow: shadow === "none" ? "0 8px 28px rgba(0,0,0,0.14)" : shadow,
+    border: "1px solid rgba(255,255,255,0.65)",
+    backdropFilter: "blur(18px)",
+    moduleBg: "transparent",
+  };
 }
 
 export function posStyle(top, extra = {}) {

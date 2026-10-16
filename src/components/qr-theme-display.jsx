@@ -12,6 +12,7 @@ import {
   pickTop,
   posStyle,
   preloadQrFontHrefs,
+  qrPadLook,
   resolveQrThemeStyle,
 } from "@/lib/qr-theme-styles";
 import { cn } from "@/lib/utils";
@@ -456,6 +457,7 @@ export function QrThemeDisplay({
   const idleLayout = layoutQrPoster(cfg, false);
   const amountLayout = layoutQrPoster(cfg, true);
   const layout = showAmount ? amountLayout : idleLayout;
+  const qrPad = qrPadLook(cfg.qr);
   const [hostRef, fit] = usePosterFit({
     contentTop: Math.min(idleLayout.contentTop, amountLayout.contentTop),
     contentBottom: Math.max(idleLayout.contentBottom, amountLayout.contentBottom),
@@ -648,23 +650,34 @@ export function QrThemeDisplay({
         ) : null}
 
         <div
-          className="absolute z-10 overflow-hidden"
+          className="absolute z-10"
           style={{
             ...posStyle(layout.qrTop),
             width: cfg.qr.width,
-            padding: cfg.qr.padding,
-            borderRadius: cfg.qr.borderRadius,
-            background: cfg.qr.bg,
-            boxShadow: cfg.qr.shadow,
+            padding: qrPad.padding,
+            boxShadow: qrPad.boxShadow,
             transition: MOVE_EASE,
           }}
         >
-          <QrCodeBlock
-            value={paymentUrl}
-            fg={cfg.qr.fg}
-            bg={cfg.qr.bg}
-            style={cfg.qr.style}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              borderRadius: qrPad.borderRadius,
+              background: qrPad.background,
+              border: qrPad.border,
+              backdropFilter: qrPad.backdropFilter,
+              WebkitBackdropFilter: qrPad.backdropFilter,
+            }}
           />
+          <div className="relative">
+            <QrCodeBlock
+              value={paymentUrl}
+              fg={cfg.qr.fg}
+              bg={qrPad.moduleBg}
+              style={cfg.qr.style}
+            />
+          </div>
         </div>
 
         {interactive ? (

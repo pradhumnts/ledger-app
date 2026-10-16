@@ -46,25 +46,25 @@ export function ThemesShowcase() {
       <div
         className="mt-8 overflow-hidden"
         style={{
-          maskImage: "linear-gradient(90deg, transparent, black 6%, black 94%, transparent)",
-          WebkitMaskImage: "linear-gradient(90deg, transparent, black 6%, black 94%, transparent)",
+          maskImage: "linear-gradient(90deg, transparent, black 2%, black 98%, transparent)",
+          WebkitMaskImage: "linear-gradient(90deg, transparent, black 2%, black 98%, transparent)",
         }}
       >
-        <div className="lp-marquee-reverse flex w-max pt-8 pb-20" style={{ "--lp-marquee-speed": "60s" }}>
+        <div className="lp-marquee-reverse flex w-max pt-6 pb-16" style={{ "--lp-marquee-speed": "60s" }}>
           {[0, 1].map((copy) => (
-            <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 gap-5 pr-5">
+            <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-end gap-4 pr-4">
               {POSTERS.map((poster, index) => (
                 <li
                   key={poster.id}
-                  className={index % 2 ? "translate-y-4" : "-translate-y-2"}
+                  className={index % 2 ? "translate-y-1.5" : "translate-y-0"}
                 >
-                  <div className="relative h-[19rem] w-[8.8rem] overflow-hidden rounded-[1.4rem] shadow-[0_24px_50px_-20px_rgba(11,48,31,0.45)] ring-1 ring-black/5 transition-[translate,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-4 hover:shadow-[0_36px_60px_-20px_rgba(11,48,31,0.55)] motion-reduce:transition-none sm:h-[22rem] sm:w-[10.2rem]">
+                  <div className="relative aspect-[390/843] w-[6.75rem] overflow-hidden rounded-[1.25rem] shadow-[0_20px_44px_-18px_rgba(11,48,31,0.45)] ring-1 ring-black/5 transition-[translate,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-3 hover:shadow-[0_32px_56px_-18px_rgba(11,48,31,0.55)] motion-reduce:transition-none sm:w-[7.75rem] md:w-[8.5rem]">
                     <Image
                       src={`/landing/qr/${poster.id}.webp`}
                       alt={`${poster.label} QR poster`}
                       fill
-                      sizes="164px"
-                      className="object-cover"
+                      sizes="136px"
+                      className="object-cover object-top"
                     />
                   </div>
                 </li>
