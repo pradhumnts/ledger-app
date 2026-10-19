@@ -1,9 +1,42 @@
 /* eslint-disable @next/next/no-img-element -- post images come from Instagram's CDN with expiring URLs; plain <img> keeps them off Vercel image optimisation */
-import { ArrowUpRight, Images, Play } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { InstagramIcon } from "@/components/sites/icons";
 
+/** Instagram-style pin (top-left on the grid). */
+function PinBadge() {
+  return (
+    <span className="absolute top-1.5 left-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)]" aria-hidden>
+      <svg viewBox="0 0 24 24" className="size-3.5 fill-white text-white md:size-4">
+        <path d="M16 3a1 1 0 0 1 .8 1.6L14.4 8.2l1.7 4.3a1 1 0 0 1-.4 1.2l-1.5.9-2.1-2.9-2.6 2.6V20a1 1 0 1 1-2 0v-6.7l4.9-4.9.9-3.1A1 1 0 0 1 16 3Z" />
+      </svg>
+    </span>
+  );
+}
+
+/** Instagram carousel / album stack (top-right). */
+function AlbumBadge() {
+  return (
+    <span className="absolute top-1.5 right-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)]" aria-hidden>
+      <svg viewBox="0 0 24 24" className="size-3.5 text-white md:size-4" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="7" y="7" width="13" height="13" rx="2" />
+        <path d="M4 16V6a2 2 0 0 1 2-2h10" />
+      </svg>
+    </span>
+  );
+}
+
+/** Instagram reel / video play (top-right). */
+function VideoBadge() {
+  return (
+    <span className="absolute top-1.5 right-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)]" aria-hidden>
+      <svg viewBox="0 0 24 24" className="size-3.5 fill-white text-white md:size-4">
+        <path d="M8 5.5v13l11-6.5L8 5.5Z" />
+      </svg>
+    </span>
+  );
+}
+
 function PostTile({ post }) {
-  const TypeIcon = post.type === "video" ? Play : post.type === "album" ? Images : null;
   return (
     <a
       href={post.url}
@@ -18,24 +51,25 @@ function PostTile({ post }) {
         loading="lazy"
         className="size-full object-cover transition duration-500 group-hover:scale-105"
       />
-      {TypeIcon ? (
-        <TypeIcon
-          className="absolute top-2 right-2 size-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
-          fill={post.type === "video" ? "currentColor" : "none"}
-          strokeWidth={2}
-        />
-      ) : null}
+      {post.pinned ? <PinBadge /> : null}
+      {post.type === "video" ? <VideoBadge /> : post.type === "album" ? <AlbumBadge /> : null}
     </a>
   );
 }
 
 /**
- * The shop's latest Instagram posts as a 3-column grid (Standard plan, connected account).
- * `flushTop` when the section above has the same background and already ends in padding.
+ * The shop's latest Instagram posts as a 4×3 grid on desktop (Standard plan).
+ * Phone keeps 3 columns so tiles stay tappable. `flushTop` when the section
+ * above has the same background and already ends in padding.
  */
 export function InstagramFeed({ feed, headingClassName = "", flushTop = false }) {
   const all = feed?.posts || [];
-  const posts = all.length >= 3 ? all.slice(0, all.length - (all.length % 3)) : all;
+  // Prefer a full 4×3 (12) when we have enough; otherwise fill complete rows of 4,
+  // or of 3 on short feeds so the phone layout still looks even.
+  let posts = all;
+  if (all.length >= 12) posts = all.slice(0, 12);
+  else if (all.length >= 4) posts = all.slice(0, all.length - (all.length % 4));
+  else if (all.length >= 3) posts = all.slice(0, all.length - (all.length % 3));
   if (!posts.length) return null;
   return (
     <section
@@ -64,7 +98,7 @@ export function InstagramFeed({ feed, headingClassName = "", flushTop = false })
             </a>
           ) : null}
         </div>
-        <div className="mt-8 grid grid-cols-3 gap-1 overflow-hidden rounded-[1.25rem] md:gap-2" data-reveal>
+        <div className="mt-8 grid grid-cols-3 gap-1 overflow-hidden rounded-[1.25rem] md:grid-cols-4 md:gap-2" data-reveal>
           {posts.map((post) => (
             <PostTile key={post.id} post={post} />
           ))}

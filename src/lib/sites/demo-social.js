@@ -4,13 +4,13 @@
  */
 import { APP_SITE_URL } from "@/lib/branding";
 
-/** Indian bridal/beauty close-ups from the beauty pack (circular avatars crop the face). */
+/** Generated Indian headshots for demo review avatars (not gallery bridal shots). */
 const DEMO_REVIEWER_PHOTOS = [
-  "/site-packs/beauty/bridal.webp",
-  "/site-packs/beauty/eyes.webp",
-  "/site-packs/beauty/south-bride.webp",
-  "/site-packs/beauty/engagement.webp",
-  "/site-packs/beauty/hairstyle.webp",
+  "/demo/reviewers/1.jpg",
+  "/demo/reviewers/2.jpg",
+  "/demo/reviewers/3.jpg",
+  "/demo/reviewers/4.jpg",
+  "/demo/reviewers/5.jpg",
 ];
 
 /**
@@ -19,7 +19,7 @@ const DEMO_REVIEWER_PHOTOS = [
  */
 const DEMO_INSTAGRAM_BY_PACK = {
   beauty: [
-    // Makeup, tools and salon shots — not the same bridal set as the gallery.
+    "/demo/instagram/beauty/1.jpg",
     "/demo/instagram/beauty/2.jpg",
     "/demo/instagram/beauty/3.jpg",
     "/demo/instagram/beauty/4.jpg",
@@ -27,8 +27,10 @@ const DEMO_INSTAGRAM_BY_PACK = {
     "/demo/instagram/beauty/6.jpg",
     "/demo/instagram/beauty/7.jpg",
     "/demo/instagram/beauty/8.jpg",
-    "/site-packs/beauty/mehendi.webp",
-    "/site-packs/beauty/about.webp",
+    "/demo/instagram/beauty/9.jpg",
+    "/demo/instagram/beauty/10.jpg",
+    "/demo/instagram/beauty/11.jpg",
+    "/demo/instagram/beauty/12.jpg",
   ],
 };
 
@@ -107,7 +109,7 @@ export function demoInstagramFeed(doc) {
   if (!source.length) return null;
 
   const pics = [...source];
-  while (pics.length < 9) pics.push(source[pics.length % source.length]);
+  while (pics.length < 12) pics.push(source[pics.length % source.length]);
 
   const fromDoc = String(doc?.sections?.socials?.instagram || "")
     .trim()
@@ -116,15 +118,35 @@ export function demoInstagramFeed(doc) {
     .replace(/\/.*$/, "");
   const username = fromDoc || "moneykitapp";
 
+  // Like a real Instagram profile: up to 3 pinned, then a mix of carousels and reels.
+  const demoKinds = [
+    { type: "album", pinned: true },
+    { type: "image", pinned: true },
+    { type: "video", pinned: true },
+    { type: "album", pinned: false },
+    { type: "video", pinned: false },
+    { type: "image", pinned: false },
+    { type: "album", pinned: false },
+    { type: "video", pinned: false },
+    { type: "image", pinned: false },
+    { type: "album", pinned: false },
+    { type: "video", pinned: false },
+    { type: "image", pinned: false },
+  ];
+
   return {
     username,
     profileUrl: `https://www.instagram.com/${username}/`,
-    posts: pics.slice(0, 9).map((image, index) => ({
-      id: `demo-ig-${index + 1}`,
-      image: image.startsWith("http") ? image : `/${image.replace(/^\/+/, "")}`,
-      url: `https://www.instagram.com/${username}/`,
-      caption: `${APP_SITE_URL.replace(/^https?:\/\//, "")} — sample Instagram for this demo`,
-      type: "image",
-    })),
+    posts: pics.slice(0, 12).map((image, index) => {
+      const kind = demoKinds[index] || { type: "image", pinned: false };
+      return {
+        id: `demo-ig-${index + 1}`,
+        image: image.startsWith("http") ? image : `/${image.replace(/^\/+/, "")}`,
+        url: `https://www.instagram.com/${username}/`,
+        caption: `${APP_SITE_URL.replace(/^https?:\/\//, "")} — sample Instagram for this demo`,
+        type: kind.type,
+        pinned: kind.pinned,
+      };
+    }),
   };
 }

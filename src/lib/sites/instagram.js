@@ -16,7 +16,8 @@ const RETURN_URL = /^(moneykit|exp|exps):\/\/[A-Za-z0-9._~:/?=&%-]{0,200}$/;
 
 /** Live sites re-ask Instagram for posts at most this often. */
 export const POSTS_REVALIDATE_SECONDS = 60 * 60;
-export const SITE_POSTS = 9;
+/** Enough for a full 4×3 desktop grid (phone still shows 3 columns). */
+export const SITE_POSTS = 12;
 
 export class InstagramError extends Error {
   constructor(code) {
