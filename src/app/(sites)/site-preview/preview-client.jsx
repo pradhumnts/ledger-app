@@ -186,11 +186,13 @@ export function PreviewClient() {
   if (!doc) return <div className="min-h-dvh bg-[#f6f1e7]" />;
 
   // Static marketing demos only — not the in-app WebView, where the shop's own links apply.
+  // Resolve pack defaults first so Instagram gets bridal/mehendi photos, not empty → landing fallbacks.
   const showDemoSocial = !embedded;
+  const resolved = showDemoSocial ? withSiteDefaults(doc) : doc;
   const reviews =
     showDemoSocial && params.get("reviews") !== "0" ? demoGoogleReviews() : null;
   const instagram =
-    showDemoSocial && params.get("instagram") !== "0" ? demoInstagramFeed(doc) : null;
+    showDemoSocial && params.get("instagram") !== "0" ? demoInstagramFeed(resolved) : null;
 
   return (
     <>

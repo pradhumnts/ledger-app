@@ -63,22 +63,21 @@ export function demoGoogleReviews() {
 
 /**
  * Demo Instagram section: the pack's own photos (not a live Instagram API
- * feed). Username follows the demo shop's socials handle when set.
+ * feed). Pass a doc already run through `withSiteDefaults` so gallery/hero
+ * images are filled. Username follows the demo shop's socials handle.
  */
 export function demoInstagramFeed(doc) {
   const gallery = doc?.sections?.gallery?.images || [];
   const hero = doc?.sections?.hero?.image;
   const about = doc?.sections?.about?.image;
-  const pics = [...gallery, hero, about].filter(Boolean);
-  const fallback = [
-    "/landing/landing-shop.jpg",
-    "/landing/landing-whatsapp.jpg",
-    "/landing/landing-upi.jpg",
-    "/landing/landing-ledger.jpg",
-    "/landing/landing-market.jpg",
-    "/landing/landing-kirana.jpg",
-  ];
-  while (pics.length < 9) pics.push(fallback[pics.length % fallback.length]);
+  const fromPack = [...gallery, hero, about]
+    .map((image) => String(image || "").trim())
+    .filter(Boolean);
+  // Prefer pack photos only — never mix in MoneyKit landing shots (kirana, sabji, etc.).
+  if (!fromPack.length) return null;
+
+  const pics = [...fromPack];
+  while (pics.length < 9) pics.push(fromPack[pics.length % fromPack.length]);
 
   const fromDoc = String(doc?.sections?.socials?.instagram || "")
     .trim()
@@ -92,7 +91,7 @@ export function demoInstagramFeed(doc) {
     profileUrl: `https://www.instagram.com/${username}/`,
     posts: pics.slice(0, 9).map((image, index) => ({
       id: `demo-ig-${index + 1}`,
-      image: String(image).startsWith("http") ? String(image) : `/${String(image).replace(/^\/+/, "")}`,
+      image: image.startsWith("http") ? image : `/${image.replace(/^\/+/, "")}`,
       url: `https://www.instagram.com/${username}/`,
       caption: `${APP_SITE_URL.replace(/^https?:\/\//, "")} — sample Instagram for this demo`,
       type: "image",
