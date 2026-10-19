@@ -20,7 +20,7 @@ export function demoGoogleReviews() {
       {
         author: "Ananya Mehta",
         authorUrl: "",
-        photo: "",
+        photo: "https://randomuser.me/api/portraits/women/68.jpg",
         rating: 5,
         text: "Loved the bridal makeup trial. They took time to understand the outfit and jewellery, and the finish lasted the whole day.",
         when: "2 months ago",
@@ -28,7 +28,7 @@ export function demoGoogleReviews() {
       {
         author: "Riya Sharma",
         authorUrl: "",
-        photo: "",
+        photo: "https://randomuser.me/api/portraits/women/44.jpg",
         rating: 5,
         text: "Clean parlour, gentle staff, and honest pricing. Facial and cleanup left my skin glowing for the weekend.",
         when: "a month ago",
@@ -36,7 +36,7 @@ export function demoGoogleReviews() {
       {
         author: "Kavita Jain",
         authorUrl: "",
-        photo: "",
+        photo: "https://randomuser.me/api/portraits/women/12.jpg",
         rating: 4,
         text: "Booked party makeup on WhatsApp and they confirmed quickly. Soft glam look, exactly what I asked for.",
         when: "3 weeks ago",
@@ -44,7 +44,7 @@ export function demoGoogleReviews() {
       {
         author: "Neha Kapoor",
         authorUrl: "",
-        photo: "",
+        photo: "https://randomuser.me/api/portraits/women/33.jpg",
         rating: 5,
         text: "Mehendi for my sister's wedding was beautiful. Intricate work, on time, and very patient with the bridal party.",
         when: "4 months ago",
@@ -52,7 +52,7 @@ export function demoGoogleReviews() {
       {
         author: "Pooja Verma",
         authorUrl: "",
-        photo: "",
+        photo: "https://randomuser.me/api/portraits/women/65.jpg",
         rating: 5,
         text: "Regular customer for threading and cleanup. Always on time and the place feels welcoming every visit.",
         when: "5 months ago",
