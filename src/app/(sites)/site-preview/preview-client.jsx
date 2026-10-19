@@ -8,6 +8,11 @@ import { SiteRenderer } from "@/components/sites/site-renderer";
 import { demoSite } from "@/lib/sites/demo-site";
 import { withSiteDefaults } from "@/lib/sites/document";
 import {
+  demoGoogleReviews,
+  demoInstagramFeed,
+  demoInstagramImages,
+} from "@/lib/sites/demo-social";
+import {
   PREVIEW_NAV,
   SERVICE_PAGE_IDS,
   isServicePageId,
@@ -53,6 +58,8 @@ function jump(scroll) {
  * `{ type: "doc", doc }`). Without `embed`, `?template=&pack=&palette=` shows a
  * demo with sample service pages (`&pages=0` hides them, `&page=page1` opens one)
  * and sample offer banners (`&offers=0` hides them, `&offer=sunset` picks the first one's theme).
+ * Demo Google reviews and MoneyKit Instagram show on the static demo only
+ * (`&reviews=0` / `&instagram=0` hide them); the in-app embed still waits for the shop's own connections.
  *
  * Service pages switch in place: `#page=slug` links open one, `#home…` links go
  * back, and `__mkSite.showPage(id)` / a `scroll` to a page id opens it from the app.
@@ -181,10 +188,28 @@ export function PreviewClient() {
   }, [embedded]);
 
   if (!doc) return <div className="min-h-dvh bg-[#f6f1e7]" />;
+
+  // Static marketing demos only — not the in-app WebView, where the shop's own links apply.
+  const showDemoSocial = !embedded;
+  const reviews =
+    showDemoSocial && params.get("reviews") !== "0" ? demoGoogleReviews() : null;
+  const instagram =
+    showDemoSocial && params.get("instagram") !== "0"
+      ? demoInstagramFeed(demoInstagramImages(doc))
+      : null;
+
   return (
     <>
       <div className="s-page" data-phase={phase || undefined}>
-        <SiteRenderer doc={doc} withPages pageCount={PREVIEW_PAGES} withOffers page={page} />
+        <SiteRenderer
+          doc={doc}
+          withPages
+          pageCount={PREVIEW_PAGES}
+          withOffers
+          page={page}
+          reviews={reviews}
+          instagram={instagram}
+        />
       </div>
       {/* Only the static demo: the app swaps sections in later, which the one-time observer would miss.
           Keyed by page so switching pages scans the new view. */}

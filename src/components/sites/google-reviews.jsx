@@ -1,4 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- reviewer photos come from Google; plain <img> keeps them off Vercel image optimisation */
+"use client";
+
 import { ArrowUpRight, Star } from "lucide-react";
 
 function Stars({ rating, className = "size-4" }) {
@@ -15,7 +17,7 @@ function Stars({ rating, className = "size-4" }) {
   );
 }
 
-function ReviewCard({ review }) {
+function ReviewCard({ review, className = "" }) {
   const author = review.authorUrl ? (
     <a href={review.authorUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
       {review.author}
@@ -24,7 +26,9 @@ function ReviewCard({ review }) {
     review.author
   );
   return (
-    <figure className="flex w-[82%] shrink-0 snap-start flex-col rounded-[1.25rem] border border-s-line bg-s-paper p-6 sm:w-[46%] md:w-auto">
+    <figure
+      className={`flex w-[82%] shrink-0 snap-start flex-col rounded-[1.25rem] border border-s-line bg-s-paper p-6 sm:w-[46%] md:w-[22rem] ${className}`}
+    >
       <div className="flex items-center gap-3">
         {review.photo ? (
           <img
@@ -53,6 +57,33 @@ function ReviewCard({ review }) {
         </blockquote>
       ) : null}
     </figure>
+  );
+}
+
+/** Phone: swipe rail. Desktop: slow infinite auto-scroll; pauses on hover. */
+function ReviewList({ reviews }) {
+  const loop = reviews.length > 1 ? [...reviews, ...reviews] : reviews;
+  return (
+    <>
+      <div className="sa-rail -mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 scroll-px-5 md:hidden">
+        {reviews.map((review, index) => (
+          <ReviewCard key={`${review.author}-${index}`} review={review} />
+        ))}
+      </div>
+      {reviews.length ? (
+        <div className="s-reviews-marquee-wrap mt-8 hidden md:block" data-reveal>
+          <div className="s-reviews-marquee" style={{ "--s-reviews-count": String(loop.length) }}>
+            {loop.map((review, index) => (
+              <ReviewCard
+                key={`${review.author}-loop-${index}`}
+                review={review}
+                className="w-[22rem]"
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -111,13 +142,7 @@ export function GoogleReviews({ reviews, headingClassName = "", flushTop = false
             ) : null}
           </div>
         </div>
-        {reviews.reviews?.length ? (
-          <div className="sa-rail -mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 scroll-px-5 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
-            {reviews.reviews.map((review, index) => (
-              <ReviewCard key={`${review.author}-${index}`} review={review} />
-            ))}
-          </div>
-        ) : null}
+        {reviews.reviews?.length ? <ReviewList reviews={reviews.reviews} /> : null}
         <p className="mt-6 text-xs text-s-muted">Reviews from Google Maps</p>
       </div>
     </section>

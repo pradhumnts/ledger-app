@@ -626,6 +626,35 @@ body {
   .sa-rail::-webkit-scrollbar {
     display: none;
   }
+
+  /* Desktop Google reviews: infinite auto-scroll; phone keeps the swipe rail. */
+  .s-reviews-marquee-wrap {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, #000 2rem, #000 calc(100% - 2rem), transparent);
+  }
+  .s-reviews-marquee {
+    display: flex;
+    width: max-content;
+    gap: 1rem;
+    animation: s-reviews-marquee calc(var(--s-reviews-count, 10) * 3.5s) linear infinite;
+  }
+  .s-reviews-marquee:hover {
+    animation-play-state: paused;
+  }
+  @keyframes s-reviews-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .s-reviews-marquee {
+      animation: none;
+    }
+  }
+
   .sa-rail-bar {
     position: relative;
     width: 7rem;
