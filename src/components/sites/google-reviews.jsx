@@ -142,7 +142,9 @@ export function GoogleReviews({ reviews, headingClassName = "", flushTop = false
             ) : null}
           </div>
         </div>
-        {reviews.reviews?.length ? <ReviewList reviews={reviews.reviews} /> : null}
+        </div>
+      {reviews.reviews?.length ? <ReviewList reviews={reviews.reviews} /> : null}
+      <div className="s-wrap">
         <p className="mt-6 text-xs text-s-muted">Reviews from Google Maps</p>
       </div>
     </section>

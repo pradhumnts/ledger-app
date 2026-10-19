@@ -7,11 +7,7 @@ import { RevealOnScroll } from "@/components/sites/reveal";
 import { SiteRenderer } from "@/components/sites/site-renderer";
 import { demoSite } from "@/lib/sites/demo-site";
 import { withSiteDefaults } from "@/lib/sites/document";
-import {
-  demoGoogleReviews,
-  demoInstagramFeed,
-  demoInstagramImages,
-} from "@/lib/sites/demo-social";
+import { demoGoogleReviews, demoInstagramFeed } from "@/lib/sites/demo-social";
 import {
   PREVIEW_NAV,
   SERVICE_PAGE_IDS,
@@ -194,9 +190,7 @@ export function PreviewClient() {
   const reviews =
     showDemoSocial && params.get("reviews") !== "0" ? demoGoogleReviews() : null;
   const instagram =
-    showDemoSocial && params.get("instagram") !== "0"
-      ? demoInstagramFeed(demoInstagramImages(doc))
-      : null;
+    showDemoSocial && params.get("instagram") !== "0" ? demoInstagramFeed(doc) : null;
 
   return (
     <>

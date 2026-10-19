@@ -627,10 +627,12 @@ body {
     display: none;
   }
 
-  /* Desktop Google reviews: infinite auto-scroll; phone keeps the swipe rail. */
+  /* Desktop Google reviews: full-bleed infinite auto-scroll; phone keeps the swipe rail. */
   .s-reviews-marquee-wrap {
     overflow: hidden;
-    mask-image: linear-gradient(to right, transparent, #000 2rem, #000 calc(100% - 2rem), transparent);
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
   }
   .s-reviews-marquee {
     display: flex;

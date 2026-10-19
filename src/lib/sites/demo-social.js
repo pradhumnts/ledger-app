@@ -4,9 +4,6 @@
  */
 import { APP_SITE_URL } from "@/lib/branding";
 
-/** MoneyKit's public Instagram (shown on template demos only). */
-export const DEMO_INSTAGRAM_USERNAME = "moneykitapp";
-
 /**
  * A sample Google listing's rating + reviews, so demos show the section
  * without calling Places. Links open Google Maps search for the sample shop.
@@ -64,9 +61,15 @@ export function demoGoogleReviews() {
   };
 }
 
-/** Nine square posts so the Instagram grid fills evenly (3×3). */
-export function demoInstagramFeed(images = []) {
-  const pics = (Array.isArray(images) ? images : []).filter(Boolean).slice(0, 9);
+/**
+ * Demo Instagram section: the pack's own photos (not a live Instagram API
+ * feed). Username follows the demo shop's socials handle when set.
+ */
+export function demoInstagramFeed(doc) {
+  const gallery = doc?.sections?.gallery?.images || [];
+  const hero = doc?.sections?.hero?.image;
+  const about = doc?.sections?.about?.image;
+  const pics = [...gallery, hero, about].filter(Boolean);
   const fallback = [
     "/landing/landing-shop.jpg",
     "/landing/landing-whatsapp.jpg",
@@ -74,13 +77,16 @@ export function demoInstagramFeed(images = []) {
     "/landing/landing-ledger.jpg",
     "/landing/landing-market.jpg",
     "/landing/landing-kirana.jpg",
-    "/moneykit-logo.webp",
-    "/og-previews/classic.png",
-    "/og-previews/minimal.png",
   ];
   while (pics.length < 9) pics.push(fallback[pics.length % fallback.length]);
 
-  const username = DEMO_INSTAGRAM_USERNAME;
+  const fromDoc = String(doc?.sections?.socials?.instagram || "")
+    .trim()
+    .replace(/^@/, "")
+    .replace(/^(https?:\/\/)?(www\.)?instagram\.com\//i, "")
+    .replace(/\/.*$/, "");
+  const username = fromDoc || "moneykitapp";
+
   return {
     username,
     profileUrl: `https://www.instagram.com/${username}/`,
@@ -88,16 +94,8 @@ export function demoInstagramFeed(images = []) {
       id: `demo-ig-${index + 1}`,
       image: String(image).startsWith("http") ? String(image) : `/${String(image).replace(/^\/+/, "")}`,
       url: `https://www.instagram.com/${username}/`,
-      caption: `${APP_SITE_URL.replace(/^https?:\/\//, "")} — bills, UPI and your shop website`,
+      caption: `${APP_SITE_URL.replace(/^https?:\/\//, "")} — sample Instagram for this demo`,
       type: "image",
     })),
   };
-}
-
-/** Gallery (and cover) images from a demo site doc, for the sample Instagram grid. */
-export function demoInstagramImages(doc) {
-  const gallery = doc?.sections?.gallery?.images || [];
-  const hero = doc?.sections?.hero?.image;
-  const about = doc?.sections?.about?.image;
-  return [...gallery, hero, about].filter(Boolean);
 }
