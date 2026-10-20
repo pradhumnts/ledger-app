@@ -7,14 +7,29 @@ import { demoServicePages } from "@/lib/sites/service-pages";
 const DEMO_SERVICE_PAGES = 4;
 
 /** Query params that shape the `/site-preview` demo and its link-preview card. */
-export const DEMO_PARAMS = ["template", "pack", "palette", "name", "address"];
+export const DEMO_PARAMS = ["template", "pack", "palette", "name", "address", "plan"];
+
+/**
+ * Website plan a demo shows: `?plan=basic` hides the Standard-only parts
+ * (offers, service pages, Google reviews, Instagram); anything else,
+ * including no `plan` at all, shows the full Standard preview.
+ */
+export function demoPlan(params) {
+  return params?.get?.("plan") === "basic" ? "basic" : "standard";
+}
+
+export function isStandardPlan(params) {
+  return demoPlan(params) === "standard";
+}
 
 /**
  * The `/site-preview` demo site for `?template=&pack=&palette=` (any object with
  * `get(key)`, such as URLSearchParams). `&pages=0` drops the sample service pages
  * and `&offers=0` the sample offers; `&offer=` picks the first offer's theme.
+ * On `&plan=basic` the sample service pages and offers are left out entirely.
  */
 export function demoSite(params) {
+  const standard = isStandardPlan(params);
   const packId = params.get("pack") || "photographer";
   const demo = getPack(packId).demo || {};
   const doc = buildStarterSite({
@@ -30,11 +45,11 @@ export function demoSite(params) {
   if (demo.socials && doc.sections.socials) {
     doc.sections.socials = { ...doc.sections.socials, ...demo.socials };
   }
-  if (params.get("pages") !== "0") {
+  if (standard && params.get("pages") !== "0") {
     // Sample content comes from the pack the site actually shows (the template's, for "general").
     Object.assign(doc.sections, demoServicePages(getPack(withSiteDefaults(doc).packId), DEMO_SERVICE_PAGES));
   }
-  if (params.get("offers") !== "0") {
+  if (standard && params.get("offers") !== "0") {
     doc.offers = demoOffers(params.get("offer"));
   }
   return doc;

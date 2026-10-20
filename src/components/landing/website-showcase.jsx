@@ -33,7 +33,7 @@ function DemoCard({ pack: packId, template }) {
   const [head, accent, tail] = splitTitle(hero.title);
   return (
     <a
-      href={`/site-preview?template=${template}&pack=${packId}`}
+      href={`/site-preview?template=${template}&pack=${packId}&plan=standard`}
       target="_blank"
       rel="noopener noreferrer"
       className="group relative block h-[22rem] w-[15rem] shrink-0 overflow-hidden rounded-[1.75rem] bg-forest-soft ring-1 ring-white/10 sm:h-[25rem] sm:w-[17rem]"

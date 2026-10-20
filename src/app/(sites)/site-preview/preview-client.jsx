@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import { useSearchParams } from "next/navigation";
 import { RevealOnScroll } from "@/components/sites/reveal";
 import { SiteRenderer } from "@/components/sites/site-renderer";
-import { demoSite } from "@/lib/sites/demo-site";
+import { demoSite, isStandardPlan } from "@/lib/sites/demo-site";
 import { withSiteDefaults } from "@/lib/sites/document";
 import { demoGoogleReviews, demoInstagramFeed } from "@/lib/sites/demo-social";
 import {
@@ -56,6 +56,8 @@ function jump(scroll) {
  * and sample offer banners (`&offers=0` hides them, `&offer=sunset` picks the first one's theme).
  * Demo Google reviews and MoneyKit Instagram show on the static demo only
  * (`&reviews=0` / `&instagram=0` hide them); the in-app embed still waits for the shop's own connections.
+ * `&plan=basic` shows the Basic website: no offers, service pages, reviews or
+ * Instagram. No `plan` (or `&plan=standard`) shows everything.
  *
  * Service pages switch in place: `#page=slug` links open one, `#home…` links go
  * back, and `__mkSite.showPage(id)` / a `scroll` to a page id opens it from the app.
@@ -187,7 +189,9 @@ export function PreviewClient() {
 
   // Static marketing demos only — not the in-app WebView, where the shop's own links apply.
   // Resolve pack defaults first so Instagram gets bridal/mehendi photos, not empty → landing fallbacks.
-  const showDemoSocial = !embedded;
+  // `?plan=basic` hides every Standard-only part; the embed keeps the app's own gating.
+  const standard = embedded || isStandardPlan(params);
+  const showDemoSocial = !embedded && standard;
   const resolved = showDemoSocial ? withSiteDefaults(doc) : doc;
   const reviews =
     showDemoSocial && params.get("reviews") !== "0" ? demoGoogleReviews() : null;
@@ -199,10 +203,10 @@ export function PreviewClient() {
       <div className="s-page" data-phase={phase || undefined}>
         <SiteRenderer
           doc={doc}
-          withPages
+          withPages={standard}
           pageCount={PREVIEW_PAGES}
-          withOffers
-          page={page}
+          withOffers={standard}
+          page={standard ? page : null}
           reviews={reviews}
           instagram={instagram}
         />

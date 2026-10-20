@@ -71,7 +71,7 @@ const FOOTER_LINKS = [
       { href: "#features", label: "Features" },
       { href: "#website", label: "Website" },
       { href: "#pricing", label: "Pricing" },
-      { href: "/site-preview?template=glow&pack=beauty", label: "Demo website" },
+      { href: "/site-preview?template=glow&pack=beauty&plan=standard", label: "Demo website" },
     ],
   },
   {
