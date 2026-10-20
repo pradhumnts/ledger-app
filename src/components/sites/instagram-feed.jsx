@@ -36,13 +36,13 @@ function VideoBadge() {
   );
 }
 
-function PostTile({ post }) {
+function PostTile({ post, className = "block" }) {
   return (
     <a
       href={post.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative block aspect-square overflow-hidden bg-s-line"
+      className={`group relative aspect-square overflow-hidden bg-s-line ${className}`}
     >
       <img
         src={post.image}
@@ -58,9 +58,9 @@ function PostTile({ post }) {
 }
 
 /**
- * The shop's latest Instagram posts as a 4×3 grid on desktop (Standard plan).
- * Phone keeps 3 columns so tiles stay tappable. `flushTop` when the section
- * above has the same background and already ends in padding.
+ * The shop's latest Instagram posts (Standard plan): 3×3 on phone, 4×3 on
+ * desktop — posts past the ninth wait for the wider grid. `flushTop` when
+ * the section above has the same background and already ends in padding.
  */
 export function InstagramFeed({ feed, headingClassName = "", flushTop = false }) {
   const all = feed?.posts || [];
@@ -99,8 +99,8 @@ export function InstagramFeed({ feed, headingClassName = "", flushTop = false })
           ) : null}
         </div>
         <div className="mt-8 grid grid-cols-3 gap-1 overflow-hidden rounded-[1.25rem] md:grid-cols-4 md:gap-2" data-reveal>
-          {posts.map((post) => (
-            <PostTile key={post.id} post={post} />
+          {posts.map((post, index) => (
+            <PostTile key={post.id} post={post} className={index >= 9 ? "hidden md:block" : ""} />
           ))}
         </div>
       </div>

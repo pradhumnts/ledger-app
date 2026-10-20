@@ -65,7 +65,7 @@ function ReviewList({ reviews }) {
   const loop = reviews.length > 1 ? [...reviews, ...reviews] : reviews;
   return (
     <>
-      <div className="sa-rail -mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 scroll-px-5 md:hidden">
+      <div className="sa-rail mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-3 scroll-px-3 sm:px-5 sm:scroll-px-5 md:hidden">
         {reviews.map((review, index) => (
           <ReviewCard key={`${review.author}-${index}`} review={review} />
         ))}
