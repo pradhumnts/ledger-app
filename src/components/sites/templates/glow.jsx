@@ -122,6 +122,8 @@ function Header({ business, links, cta, homeHref = "#top" }) {
 function Hero({ hero, primary, directions }) {
   const lines = splitTitle(hero.title);
   const [head, accent, tail] = lines;
+  // A long closing phrase sits better under "Head, accent" than on a third line of its own.
+  const twoLines = Boolean(tail && tail.split(/\s+/).length >= 3);
 
   return (
     <section
@@ -160,8 +162,14 @@ function Hero({ hero, primary, directions }) {
             >
               <span className="sa-line block" style={{ "--d": "0.45s" }}>
                 {head}
+                {accent && twoLines ? (
+                  <>
+                    {" "}
+                    <span className="sa-accent s-italic">{accent}</span>
+                  </>
+                ) : null}
               </span>
-              {accent ? (
+              {accent && !twoLines ? (
                 <span
                   className="sa-line sa-accent s-italic block"
                   style={{ "--d": "0.6s" }}
