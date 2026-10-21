@@ -8,6 +8,7 @@ import {
   MapPin,
   Phone,
 } from "lucide-react";
+import { ExpandableNote } from "@/components/sites/expandable-note";
 import { FloatingAction } from "@/components/sites/floating-action";
 import { GalleryRail } from "@/components/sites/gallery-rail";
 import {
@@ -389,23 +390,21 @@ function Services({ services, ui, business, whatsappPhone, cta, pages, nav }) {
                 style={{ "--d": `${Math.min(index, 5) * 0.06}s` }}
                 className="sa-row"
               >
-                <a
-                  href={href}
-                  {...linkProps(href)}
-                  className="group flex items-center gap-4 py-6 md:py-7"
-                >
+                <div className="flex items-center gap-4 py-6 md:py-7">
                   <div className="flex min-w-0 flex-1 items-baseline gap-4 md:gap-6">
                     <span className="w-7 shrink-0 text-[0.95rem] font-medium text-s-muted tabular-nums md:w-9">
                       {String(index + 1).padStart(2, "0")}.
                     </span>
                     <div className="min-w-0">
                       {item.name ? (
-                        <h3 className="s-serif sa-service-title text-s-ink transition duration-300 group-hover:translate-x-1 group-hover:text-s-accent">
-                          {item.name}
-                        </h3>
+                        <a href={href} {...linkProps(href)} className="group">
+                          <h3 className="s-serif sa-service-title text-s-ink transition duration-300 group-hover:translate-x-1 group-hover:text-s-accent">
+                            {item.name}
+                          </h3>
+                        </a>
                       ) : null}
                       {price || item.note ? (
-                        <p className="mt-2 line-clamp-2 text-[0.93rem] leading-relaxed text-s-muted md:line-clamp-none">
+                        <ExpandableNote className="text-[0.93rem] leading-relaxed text-s-muted">
                           {price ? (
                             <span className="font-medium text-s-accent">
                               {ui.priceFrom || "From"} {price}
@@ -413,18 +412,23 @@ function Services({ services, ui, business, whatsappPhone, cta, pages, nav }) {
                           ) : null}
                           {price && item.note ? " · " : null}
                           {item.note}
-                        </p>
+                        </ExpandableNote>
                       ) : null}
                     </div>
                   </div>
-                  <span className="grid size-10 shrink-0 place-items-center rounded-full border border-s-line text-s-accent transition duration-300 group-hover:border-s-accent group-hover:bg-s-accent group-hover:text-s-on-accent">
+                  <a
+                    href={href}
+                    {...linkProps(href)}
+                    aria-label={item.name ? `Book ${item.name}` : "Book"}
+                    className="group grid size-10 shrink-0 place-items-center rounded-full border border-s-line text-s-accent transition duration-300 hover:border-s-accent hover:bg-s-accent hover:text-s-on-accent"
+                  >
                     {page ? (
                       <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                     ) : (
                       <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:rotate-45" />
                     )}
-                  </span>
-                </a>
+                  </a>
+                </div>
               </li>
             );
           })}

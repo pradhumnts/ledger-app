@@ -227,7 +227,7 @@ export const SITE_SECTIONS = {
           {
             key: "note",
             type: "text",
-            max: 120,
+            max: 800,
             label: label("Details", "जानकारी", "Details"),
           },
           {
