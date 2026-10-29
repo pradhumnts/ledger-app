@@ -7,10 +7,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * moneykitapp.com/get/bill → the right store: the App Store on iPhone (once
- * APP_STORE_URL is set), otherwise the Play listing tagged for install tracking.
+ * moneykitapp.com/get/bill → the right store: App Store on iPhone/iPad,
+ * Play listing (with install utm) otherwise.
  * People's taps are counted in `app_link_clicks`; preview bots just follow the
- * redirect so WhatsApp still shows the Play card.
+ * redirect so WhatsApp still shows a store card.
  */
 export async function GET(request, { params }) {
   const { tag: parts } = await params;
@@ -26,7 +26,6 @@ export async function GET(request, { params }) {
     }
   }
 
-  // iPhone visitors go to the App Store listing once APP_STORE_URL is set.
   const location = appStoreUrlFor(userAgent, tag) || appLinkPlayUrl(tag);
   return new Response(null, {
     status: 302,

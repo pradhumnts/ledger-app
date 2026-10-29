@@ -32,7 +32,7 @@ test("smart links point at /get", () => {
   assert.equal(appLink(""), "https://moneykitapp.com/get");
 });
 
-test("App Store only for Apple devices, and only once the URL is set", () => {
+test("App Store only for Apple devices", () => {
   const iphone = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)";
   const android = "Mozilla/5.0 (Linux; Android 15; Pixel 9)";
   const store = "https://apps.apple.com/in/app/moneykit/id123?pt=999";
@@ -41,6 +41,12 @@ test("App Store only for Apple devices, and only once the URL is set", () => {
   assert.equal(appStoreUrlFor(iphone, "bill", store), `${store}&ct=bill`);
   assert.equal(appStoreUrlFor(iphone, "", store), store);
   assert.equal(appStoreUrlFor(iphone, "bill", "not a url"), "");
+  // Branding default: iPhone gets the real listing when no override is passed.
+  const live = appStoreUrlFor(iphone, "invite");
+  assert.ok(live.includes("apps.apple.com"));
+  assert.ok(live.includes("id6820449859"));
+  assert.ok(live.includes("ct=invite"));
+  assert.equal(appStoreUrlFor(android, "invite"), "");
 });
 
 test("tags are cleaned", () => {

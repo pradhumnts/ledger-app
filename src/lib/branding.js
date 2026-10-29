@@ -13,6 +13,9 @@ export const COMPANY_URL = "https://prad.dev";
 export const PLAY_PACKAGE_NAME = "app.moneykit.android";
 export const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=app.moneykit.android";
+/** App Store listing; `/get` sends iPhone/iPad here. Env can override. */
+export const APP_STORE_URL =
+  "https://apps.apple.com/in/app/moneykit/id6820449859";
 
 export const APP_ICON_SVG = "/moneykit-icon.svg";
 export const APP_LOGO_WEBP = "/moneykit-logo.webp";

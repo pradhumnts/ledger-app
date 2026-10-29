@@ -1,4 +1,4 @@
-import { APP_SITE_URL, PLAY_STORE_URL } from "./branding.js";
+import { APP_SITE_URL, APP_STORE_URL, PLAY_STORE_URL } from "./branding.js";
 
 /**
  * Short install links (`moneykitapp.com/get/bill`) used by the app's shares and
@@ -48,11 +48,15 @@ export function appLinkPlayUrl(tag) {
 }
 
 /**
- * The App Store listing for iPhone and iPad visitors, or "" while there is none
- * (`APP_STORE_URL` unset): they get the Play listing like everyone else.
+ * The App Store listing for iPhone and iPad visitors. Prefers `APP_STORE_URL`
+ * env, then the branding constant. Non-Apple visitors get "" (Play instead).
  * The tag rides along as App Store Connect's campaign (`ct`).
  */
-export function appStoreUrlFor(userAgent, tag, appStoreUrl = process.env.APP_STORE_URL) {
+export function appStoreUrlFor(
+  userAgent,
+  tag,
+  appStoreUrl = process.env.APP_STORE_URL || APP_STORE_URL
+) {
   const base = String(appStoreUrl || "").trim();
   if (!base || !APPLE_DEVICE.test(String(userAgent || ""))) return "";
   try {
